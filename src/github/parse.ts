@@ -3,23 +3,7 @@ import type { Claim, IssueKey, IssueKind, IssueStatus } from "../contracts"
 import { keyOf } from "../keys"
 import type { GitHubIssueData, GitHubTimelineEvent } from "./client"
 import { GitHubAdapterError } from "./errors"
-
-/** Reads `owner/name` from a GitHub API or web issue URL, naming the caller's field on failure. */
-export function repositoryFromUrl(
-	url: string,
-	field: string,
-	code: "malformed-issue-url" | "malformed-parent-url" = "malformed-issue-url",
-): string {
-	const match = /(?:api\.github\.com\/repos|github\.com)\/([^/]+)\/([^/?#]+)/.exec(url)
-	if (match === null) {
-		throw new GitHubAdapterError(
-			code,
-			field,
-			`GitHub returned an issue URL without a repository: ${url}`,
-		)
-	}
-	return `${match[1]}/${match[2]}`
-}
+import { issueNumberFromUrl, repositoryFromUrl } from "./parse-url"
 
 /** The core key of a GitHub issue response. */
 export function issueKeyOf(issue: GitHubIssueData, field: string): IssueKey {
@@ -91,17 +75,4 @@ function claimTime(events: readonly GitHubTimelineEvent[], key: IssueKey): numbe
 function instantOf(value: string): number | undefined {
 	const at = Date.parse(value)
 	return Number.isFinite(at) ? at : undefined
-}
-
-function issueNumberFromUrl(url: string, field: string): number {
-	const match = /\/issues\/(\d+)\/?$/.exec(url)
-	const number = match?.[1]
-	if (number === undefined) {
-		throw new GitHubAdapterError(
-			"malformed-parent-url",
-			field,
-			`GitHub returned a parent URL without an issue number: ${url}`,
-		)
-	}
-	return Number(number)
 }
