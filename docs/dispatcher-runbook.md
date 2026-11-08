@@ -37,7 +37,24 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
    - `modelSelection`: provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `factory/<n>-<slug>` (Spec Run: `factory/spec-<n>-<slug>`). The slug is lowercase ASCII, at most 40 characters; use plain `factory/<n>` if nothing is usable.
    If the launch errors, remove `agent-working`, do not retry in a loop, and report the error. If the repository lacks `implement`, `tdd` and `code-review` under `.agents/skills`, do not launch: comment on the issue and add `needs-info`.
-9. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, and skipped issues with a one-word reason. Do not wait for the Runs to finish.
+9. **Review audit.** For every open, non-draft pull request whose head branch starts with `factory/`, check that its body has a `## Reviews` section naming a Conformance Review on `claudeAgent` and a Standards Review on `antigravity`, and that those threads exist (`t3_thread_list`, `includeSubagents`). A `## Reviews` section that says the owner accepted the review as it is satisfies the audit; leave that pull request alone. If either is missing, the pull request is unreviewed: launch the missing reviewer or reviewers yourself with the same `target` as in the launch brief, as read-only tasks against `gh pr diff <pr>` and the issue, and ask each to post its findings as a pull request comment (`gh pr comment`). Do not edit the branch. Do this at most once per pull request per pass, and for at most 3 pull requests.
+10. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
+
+## Models
+
+Each role runs on a different model, so the model that wrote the code never marks its own work (v0 Spec, story 8).
+
+| Role | Provider instance | Model | Option |
+| --- | --- | --- | --- |
+| Implementer (the Run thread) | `pi` | `command-code/deepseek/deepseek-v4.1-flash` | none |
+| Conformance Review | `claudeAgent` | `claude-sonnet-5-5` | `effort: high` |
+| Standards Review | `antigravity` | `gemini-3.8-flash` | none |
+
+Why the brief names them: the `code-review` skill starts its sub-agents on the model of the thread that runs it, and `delegate_task` without a `target` does the same. A Pi thread that follows a brief saying only "run `/code-review`" reviews its own work with DeepSeek. The brief therefore tells the Run to call `delegate_task` with an explicit `target` for each reviewer.
+
+**Quota fallback.** DeepSeek is the most generous provider, so it is the fallback reviewer, but only when a reviewer's own provider reports its quota or usage limit is used up. A fallback review is labelled `FALLBACK (quota)` in the pull request and in the Dispatcher's report, so the owner knows that review was not independent. Any other failure is retried once and then escalated; it is never a reason to use the fallback. The Dispatcher pass uses the same rule when it launches reviewers itself.
+
+Each reviewer is a separate child thread on another provider. It is not the Pi session switching models, so the Pi restriction in AGENTS.md (rule 7) is not affected.
 
 ## Launch brief
 
@@ -48,10 +65,14 @@ Use this as the thread message, filling the placeholders.
 > Steps:
 > 1. Read the issue (`gh issue view <n> --json number,title,body,labels,comments`), AGENTS.md, GLOSSARY.md and docs/adr/.
 > 2. Work on branch `<branch>`. Never commit to `main`.
-> 3. Run `/implement` (Spec Run: `/implement-spec`), test-first with `/tdd`.
+> 3. Build it test-first. The `implement` and `implement-spec` skills are marked `disable-model-invocation`, so you cannot call them as tools: read `.agents/skills/implement/SKILL.md` (Spec Run: `.agents/skills/implement-spec/SKILL.md`) and follow it yourself. You may call the `tdd` skill. Where `implement` says to call `code-review`, do step 5 instead.
 > 4. Gate: `bun run check` must pass. Never loosen tsconfig or biome config. Never edit `version` in package.json.
-> 5. Conformance Review (`/code-review` against the issue) and Standards Review (`/code-review` against CODING_STANDARDS.md). At most two rounds.
-> 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>`.
+> 5. Reviews (mandatory). You may not open a ready pull request until both reviewers below have returned for the current round. Reading your own diff, or "reviewing" inline in this thread, does not count. Do NOT review in this thread and do NOT run `/code-review` yourself: its sub-agents would run on your own model and only mark your own work. Instead call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` as below (a call without a `target` inherits your DeepSeek model):
+>    - Conformance Review: `target: { providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { effort: "high" } }`. Task: review `git diff origin/main...HEAD` against issue #`<n>` (the Spec axis of `code-review`): requirements missing or partial, behaviour that was not asked for, requirements implemented wrongly. Quote the issue line for each finding. Under 400 words.
+>    - Standards Review: `target: { providerInstanceId: "antigravity", model: "gemini-3.8-flash" }`. Task: review the same diff against CODING_STANDARDS.md and the smell baseline in `.agents/skills/code-review/SKILL.md` (the Standards axis); cite the rule for each finding; smells are judgement calls. Under 400 words.
+>
+>    Tell each reviewer to read only and edit no files. Fix the findings, then run both reviewers again. At most two rounds. If a reviewer call fails for any reason other than quota, retry that reviewer once; if it still fails, take the Urgent exit and say which provider failed. Never review with your own thread. Quota fallback: if the failure says the provider's quota or usage limit is used up (the error mentions quota, usage limit, limit reached, rate limit or 429), run that same review once more with `target: { providerInstanceId: "pi", model: "command-code/deepseek/deepseek-v4.1-flash" }` and the same task, and write `FALLBACK (quota)` and the model beside it in the `## Reviews` section. Use the fallback only for a quota failure, never because a reviewer is slow, disagrees, or found problems.
+> 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>` and ends with a `## Reviews` section: one line per reviewer per round with the reviewer's role, provider and model, its thread link, its verdict, and how many findings you fixed. A pull request without this section is treated as unreviewed.
 >
 > Hard rules: never merge, approve, or add `ready-for-agent` or `wontfix`. Never touch a host or cloud platform. Never commit secrets. Bun only.
 >
