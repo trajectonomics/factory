@@ -1,10 +1,9 @@
-import { T3Error } from "./t3-errors"
-
 const SEPARATOR = /[^a-z0-9]+/g
 const LEADING_OR_TRAILING_SEPARATOR = /^-+|-+$/g
 const COMBINING_MARKS = /\p{M}+/gu
+const MAX_SLUG_LENGTH = 50
 
-/** Turns a title into a stable, lowercase branch-name slug. */
+/** A stable, lowercase branch-name slug for a title. */
 export function slugify(title: string): string {
 	const slug = title
 		.normalize("NFKD")
@@ -12,13 +11,11 @@ export function slugify(title: string): string {
 		.toLowerCase()
 		.replace(SEPARATOR, "-")
 		.replace(LEADING_OR_TRAILING_SEPARATOR, "")
-	if (slug === "") {
-		throw new T3Error("empty-slug", "title", `The title ${JSON.stringify(title)} has no slug`)
-	}
-	return slug
+	return slug.slice(0, MAX_SLUG_LENGTH).replace(LEADING_OR_TRAILING_SEPARATOR, "")
 }
 
-/** The branch a Run works on: `factory/<issue>-<slug>`. */
+/** The branch a Run works on: `factory/<issue>-<slug>`, or `factory/<issue>` without a slug. */
 export function branchNameFor(issueNumber: number, title: string): string {
-	return `factory/${issueNumber}-${slugify(title)}`
+	const slug = slugify(title)
+	return slug === "" ? `factory/${issueNumber}` : `factory/${issueNumber}-${slug}`
 }

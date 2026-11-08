@@ -20,7 +20,7 @@ export function runLaunchRequest(input: RunLaunchInput): T3LaunchRequest {
 		throw new T3Error("empty-role-brief", "roleBrief", "A Run needs a role brief")
 	}
 	const title = threadTitleOf(input.issue)
-	const branch = branchFor(input)
+	const branch = branchNameFor(input.issue.number, input.issueTitle)
 	const ticket = `${input.issue.repository}#${input.issue.number}`
 	const prompt = [
 		roleBrief,
@@ -35,15 +35,4 @@ export function runLaunchRequest(input: RunLaunchInput): T3LaunchRequest {
 		prompt,
 		model: { provider: input.model.provider, model: input.model.model },
 	})
-}
-
-function branchFor(input: RunLaunchInput): string {
-	try {
-		return branchNameFor(input.issue.number, input.issueTitle)
-	} catch (error) {
-		if (error instanceof T3Error && error.code === "empty-slug") {
-			throw new T3Error("empty-slug", "issueTitle", error.message)
-		}
-		throw error
-	}
 }

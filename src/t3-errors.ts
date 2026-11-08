@@ -1,5 +1,5 @@
 /** The inputs a T3 adapter operation can reject. */
-export type T3ErrorCode = "empty-slug" | "empty-role-brief"
+export type T3ErrorCode = "empty-role-brief" | "unsafe-issue-number"
 
 /** A malformed input to a T3 adapter operation. */
 export class T3Error extends Error {

@@ -67,10 +67,10 @@ describe("runLaunchRequest", () => {
 		expect(error?.field).toBe("roleBrief")
 	})
 
-	it("names the caller's title field when a title has no slug", () => {
-		const error = t3Error(() => runLaunchRequest(input({ issueTitle: "!!!" })))
+	it("uses the issue-only branch when the title has no slug", () => {
+		const request = runLaunchRequest(input({ issueTitle: "!!!" }))
 
-		expect(error?.code).toBe("empty-slug")
-		expect(error?.field).toBe("issueTitle")
+		expect(request.branch).toBe("factory/8")
+		expect(request.prompt).toContain("Branch: factory/8")
 	})
 })

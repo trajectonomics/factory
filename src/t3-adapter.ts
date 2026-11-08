@@ -7,7 +7,7 @@ import { liveThreadIssues } from "./t3-threads"
 /** Whether a launch is applied to T3 or only planned. */
 export type LaunchMode = "live" | "dry-run"
 
-/** The result of launching a Run, or of planning one in a dry run. */
+/** The launch of a Run thread, or its plan in a dry run. */
 export type RunLaunchOutcome =
 	| { readonly kind: "launched"; readonly request: T3LaunchRequest; readonly thread: T3Thread }
 	| { readonly kind: "dry-run"; readonly request: T3LaunchRequest }
@@ -26,5 +26,11 @@ export async function launchRun(
 	const request = runLaunchRequest(input)
 	if (mode === "dry-run") return deepFreeze({ kind: "dry-run", request })
 	const thread = await client.launchThread(request)
-	return Object.freeze({ kind: "launched", request, thread })
+	return deepFreeze({ kind: "launched", request, thread: copyThread(thread) })
+}
+
+function copyThread(thread: T3Thread): T3Thread {
+	return thread.branch === undefined
+		? { id: thread.id, title: thread.title, status: thread.status }
+		: { id: thread.id, title: thread.title, status: thread.status, branch: thread.branch }
 }

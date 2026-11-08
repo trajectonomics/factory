@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "./contracts"
 import type { T3Thread } from "./t3"
+import { T3Error } from "./t3-errors"
 import { issueFromThreadTitle, liveThreadIssues, threadTitleOf } from "./t3-threads"
 
 const FACTORY: IssueKey = { repository: "trajectonomics/factory", number: 8 }
@@ -12,6 +13,15 @@ function thread(overrides: Partial<T3Thread> = {}): T3Thread {
 		status: "running",
 		...overrides,
 	}
+}
+
+function t3Error(run: () => void): T3Error | undefined {
+	try {
+		run()
+	} catch (error) {
+		return error instanceof T3Error ? error : undefined
+	}
+	return undefined
 }
 
 describe("Run thread titles", () => {
@@ -38,6 +48,15 @@ describe("Run thread titles", () => {
 	it("ignores a title with more than one repository separator", () => {
 		expect(issueFromThreadTitle("traj/trajectonomics/factory/extra#8")).toBeUndefined()
 	})
+
+	it("rejects an issue number that is not a safe integer", () => {
+		const error = t3Error(() =>
+			issueFromThreadTitle("traj/trajectonomics/factory#99999999999999999999"),
+		)
+
+		expect(error?.code).toBe("unsafe-issue-number")
+		expect(error?.field).toBe("title")
+	})
 })
 
 describe("live Run threads", () => {
@@ -47,6 +66,10 @@ describe("live Run threads", () => {
 
 	it("lists a waiting Run thread", () => {
 		expect(liveThreadIssues([thread({ status: "waiting" })])).toEqual([FACTORY])
+	})
+
+	it.each(["preparing", "queued", "starting"] as const)("lists a %s Run thread", (status) => {
+		expect(liveThreadIssues([thread({ status })])).toEqual([FACTORY])
 	})
 
 	it("ignores a settled Run thread", () => {

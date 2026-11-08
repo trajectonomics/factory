@@ -17,14 +17,17 @@ const INPUT: RunLaunchInput = {
 
 type FakeT3Client = T3Client & { readonly launches: T3LaunchRequest[] }
 
-function fakeClient(threads: readonly T3Thread[]): FakeT3Client {
+function fakeClient(
+	threads: readonly T3Thread[],
+	launched: T3Thread = RECORDED_LAUNCHED_THREAD,
+): FakeT3Client {
 	const launches: T3LaunchRequest[] = []
 	return {
 		launches,
 		listThreads: async () => threads,
 		launchThread: async (request) => {
 			launches.push(request)
-			return RECORDED_LAUNCHED_THREAD
+			return launched
 		},
 	}
 }
@@ -92,6 +95,19 @@ describe("launchRun", () => {
 		const outcome = await launchRun(fakeClient([]), INPUT, "live")
 
 		expect(outcome).toMatchObject({ thread: RECORDED_LAUNCHED_THREAD })
+	})
+
+	it("returns a frozen copy of the launched thread", async () => {
+		const launched = { ...RECORDED_LAUNCHED_THREAD }
+
+		const outcome = await launchRun(fakeClient([], launched), INPUT, "live")
+
+		if (outcome.kind !== "launched") throw new Error("The Run was not launched")
+		expect(outcome.thread).toEqual(launched)
+		expect(outcome.thread).not.toBe(launched)
+		expect(Object.isFrozen(outcome.thread)).toBe(true)
+		expect(Object.isFrozen(outcome)).toBe(true)
+		expect(Object.isFrozen(launched)).toBe(false)
 	})
 
 	it("plans the launch without launching anything in a dry run", async () => {

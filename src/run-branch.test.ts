@@ -1,17 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import { branchNameFor, slugify } from "./run-branch"
-import { T3Error } from "./t3-errors"
 
-function t3Error(run: () => void): T3Error | undefined {
-	try {
-		run()
-	} catch (error) {
-		return error instanceof T3Error ? error : undefined
-	}
-	return undefined
-}
-
-describe("slugify", () => {
+describe("Run branch slugs", () => {
 	it("turns a title into a branch-name slug", () => {
 		expect(slugify("T3 adapter")).toBe("t3-adapter")
 	})
@@ -32,15 +22,34 @@ describe("slugify", () => {
 		expect(slugify("T3 adapter")).toBe(slugify("T3 adapter"))
 	})
 
-	it("rejects a title with no letters or digits", () => {
-		const error = t3Error(() => slugify("!!!"))
-		expect(error?.code).toBe("empty-slug")
-		expect(error?.field).toBe("title")
+	it("returns no slug for a title with no usable characters", () => {
+		expect(slugify("!!!")).toBe("")
+	})
+
+	it.each(["ทดสอบ", "工場", "🚀"])("returns no slug for %s", (title) => {
+		expect(slugify(title)).toBe("")
+	})
+
+	it("bounds a long slug and trims a trailing separator", () => {
+		expect(slugify("a".repeat(300))).toBe("a".repeat(50))
+		expect(slugify(`${"a".repeat(49)} b`)).toBe("a".repeat(49))
 	})
 })
 
-describe("branchNameFor", () => {
+describe("Run branch names", () => {
 	it("names the branch after the issue and its title", () => {
 		expect(branchNameFor(8, "T3 adapter")).toBe("factory/8-t3-adapter")
+	})
+
+	it("names the branch from the issue alone when the title has no slug", () => {
+		expect(branchNameFor(8, "!!!")).toBe("factory/8")
+	})
+
+	it.each(["ทดสอบ", "工場", "🚀"])("names the branch from the issue alone for %s", (title) => {
+		expect(branchNameFor(8, title)).toBe("factory/8")
+	})
+
+	it("keeps the branch component within git's limit for a long title", () => {
+		expect(branchNameFor(8, "a".repeat(300))).toBe(`factory/8-${"a".repeat(50)}`)
 	})
 })

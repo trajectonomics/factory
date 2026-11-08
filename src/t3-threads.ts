@@ -3,6 +3,7 @@ import { deepFreeze } from "./freeze"
 import { keyOf } from "./keys"
 import { sortIssueKeys } from "./sort"
 import type { T3Thread, T3ThreadStatus } from "./t3"
+import { T3Error } from "./t3-errors"
 
 const TITLE_PREFIX = "traj/"
 const TITLE_PATTERN = /^traj\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
@@ -26,7 +27,15 @@ export function issueFromThreadTitle(title: string): IssueKey | undefined {
 	const repository = match?.[1]
 	const numberText = match?.[2]
 	if (repository === undefined || numberText === undefined) return undefined
-	return deepFreeze({ repository, number: Number(numberText) })
+	const number = Number(numberText)
+	if (!Number.isSafeInteger(number)) {
+		throw new T3Error(
+			"unsafe-issue-number",
+			"title",
+			`The issue number ${numberText} is not a safe integer`,
+		)
+	}
+	return deepFreeze({ repository, number })
 }
 
 /** The issues behind the live Run threads, once each, in issue order. */
