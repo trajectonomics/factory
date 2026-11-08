@@ -5,6 +5,9 @@ export { CLAIM_LEASE_MS } from "./claim"
 export * from "./contracts"
 export { evaluateEligibility } from "./eligibility"
 export * from "./errors"
+export type { FollowUpTicket } from "./follow-up"
+export type { GateDecision, GateReview, GateRound } from "./gate"
+export { evaluateGate, GateError, MAX_GATE_ROUNDS } from "./gate"
 export * from "./github/apply"
 export * from "./github/board"
 export * from "./github/client"
@@ -35,3 +38,11 @@ export type { LaunchMode, RunLaunchOutcome } from "./t3-adapter"
 export { launchRun, listLiveThreads } from "./t3-adapter"
 export type { T3ErrorCode } from "./t3-errors"
 export { T3Error } from "./t3-errors"
+export { planTicketRun, startTicketRun } from "./ticket-run"
+export type {
+	GateReport,
+	SpecGapReport,
+	TicketRunPlan,
+	TicketRunReport,
+	UrgentReport,
+} from "./ticket-run-contracts"

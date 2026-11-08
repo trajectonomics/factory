@@ -1,12 +1,10 @@
 import { isClaimLive } from "./claim"
 import type { IssueState } from "./contracts"
 import { copyIssueKey } from "./keys"
+import { READY_FOR_HUMAN_LABEL } from "./labels"
 import type { ClaimRelease, TicketHandoff, TicketRequeue } from "./reconciliation-plan"
 import type { RunFailure } from "./run-failure"
 import { countFailedAttempts, latestRunFailure } from "./run-failures"
-
-/** The label a Ticket carries once two failed attempts exhaust it. */
-export const READY_FOR_HUMAN_LABEL: TicketHandoff["label"] = "ready-for-human"
 
 /** The delay after a provider rate-limit before the Ticket is retried. */
 export const PROVIDER_RATE_LIMIT_BACKOFF_MS: number = 15 * 60 * 1000

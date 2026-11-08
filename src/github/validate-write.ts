@@ -24,6 +24,9 @@ export function validateWrite(write: FactoryWrite, index: number, board: Board):
 		case "comment":
 			validateComment(write, index)
 			return
+		case "pull-request":
+		case "follow-up":
+			return
 	}
 }
 

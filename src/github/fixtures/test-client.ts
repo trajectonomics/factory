@@ -20,6 +20,8 @@ export function testClient(overrides: Partial<GitHubClient> = {}): GitHubClient 
 		addLabel: unusedWrite,
 		removeLabel: unusedWrite,
 		addComment: unusedWrite,
+		createIssue: unusedWrite,
+		createPullRequest: unusedWrite,
 		updateProjectStatus: unusedWrite,
 		...overrides,
 	}
