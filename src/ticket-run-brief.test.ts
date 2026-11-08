@@ -29,11 +29,21 @@ describe("the Ticket Run role brief", () => {
 		expect(brief).toContain("Closes #9")
 	})
 
-	it("names the spec-gap, follow-up and urgent Exits", () => {
+	it("names all four Exits", () => {
 		const brief = ticketRunBrief(TICKET)
 
 		expect(brief).toContain("spec gap")
-		expect(brief).toContain("ready-for-human")
+		expect(brief).toContain("Follow-up Ticket")
 		expect(brief).toContain("urgent Exit")
+		expect(brief).toContain("gate failure")
+		expect(brief).toContain("draft pull request")
+	})
+
+	it("tells the implementer to report the Gate result for the Factory to apply", () => {
+		const brief = ticketRunBrief(TICKET)
+
+		expect(brief).toContain("Report a green Gate")
+		expect(brief).toContain("the Factory opens")
+		expect(brief).not.toContain("open a ready pull request")
 	})
 })

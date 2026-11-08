@@ -19,7 +19,7 @@ import type {
 	TicketRunReport,
 	UrgentReport,
 } from "./ticket-run-contracts"
-import { planReportedGate } from "./ticket-run-gate"
+import { planGate } from "./ticket-run-gate"
 
 const SPEC_GAP_KEY = "exit:spec-gap"
 
@@ -32,7 +32,7 @@ export function startTicketRun(ticket: IssueKey, claimedAtMs: number): readonly 
 export function planTicketRun(report: TicketRunReport): TicketRunPlan {
 	switch (report.kind) {
 		case "gate":
-			return planReportedGate(report)
+			return planGate(report)
 		case "follow-up":
 			return followUpPlan(report)
 		case "spec-gap":
@@ -64,7 +64,17 @@ function specGapPlan(report: SpecGapReport): TicketRunPlan {
 
 function specGapKey(question: string): string {
 	const slug = slugify(question)
-	return slug === "" ? SPEC_GAP_KEY : `${SPEC_GAP_KEY}:${slug}`
+	const hash = questionHash(question)
+	return slug === "" ? `${SPEC_GAP_KEY}:${hash}` : `${SPEC_GAP_KEY}:${slug}:${hash}`
+}
+
+function questionHash(question: string): string {
+	let hash = 0x811c9dc5
+	for (const character of question) {
+		hash ^= character.codePointAt(0) ?? 0
+		hash = Math.imul(hash, 0x01000193) >>> 0
+	}
+	return hash.toString(16).padStart(8, "0")
 }
 
 function urgentPlan(report: UrgentReport): TicketRunPlan {

@@ -1,7 +1,7 @@
 import { isClaimLive } from "./claim"
 import type { IssueState } from "./contracts"
 import { copyIssueKey } from "./keys"
-import { READY_FOR_HUMAN_LABEL } from "./labels"
+import { NEEDS_INFO_LABEL, READY_FOR_HUMAN_LABEL } from "./labels"
 import type { ClaimRelease, TicketHandoff, TicketRequeue } from "./reconciliation-plan"
 import type { RunFailure } from "./run-failure"
 import { countFailedAttempts, latestRunFailure } from "./run-failures"
@@ -11,7 +11,7 @@ export const PROVIDER_RATE_LIMIT_BACKOFF_MS: number = 15 * 60 * 1000
 
 const FAILED_ATTEMPT_LIMIT = 2
 const APPROVAL_LABEL = "ready-for-agent"
-const REQUEUE_BLOCKING_LABELS = ["needs-info", "wontfix", READY_FOR_HUMAN_LABEL] as const
+const REQUEUE_BLOCKING_LABELS = [NEEDS_INFO_LABEL, "wontfix", READY_FOR_HUMAN_LABEL] as const
 
 /** The actions one issue calls for in a reconciliation pass. */
 export type IssueReconciliation = {

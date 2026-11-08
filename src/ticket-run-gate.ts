@@ -9,14 +9,14 @@ import { FACTORY_LABEL, READY_FOR_HUMAN_LABEL } from "./labels"
 import type { GateReport, TicketRunPlan } from "./ticket-run-contracts"
 
 /** Plans another Gate round, a ready pull request, or a draft after a gate failure. */
-export function planReportedGate(report: GateReport): TicketRunPlan {
+export function planGate(report: GateReport): TicketRunPlan {
 	const decision = evaluateGate(report.rounds)
 	if (decision.kind === "rerun") return deepFreeze({ kind: "rerun", waiting: false, writes: [] })
-	if (decision.kind === "ready") return gateWrites(report, false, closesBody(report.ticket))
-	return gateWrites(report, true, findingsBody(report.ticket, decision.findings))
+	if (decision.kind === "ready") return planGateWrites(report, false, closesBody(report.ticket))
+	return planGateWrites(report, true, findingsBody(report.ticket, decision.findings))
 }
 
-function gateWrites(report: GateReport, draft: boolean, body: string): TicketRunPlan {
+function planGateWrites(report: GateReport, draft: boolean, body: string): TicketRunPlan {
 	const writes: FactoryWrite[] = [
 		pullRequestWrite(report.ticket, pullRequestRequest(report, draft, body)),
 		labelWrite(report.ticket, CLAIM_LABEL, false),

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "../contracts"
 import type { CreatePullRequestRequest } from "./create"
+import { GitHubAdapterError } from "./errors"
 import { followUpWrite, pullRequestWrite } from "./run-writes"
 
 const ISSUE: IssueKey = { repository: "trajectonomics/factory", number: 9 }
@@ -12,6 +13,15 @@ const REQUEST: CreatePullRequestRequest = {
 	base: "main",
 	draft: false,
 	labels: ["factory"],
+}
+
+function errorOf(run: () => unknown): GitHubAdapterError | undefined {
+	try {
+		run()
+	} catch (error) {
+		return error instanceof GitHubAdapterError ? error : undefined
+	}
+	return undefined
 }
 
 describe("run writes", () => {
@@ -34,5 +44,27 @@ describe("run writes", () => {
 
 		expect(write.labels).toEqual(["ready-for-human"])
 		expect(Object.isFrozen(write)).toBe(true)
+	})
+	it("rejects a pull request without a title, head branch or base branch", () => {
+		const title = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, title: " " }))
+		const head = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, head: "" }))
+		const base = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, base: "" }))
+
+		expect(title?.code).toBe("empty-pull-request-title")
+		expect(title?.field).toBe("request.title")
+		expect(head?.code).toBe("empty-pull-request-head")
+		expect(head?.field).toBe("request.head")
+		expect(base?.code).toBe("empty-pull-request-base")
+		expect(base?.field).toBe("request.base")
+	})
+
+	it("rejects a Follow-up Ticket without a title or body", () => {
+		const title = errorOf(() => followUpWrite(ISSUE, { title: "", body: "Why." }))
+		const body = errorOf(() => followUpWrite(ISSUE, { title: "Title", body: " " }))
+
+		expect(title?.code).toBe("empty-follow-up-title")
+		expect(title?.field).toBe("followUp.title")
+		expect(body?.code).toBe("empty-follow-up-body")
+		expect(body?.field).toBe("followUp.body")
 	})
 })

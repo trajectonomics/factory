@@ -130,7 +130,7 @@ describe("planning a Ticket Run", () => {
 		expect(plan.writes.map((write) => write.kind)).toEqual(["comment", "label", "label"])
 		const comment = writeOf(plan, "comment")
 		if (comment?.kind !== "comment") throw new Error("expected a comment")
-		expect(comment.key).toBe("exit:spec-gap:which-host-should-the-run-use")
+		expect(comment.key).toStartWith("exit:spec-gap:which-host-should-the-run-use:")
 		expect(comment.body).toContain("Which host should the Run use?")
 		expect(plan.writes).toContainEqual({
 			kind: "label",
@@ -146,24 +146,18 @@ describe("planning a Ticket Run", () => {
 		})
 	})
 
-	it("posts a new spec-gap question under its own comment key", () => {
-		const first = planTicketRun({
-			kind: "spec-gap",
-			ticket: TICKET,
-			question: "Which host should the Run use?",
+	it("posts each spec-gap question under its own comment key", () => {
+		const prefix = "a".repeat(80)
+		const questions = ["Which host should the Run use?", `${prefix} first`, `${prefix} second`]
+		const keys = questions.map((question) => {
+			const plan = planTicketRun({ kind: "spec-gap", ticket: TICKET, question })
+			const comment = writeOf(plan, "comment")
+			if (comment?.kind !== "comment") throw new Error("expected a spec-gap comment")
+			return comment.key
 		})
-		const second = planTicketRun({
-			kind: "spec-gap",
-			ticket: TICKET,
-			question: "Which model should the Run use?",
-		})
-		const firstComment = writeOf(first, "comment")
-		const secondComment = writeOf(second, "comment")
-		if (firstComment?.kind !== "comment" || secondComment?.kind !== "comment") {
-			throw new Error("expected spec-gap comments")
-		}
 
-		expect(firstComment.key).not.toBe(secondComment.key)
+		expect(keys[0]).toStartWith("exit:spec-gap:which-host-should-the-run-use:")
+		expect(new Set(keys).size).toBe(questions.length)
 	})
 
 	it("files a Follow-up Ticket and then continues to the ready pull request", () => {

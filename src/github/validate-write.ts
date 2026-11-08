@@ -2,6 +2,7 @@ import type { Board } from "./board"
 import { boardItemId } from "./board-item"
 import { assertClaimTime } from "./claim-time"
 import { GitHubAdapterError } from "./errors"
+import { assertFollowUpFields, assertPullRequestFields } from "./run-write-validation"
 import {
 	AI_DISCLAIMER,
 	assertCommentKey,
@@ -25,7 +26,10 @@ export function validateWrite(write: FactoryWrite, index: number, board: Board):
 			validateComment(write, index)
 			return
 		case "pull-request":
+			assertPullRequestFields(write, `writes[${index}]`)
+			return
 		case "follow-up":
+			assertFollowUpFields(write, `writes[${index}]`)
 			return
 	}
 }

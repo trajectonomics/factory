@@ -15,6 +15,11 @@ export type GitHubAdapterErrorCode =
 	| "comment-missing-disclaimer"
 	| "comment-missing-marker"
 	| "project-items-incomplete"
+	| "empty-pull-request-title"
+	| "empty-pull-request-head"
+	| "empty-pull-request-base"
+	| "empty-follow-up-title"
+	| "empty-follow-up-body"
 
 /** A GitHub response or write that the adapter cannot accept. */
 export class GitHubAdapterError extends Error {

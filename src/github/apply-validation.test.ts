@@ -3,6 +3,7 @@ import type { IssueKey } from "../contracts"
 import { applyWrites } from "./apply"
 import type { Board } from "./board"
 import { adapterError, testClient } from "./fixtures/test-client"
+import type { FollowUpWrite, PullRequestWrite } from "./run-writes"
 import { AI_DISCLAIMER, type FactoryWrite, statusWrite } from "./writes"
 
 const FACTORY = "trajectonomics/factory"
@@ -70,5 +71,35 @@ describe("validating Factory writes", () => {
 		const code = await rejection({ kind: "claim", issue: key(), claimedAtMs: Number.NaN })
 
 		expect(code).toBe("invalid-claim-time")
+	})
+	it("rejects a pull request with an empty head branch before any write", async () => {
+		const write: PullRequestWrite = {
+			kind: "pull-request",
+			issue: key(),
+			title: "Ticket Run end to end",
+			body: "Closes #7",
+			head: " ",
+			base: "main",
+			draft: false,
+			labels: ["factory"],
+		}
+
+		const code = await rejection(write)
+
+		expect(code).toBe("empty-pull-request-head")
+	})
+
+	it("rejects a Follow-up Ticket with an empty body before any write", async () => {
+		const write: FollowUpWrite = {
+			kind: "follow-up",
+			issue: key(),
+			title: "Provision the release token",
+			body: "",
+			labels: ["ready-for-human"],
+		}
+
+		const code = await rejection(write)
+
+		expect(code).toBe("empty-follow-up-body")
 	})
 })

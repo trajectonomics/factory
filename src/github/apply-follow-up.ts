@@ -1,3 +1,4 @@
+import type { ApplyOptions } from "./apply"
 import type { GitHubClient } from "./client"
 import { formatWrite } from "./format-write"
 import type { FollowUpWrite } from "./run-writes"
@@ -6,7 +7,7 @@ import type { FollowUpWrite } from "./run-writes"
 export async function applyFollowUp(
 	client: GitHubClient,
 	write: FollowUpWrite,
-	options: { readonly dryRun: boolean; readonly print: (line: string) => void },
+	options: ApplyOptions,
 ): Promise<void> {
 	if (options.dryRun) return options.print(formatWrite(write))
 	await client.createIssue({

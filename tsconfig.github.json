@@ -7,7 +7,6 @@
 	"include": [
 		"src/github/index.ts",
 		"src/github/gh-client.ts",
-		"src/github/gh-create.ts",
 		"src/github/gh-read.ts",
 		"src/github/gh-run.ts",
 		"src/github/gh-write.ts",
