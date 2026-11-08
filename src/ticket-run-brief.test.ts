@@ -37,6 +37,7 @@ describe("the Ticket Run role brief", () => {
 		expect(brief).toContain("urgent Exit")
 		expect(brief).toContain("gate failure")
 		expect(brief).toContain("draft pull request")
+		expect(brief).not.toContain("moves the card to In review, releases the Claim")
 	})
 
 	it("tells the implementer to report the Gate result for the Factory to apply", () => {
