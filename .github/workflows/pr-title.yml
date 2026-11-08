@@ -1,0 +1,13 @@
+name: PR title
+
+# Squash merges use the PR title as the commit subject, and scripts/version.ts
+# reads those subjects to pick the next version. So the title must be a
+# conventional commit: feat: -> minor, feat!: / BREAKING CHANGE -> major,
+# anything else -> patch.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  title:
+    uses: trajectonomics/cicd/.github/workflows/pr-title.yml@v1
