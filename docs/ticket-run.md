@@ -56,7 +56,12 @@ contains `Closes #<ticket>` and a **Gate findings** section with those lines.
 
 A ready pull request is never a draft and always carries the `factory` label. A failed Gate opens a
 draft pull request with the same label and the findings. Both use `Closes #<ticket>` so the merge
-closes the Ticket.
+closes the Ticket, and both end with a `## Reviews` section built from the reported reviewer
+provider, model, thread, verdict and number of fixed findings, as the Merge gate requires.
+
+A failed Gate still moves the card to **In review** because its draft pull request is waiting for the
+owner. A spec gap leaves the card where it is: the board has no `needs-info` Status, and Status is
+write-only output (ADR 0001).
 
 A Follow-up Ticket is filed in the Run's repository with `ready-for-human` and the body the Run
 reported. Filing it is its own report, so the Run keeps going and a later ready Gate opens the pull
@@ -73,4 +78,5 @@ labels, comments and Status. The `github` adapter performs them through `gh pr c
 
 The urgent plan has no writes. It sets `waiting: true` and returns a `notification` string naming the
 Ticket and the reason. `sendTicketRunNotification(notifier, plan)` delivers it through the injected
-`Notifier`; the Dispatcher keeps the Run thread alive, and the Claim stays with the waiting Run.
+`Notifier`; the Dispatcher supplies that push adapter and keeps the Run thread alive, and the Claim
+stays with the waiting Run.

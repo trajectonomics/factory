@@ -5,6 +5,16 @@ export type GateReview = {
 	readonly findings: readonly string[]
 }
 
+/** One independent review recorded for the pull request's Reviews section. */
+export type GateReviewEvidence = {
+	readonly role: "Conformance Review" | "Standards Review"
+	readonly provider: string
+	readonly model: string
+	readonly thread: string
+	readonly verdict: string
+	readonly findingsFixed: number
+}
+
 /** One Gate round: `bun run check` and both reviews. */
 export type GateRound = {
 	readonly checkPassed: boolean

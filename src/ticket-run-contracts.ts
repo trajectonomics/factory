@@ -1,6 +1,6 @@
 import type { IssueKey } from "./contracts"
 import type { FollowUpTicket } from "./follow-up"
-import type { GateRound } from "./gate"
+import type { GateReviewEvidence, GateRound } from "./gate"
 import type { FactoryWrite } from "./github/writes"
 
 /** What a Ticket Run reports after spending its Gate rounds. */
@@ -11,6 +11,7 @@ export type GateReport = {
 	readonly branch: string
 	readonly base: string
 	readonly rounds: readonly GateRound[]
+	readonly reviews: readonly GateReviewEvidence[]
 }
 
 /** A follow-up Exit: human-only work is filed and the Run continues. */

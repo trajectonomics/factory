@@ -45,26 +45,38 @@ describe("run writes", () => {
 		expect(write.labels).toEqual(["ready-for-human"])
 		expect(Object.isFrozen(write)).toBe(true)
 	})
-	it("rejects a pull request without a title, head branch or base branch", () => {
-		const title = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, title: " " }))
-		const head = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, head: "" }))
-		const base = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, base: "" }))
+	it("rejects a pull request without a title", () => {
+		const error = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, title: " " }))
 
-		expect(title?.code).toBe("empty-pull-request-title")
-		expect(title?.field).toBe("request.title")
-		expect(head?.code).toBe("empty-pull-request-head")
-		expect(head?.field).toBe("request.head")
-		expect(base?.code).toBe("empty-pull-request-base")
-		expect(base?.field).toBe("request.base")
+		expect(error?.code).toBe("empty-pull-request-title")
+		expect(error?.field).toBe("request.title")
 	})
 
-	it("rejects a Follow-up Ticket without a title or body", () => {
-		const title = errorOf(() => followUpWrite(ISSUE, { title: "", body: "Why." }))
-		const body = errorOf(() => followUpWrite(ISSUE, { title: "Title", body: " " }))
+	it("rejects a pull request without a head branch", () => {
+		const error = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, head: "" }))
 
-		expect(title?.code).toBe("empty-follow-up-title")
-		expect(title?.field).toBe("followUp.title")
-		expect(body?.code).toBe("empty-follow-up-body")
-		expect(body?.field).toBe("followUp.body")
+		expect(error?.code).toBe("empty-pull-request-head")
+		expect(error?.field).toBe("request.head")
+	})
+
+	it("rejects a pull request without a base branch", () => {
+		const error = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, base: "" }))
+
+		expect(error?.code).toBe("empty-pull-request-base")
+		expect(error?.field).toBe("request.base")
+	})
+
+	it("rejects a Follow-up Ticket without a title", () => {
+		const error = errorOf(() => followUpWrite(ISSUE, { title: "", body: "Why." }))
+
+		expect(error?.code).toBe("empty-follow-up-title")
+		expect(error?.field).toBe("followUp.title")
+	})
+
+	it("rejects a Follow-up Ticket without a body", () => {
+		const error = errorOf(() => followUpWrite(ISSUE, { title: "Title", body: " " }))
+
+		expect(error?.code).toBe("empty-follow-up-body")
+		expect(error?.field).toBe("followUp.body")
 	})
 })

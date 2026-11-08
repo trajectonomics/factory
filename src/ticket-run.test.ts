@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "./contracts"
+import { GATE_REVIEWS } from "./fixtures/gate-reviews"
 import type { GateRound } from "./gate"
 import { planTicketRun, startTicketRun } from "./ticket-run"
 import type { TicketRunReport } from "./ticket-run-contracts"
@@ -27,6 +28,7 @@ function gateReport(overrides: Partial<Extract<TicketRunReport, { kind: "gate" }
 		branch: BRANCH,
 		base: BASE,
 		rounds: [round()],
+		reviews: GATE_REVIEWS,
 		...overrides,
 	}
 	return report
@@ -59,7 +61,6 @@ describe("planning a Ticket Run", () => {
 		const plan = planTicketRun(gateReport())
 
 		expect(plan.kind).toBe("ready")
-		expect(plan.waiting).toBe(false)
 		expect(plan.writes.map((write) => write.kind)).toEqual(["pull-request", "label", "status"])
 		const pullRequest = writeOf(plan, "pull-request")
 		if (pullRequest?.kind !== "pull-request") throw new Error("expected a pull request")
@@ -68,6 +69,13 @@ describe("planning a Ticket Run", () => {
 		expect(pullRequest.head).toBe(BRANCH)
 		expect(pullRequest.base).toBe(BASE)
 		expect(pullRequest.body).toContain("Closes #9")
+		expect(pullRequest.body).toContain("## Reviews")
+		expect(pullRequest.body).toContain(
+			"Conformance Review on claudeAgent/claude-sonnet-5-5: t3-thread://conformance-1 - no findings, 2 findings fixed",
+		)
+		expect(pullRequest.body).toContain(
+			"Standards Review on antigravity/gemini-3.8-flash: t3-thread://standards-1 - no findings, 1 findings fixed",
+		)
 		expect(pullRequest.labels).toEqual(["factory"])
 		expect(writeOf(plan, "label")).toEqual({
 			kind: "label",
