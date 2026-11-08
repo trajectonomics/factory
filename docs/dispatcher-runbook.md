@@ -37,7 +37,21 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
    - `modelSelection`: provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `factory/<n>-<slug>` (Spec Run: `factory/spec-<n>-<slug>`). The slug is lowercase ASCII, at most 40 characters; use plain `factory/<n>` if nothing is usable.
    If the launch errors, remove `agent-working`, do not retry in a loop, and report the error. If the repository lacks `implement`, `tdd` and `code-review` under `.agents/skills`, do not launch: comment on the issue and add `needs-info`.
-9. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, and skipped issues with a one-word reason. Do not wait for the Runs to finish.
+9. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, and skipped issues with a one-word reason. Also flag any live Run that has review child threads but none on `claudeAgent` or `antigravity`: its reviews were not independent. Do not wait for the Runs to finish.
+
+## Models
+
+Each role runs on a different model, so the model that wrote the code never marks its own work (v0 Spec, story 8).
+
+| Role | Provider instance | Model | Option |
+| --- | --- | --- | --- |
+| Implementer (the Run thread) | `pi` | `command-code/deepseek/deepseek-v4.1-flash` | none |
+| Conformance Review | `claudeAgent` | `claude-sonnet-5-5` | `effort: high` |
+| Standards Review | `antigravity` | `gemini-3.8-flash` | none |
+
+Why the brief names them: the `code-review` skill starts its sub-agents on the model of the thread that runs it, and `delegate_task` without a `target` does the same. A Pi thread that follows a brief saying only "run `/code-review`" reviews its own work with DeepSeek. The brief therefore tells the Run to call `delegate_task` with an explicit `target` for each reviewer.
+
+Each reviewer is a separate child thread on another provider. It is not the Pi session switching models, so the Pi restriction in AGENTS.md (rule 7) is not affected.
 
 ## Launch brief
 
@@ -50,7 +64,11 @@ Use this as the thread message, filling the placeholders.
 > 2. Work on branch `<branch>`. Never commit to `main`.
 > 3. Run `/implement` (Spec Run: `/implement-spec`), test-first with `/tdd`.
 > 4. Gate: `bun run check` must pass. Never loosen tsconfig or biome config. Never edit `version` in package.json.
-> 5. Conformance Review (`/code-review` against the issue) and Standards Review (`/code-review` against CODING_STANDARDS.md). At most two rounds.
+> 5. Reviews. Do NOT review in this thread and do NOT run `/code-review` yourself: its sub-agents would run on your own model and only mark your own work. Instead call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` as below (a call without a `target` inherits your DeepSeek model):
+>    - Conformance Review: `target: { providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { effort: "high" } }`. Task: review `git diff origin/main...HEAD` against issue #`<n>` (the Spec axis of `code-review`): requirements missing or partial, behaviour that was not asked for, requirements implemented wrongly. Quote the issue line for each finding. Under 400 words.
+>    - Standards Review: `target: { providerInstanceId: "antigravity", model: "gemini-3.8-flash" }`. Task: review the same diff against CODING_STANDARDS.md and the smell baseline in `.agents/skills/code-review/SKILL.md` (the Standards axis); cite the rule for each finding; smells are judgement calls. Under 400 words.
+>
+>    Tell each reviewer to read only and edit no files. Fix the findings, then run both reviewers again. At most two rounds. If a reviewer's provider is unavailable, retry once; if it still fails, do not fall back to your own model: take the Urgent exit and say which provider failed. A review by your own model does not count towards the Gate.
 > 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>`.
 >
 > Hard rules: never merge, approve, or add `ready-for-agent` or `wontfix`. Never touch a host or cloud platform. Never commit secrets. Bun only.
