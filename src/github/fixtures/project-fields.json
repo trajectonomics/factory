@@ -1,0 +1,57 @@
+{
+	"fields": [
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPns", "name": "Title", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPnw", "name": "Assignees", "type": "ProjectV2Field" },
+		{
+			"id": "PVTSSF_lADOFOg3Is4Bpqr_zhoFPn0",
+			"name": "Status",
+			"options": [
+				{ "id": "f75ad846", "name": "Backlog" },
+				{ "id": "61e4505c", "name": "Ready" },
+				{ "id": "47fc9ee4", "name": "In progress" },
+				{ "id": "df73e18b", "name": "In review" },
+				{ "id": "98236657", "name": "Done" }
+			],
+			"type": "ProjectV2SingleSelectField"
+		},
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPn4", "name": "Labels", "type": "ProjectV2Field" },
+		{
+			"id": "PVTF_lADOFOg3Is4Bpqr_zhoFPn8",
+			"name": "Linked pull requests",
+			"type": "ProjectV2Field"
+		},
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoA", "name": "Milestone", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoE", "name": "Repository", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoM", "name": "Reviewers", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoQ", "name": "Parent issue", "type": "ProjectV2Field" },
+		{
+			"id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoU",
+			"name": "Sub-issues progress",
+			"type": "ProjectV2Field"
+		},
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoY", "name": "Created", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPoc", "name": "Updated", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPog", "name": "Closed", "type": "ProjectV2Field" },
+		{
+			"id": "PVTSSF_lADOFOg3Is4Bpqr_zhoFPyE",
+			"name": "Priority",
+			"type": "ProjectV2SingleSelectField"
+		},
+		{
+			"id": "PVTSSF_lADOFOg3Is4Bpqr_zhoFPyM",
+			"name": "Size",
+			"options": [
+				{ "id": "6c6483d2", "name": "XS" },
+				{ "id": "f784b110", "name": "S" },
+				{ "id": "7515a9f1", "name": "M" },
+				{ "id": "817d0097", "name": "L" },
+				{ "id": "db339eb2", "name": "XL" }
+			],
+			"type": "ProjectV2SingleSelectField"
+		},
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPyQ", "name": "Estimate", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPyU", "name": "Start date", "type": "ProjectV2Field" },
+		{ "id": "PVTF_lADOFOg3Is4Bpqr_zhoFPyc", "name": "Target date", "type": "ProjectV2Field" }
+	],
+	"totalCount": 18
+}

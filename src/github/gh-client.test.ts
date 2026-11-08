@@ -1,0 +1,153 @@
+import { describe, expect, it } from "bun:test"
+import type {
+	GitHubCommentData,
+	GitHubIssueData,
+	GitHubProjectData,
+	GitHubProjectFieldData,
+	GitHubProjectItemData,
+	GitHubTimelineEvent,
+} from "./client"
+import { GitHubAdapterError } from "./errors"
+import { loadFixture } from "./fixtures/load"
+import { createGhCliClient, type GhRunner } from "./gh-client"
+
+const FACTORY = "trajectonomics/factory"
+const PROJECT = { owner: "trajectonomics", number: 1 }
+const ISSUE = { repository: FACTORY, number: 7 }
+
+type GhCall = { readonly args: readonly string[]; readonly input?: string }
+
+function runner(responses: Readonly<Record<string, string>>): {
+	readonly run: GhRunner
+	readonly calls: GhCall[]
+} {
+	const calls: GhCall[] = []
+	const run: GhRunner = async (args, input) => {
+		calls.push(input === undefined ? { args: [...args] } : { args: [...args], input })
+		const key = args.join(" ")
+		const response = responses[key]
+		if (response === undefined) throw new Error(`unexpected gh call: ${key}`)
+		return response
+	}
+	return { run, calls }
+}
+
+function adapterError(error: unknown): GitHubAdapterError | undefined {
+	return error instanceof GitHubAdapterError ? error : undefined
+}
+
+describe("the gh CLI client", () => {
+	it("reads issues and blockers from recorded GitHub responses", async () => {
+		const issue = await loadFixture<GitHubIssueData>("issue-7.json")
+		const blocker = (await loadFixture<readonly GitHubIssueData[]>("blocked-by-7.json"))[0]
+		if (blocker === undefined) throw new Error("fixture shape changed")
+		const pullRequest: GitHubIssueData = { ...issue, number: 99, pull_request: {} }
+		const gh = runner({
+			[`api --paginate --slurp repos/${FACTORY}/issues?state=open&per_page=100`]: JSON.stringify([
+				[issue, pullRequest],
+			]),
+			[`api --paginate --slurp repos/${FACTORY}/issues/7/dependencies/blocked_by`]: JSON.stringify([
+				[blocker],
+			]),
+		})
+		const client = createGhCliClient(gh.run)
+
+		expect(await client.listIssues(FACTORY)).toEqual([issue])
+		expect(await client.listBlockers(ISSUE)).toEqual([blocker])
+	})
+
+	it("reads the project, Status field and items from recorded gh project responses", async () => {
+		const project = await loadFixture<GitHubProjectData>("project.json")
+		const fields = await loadFixture<{ fields: readonly GitHubProjectFieldData[] }>(
+			"project-fields.json",
+		)
+		const items = await loadFixture<{ items: readonly GitHubProjectItemData[] }>(
+			"project-items.json",
+		)
+		const gh = runner({
+			"project view 1 --owner trajectonomics --format json": JSON.stringify(project),
+			"project field-list 1 --owner trajectonomics --format json": JSON.stringify(fields),
+			"project item-list 1 --owner trajectonomics --format json --limit 1000":
+				JSON.stringify(items),
+		})
+		const client = createGhCliClient(gh.run)
+
+		expect(await client.getProject(PROJECT)).toEqual(project)
+		expect(await client.listProjectFields(PROJECT)).toEqual(fields.fields)
+		expect(await client.listProjectItems(PROJECT)).toEqual(items.items)
+	})
+
+	it("combines every timeline and comment page", async () => {
+		const timeline = await loadFixture<readonly GitHubTimelineEvent[]>("timeline-7.json")
+		const comments: readonly GitHubCommentData[] = [
+			{ id: 1, body: "first" },
+			{ id: 2, body: "second" },
+		]
+		const gh = runner({
+			[`api --paginate --slurp repos/${FACTORY}/issues/7/timeline`]: JSON.stringify([
+				timeline.slice(0, 3),
+				timeline.slice(3),
+			]),
+			[`api --paginate --slurp repos/${FACTORY}/issues/7/comments`]: JSON.stringify([
+				comments.slice(0, 1),
+				comments.slice(1),
+			]),
+		})
+		const client = createGhCliClient(gh.run)
+
+		expect(await client.listTimeline(ISSUE)).toEqual(timeline)
+		expect(await client.listComments(ISSUE)).toEqual(comments)
+	})
+
+	it("rejects a project item page that is shorter than its total count", async () => {
+		const items = await loadFixture<{ items: readonly GitHubProjectItemData[] }>(
+			"project-items-truncated.json",
+		)
+		const gh = runner({
+			"project item-list 1 --owner trajectonomics --format json --limit 1000":
+				JSON.stringify(items),
+		})
+		const client = createGhCliClient(gh.run)
+
+		const error = adapterError(
+			await client.listProjectItems(PROJECT).catch((caught: unknown) => caught),
+		)
+
+		expect(error?.code).toBe("project-items-incomplete")
+	})
+
+	it("writes labels and Status through gh and sends comments on stdin", async () => {
+		const gh = runner({
+			[`issue edit 7 --repo ${FACTORY} --add-label needs-info`]: "",
+			[`issue edit 7 --repo ${FACTORY} --remove-label agent-working`]: "",
+			[`issue comment 7 --repo ${FACTORY} --body-file -`]: "",
+			"project item-edit --id item --project-id project --field-id field --single-select-option-id option":
+				"",
+		})
+		const client = createGhCliClient(gh.run)
+
+		await client.addLabel(ISSUE, "needs-info")
+		await client.removeLabel(ISSUE, "agent-working")
+		await client.addComment(ISSUE, "This was generated by AI.")
+		await client.updateProjectStatus("item", "project", "field", "option")
+
+		expect(gh.calls.map((call) => call.args)).toEqual([
+			["issue", "edit", "7", "--repo", FACTORY, "--add-label", "needs-info"],
+			["issue", "edit", "7", "--repo", FACTORY, "--remove-label", "agent-working"],
+			["issue", "comment", "7", "--repo", FACTORY, "--body-file", "-"],
+			[
+				"project",
+				"item-edit",
+				"--id",
+				"item",
+				"--project-id",
+				"project",
+				"--field-id",
+				"field",
+				"--single-select-option-id",
+				"option",
+			],
+		])
+		expect(gh.calls[2]?.input).toBe("This was generated by AI.")
+	})
+})
