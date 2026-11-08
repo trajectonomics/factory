@@ -2,7 +2,7 @@
 
 How the Dispatcher works while it is run by an agent from a scheduled task or by hand, before the entrypoint (factory#10) exists. The scheduled task "Factory Dispatcher" reads this file from `origin/main` on every pass, so a change here takes effect on the next pass once it is merged.
 
-The Dispatcher finds Eligible work and launches Runs. It never merges, approves, or touches a host or cloud platform. It never adds `ready-for-agent` or `wontfix`. It does one pass, then stops. Language is in [`GLOSSARY.md`](../GLOSSARY.md); the decisions are in [`docs/adr/`](./adr/).
+The Dispatcher finds Eligible work and launches Runs. It never approves and never touches a host or cloud platform. It merges only under step 10 ([ADR 0005](./adr/0005-dispatcher-merges-clean-pull-requests.md)); a Run never merges. It never adds `ready-for-agent` or `wontfix`. It does one pass, then stops. Language is in [`GLOSSARY.md`](../GLOSSARY.md); the decisions are in [`docs/adr/`](./adr/).
 
 ## Allowlist
 
@@ -49,7 +49,25 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
 9. **Review audit.** For every open, non-draft pull request whose head branch starts with `factory/`, check that its body has a `## Reviews` section naming a Conformance Review on `claudeAgent` and a Standards Review on `antigravity`, and that those threads exist (`t3_thread_list`, `includeSubagents`). A `## Reviews` section that says the owner accepted the review as it is satisfies the audit; leave that pull request alone. If either is missing, the pull request is unreviewed: launch the missing reviewer or reviewers yourself with the same `target` as in the launch brief, as read-only tasks against `gh pr diff <pr>` and the issue, and ask each to post its findings as a pull request comment (`gh pr comment`). Do not edit the branch. Do this at most once per pull request per pass, and for at most 3 pull requests.
    - **Last round not clean.** If the final round in the `## Reviews` section has the verdict "changes requested", or says findings were fixed after that round and not re-reviewed, launch one verification round (both reviewers, same targets, read-only, findings posted as a pull request comment) over the current head. Do this once per pull request. If the verification still finds problems, add `ready-for-human` to the issue and say so in the report.
    - **Conflicts.** If a pull request is `CONFLICTING` with `main` (for example because a sibling pull request merged), send its Run thread a message to rebase on `origin/main`, resolve the conflicts, and re-run `bun run check`. If the Run thread has finished, the message restarts it. Do not review again unless the conflict resolution changed behaviour.
-10. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
+10. **Merge** ([ADR 0005](./adr/0005-dispatcher-merges-clean-pull-requests.md)).
+
+    `Mode: dry-run`
+
+    The line above is the switch. In `dry-run`, do everything below except the merge itself and report "would merge" for each pull request. Only the owner changes it to `Mode: live`, in a pull request. If the file `/home/prame_assistant/.factory-no-automerge` exists, merge nothing.
+
+    Human-merge repositories (never merged here): `tax-core`, `infra`, `cicd`.
+
+    Take the open pull requests oldest first, at most 3 per pass. Merge one only if all of these hold now, checked against its current head commit (`gh pr view <n> --json headRefOid,isDraft,mergeable,statusCheckRollup,additions,deletions,changedFiles,files,commits`):
+    - not a draft, `mergeable`, head branch `factory/*`, repository allowlisted, no `factory:pause`;
+    - every check on the head commit passed, none pending;
+    - the `## Reviews` section shows a Conformance Review on `claudeAgent` and a Standards Review on `antigravity` (the threads exist on those providers), both clean in the latest round, with no `FALLBACK (quota)`, "accepted by the owner" or "not re-reviewed", and no commit newer than the last review thread;
+    - the linked issue and its Spec have neither `needs-info` nor `ready-for-human`;
+    - at most 1500 changed lines (additions plus deletions) and 40 files;
+    - no changed file matches `.github/workflows/**`, `biome.json`, `tsconfig*.json`, `AGENTS.md`, `CODING_STANDARDS.md`, `docs/adr/**`, a `.env` or secrets file, a release or publish configuration, or a diff of a `version` field;
+    - the repository is not a human-merge repository.
+
+    To merge: `gh pr merge <n> -R trajectonomics/<repo> --squash --delete-branch`. Then confirm the issue closed (close it with a comment if `Closes #<n>` did not), remove `agent-working` from the issue and, for a Spec Run, from the Spec and its children, and re-check the other open pull requests of that repository for conflicts before merging the next one. If a pull request fails a condition, leave it for the owner and name the first failed condition in the report.
+11. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
 
 ## Models
 
@@ -89,4 +107,4 @@ Use this as the thread message, filling the placeholders.
 >
 > Exits: spec gap = comment the question, add `needs-info`, remove `agent-working`, stop. Follow-up = file a `ready-for-human` Follow-up Ticket and keep going. Urgent = stay in the thread and wait for the owner. Gate failure after two rounds = DRAFT pull request with the findings, add `ready-for-human`, remove `agent-working`.
 >
-> Leave `agent-working` on until the owner merges. Finish with one line: `PR <url>, head <sha>, checks <state>`.
+> Leave `agent-working` on until the pull request is merged. Finish with one line: `PR <url>, head <sha>, checks <state>`.
