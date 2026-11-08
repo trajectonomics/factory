@@ -17,7 +17,7 @@ Find each repository's T3 project on a host with `t3_project_list` (pass `enviro
 | Host | Readiness | Notes |
 | --- | --- | --- |
 | homeserver2 | ready | the environment the Dispatcher runs on |
-| homeserver1 | pending | The eight allowlisted repositories are cloned and registered as T3 projects (2026-11-08). Not yet checked on the host: `gh auth status`, `bun`, the `pi` Command Code route for `deepseek-v4.1-flash`, `claude`, `git status` of each clone, free disk. SSH from homeserver2 as `prame` was refused. |
+| homeserver1 | ready | Verified (2026-11-08): gh auth logged in as fromsukong, bun 1.4.4, pi CLI with deepseek-v4.1-flash, claude, git status clean across all 8 clones, 178 GB free disk, smoke test passed. |
 
 Prerequisites for `ready`: `git` and SSH to GitHub as the owner, `gh` logged in, `bun` on `PATH`, the `pi` CLI with the Command Code route for `command-code/deepseek/deepseek-v4.1-flash`, `claude`, about 5 GB free disk for each worktree, and the T3 server reachable.
 
