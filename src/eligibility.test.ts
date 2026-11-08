@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test"
 import {
 	type Allowlist,
+	EligibilityError,
 	evaluateEligibility,
 	type IssueKey,
 	type IssueState,
@@ -21,6 +22,15 @@ function issue(issueKey: IssueKey, overrides: Partial<IssueState> = {}): IssueSt
 
 function state(issues: IssueState[], liveThreads: IssueKey[] = []): RepositoryState {
 	return { issues, liveThreads }
+}
+
+function eligibilityError(run: () => void): EligibilityError | undefined {
+	try {
+		run()
+	} catch (error) {
+		return error instanceof EligibilityError ? error : undefined
+	}
+	return undefined
 }
 
 describe("evaluateEligibility", () => {
@@ -149,5 +159,17 @@ describe("evaluateEligibility", () => {
 		const plan = evaluateEligibility(state([ticket], [key(4)]), ALLOWLIST, NOW_MS)
 
 		expect(plan.skipped).toEqual([{ issue: key(4), reason: { code: "live-claim" } }])
+	})
+
+	it("rejects a repository state that lists one issue twice", () => {
+		const first = issue(key(4), { labels: ["ready-for-agent"] })
+		const second = issue(key(4), { labels: ["ready-for-agent"] })
+
+		const error = eligibilityError(() =>
+			evaluateEligibility(state([first, second]), ALLOWLIST, NOW_MS),
+		)
+
+		expect(error?.code).toBe("duplicate-issue-key")
+		expect(error?.field).toBe("issues[trajectonomics/cli#4]")
 	})
 })

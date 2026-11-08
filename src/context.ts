@@ -18,7 +18,7 @@ export function createContext(
 ): EligibilityContext {
 	return {
 		allowlist: allowlistLookup(allowlist),
-		issuesByKey: new Map(state.issues.map((entry) => [keyOf(entry.key), entry])),
+		issuesByKey: indexIssues(state.issues),
 		liveThreads: new Set(state.liveThreads.map(keyOf)),
 		nowMs,
 	}
@@ -37,6 +37,22 @@ function allowlistLookup(
 			)
 		}
 		entries.set(entry.repository, entry)
+	}
+	return entries
+}
+
+function indexIssues(issues: readonly IssueState[]): ReadonlyMap<string, IssueState> {
+	const entries = new Map<string, IssueState>()
+	for (const issue of issues) {
+		const key = keyOf(issue.key)
+		if (entries.has(key)) {
+			throw new EligibilityError(
+				"duplicate-issue-key",
+				`issues[${key}]`,
+				`The repository state contains ${key} more than once`,
+			)
+		}
+		entries.set(key, issue)
 	}
 	return entries
 }

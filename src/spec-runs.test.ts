@@ -145,7 +145,7 @@ describe("Spec Runs", () => {
 		const plan = evaluateEligibility(state([spec()]), ALLOWLIST, NOW_MS)
 
 		expect(plan.runs).toEqual([])
-		expect(plan.skipped).toEqual([{ issue: SPEC, reason: { code: "no-open-children" } }])
+		expect(plan.skipped).toEqual([{ issue: SPEC, reason: { code: "no-eligible-children" } }])
 	})
 
 	it("skips a Spec with no open children instead of planning an empty Spec Run", () => {
@@ -157,7 +157,7 @@ describe("Spec Runs", () => {
 
 		expect(plan.runs).toEqual([])
 		expect(plan.skipped).toEqual([
-			{ issue: SPEC, reason: { code: "no-open-children" } },
+			{ issue: SPEC, reason: { code: "no-eligible-children" } },
 			{ issue: key(3), reason: { code: "closed" } },
 		])
 	})
@@ -171,7 +171,7 @@ describe("Spec Runs", () => {
 
 		expect(plan.runs).toEqual([])
 		expect(plan.skipped).toEqual([
-			{ issue: SPEC, reason: { code: "no-open-children" } },
+			{ issue: SPEC, reason: { code: "no-eligible-children" } },
 			{ issue: key(3), reason: { code: "needs-human" } },
 		])
 	})

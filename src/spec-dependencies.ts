@@ -42,8 +42,20 @@ export function dropBlockedCandidates(
 	}
 }
 
-/** Orders covered Tickets after their sibling blockers, with key order as the tie-break. */
-export function orderTickets(tickets: readonly IssueState[]): IssueKey[] {
+/** A Ticket that cannot be ordered because it is in, or depends on, a sibling cycle. */
+export type BlockedTicket = {
+	readonly ticket: IssueState
+	readonly blockers: readonly IssueKey[]
+}
+
+/** The ordered Tickets, and any deadlocked Tickets, in the covered set. */
+export type OrderedTickets = {
+	readonly ordered: readonly IssueKey[]
+	readonly blocked: readonly BlockedTicket[]
+}
+
+/** Orders covered Tickets after their sibling blockers, and reports deadlocked Tickets. */
+export function orderTickets(tickets: readonly IssueState[]): OrderedTickets {
 	const remaining = new Map(tickets.map((ticket) => [keyOf(ticket.key), ticket]))
 	const ordered: IssueKey[] = []
 	while (remaining.size > 0) {
@@ -55,14 +67,23 @@ export function orderTickets(tickets: readonly IssueState[]): IssueKey[] {
 			)
 			.sort((left, right) => compareIssueKeys(left.key, right.key))
 		const next = startable[0]
-		if (next === undefined) {
-			ordered.push(
-				...sortIssueKeys([...remaining.values()].map((ticket) => ticket.key)).map(copyIssueKey),
-			)
-			break
-		}
+		if (next === undefined) return { ordered, blocked: blockedTickets(remaining) }
 		remaining.delete(keyOf(next.key))
 		ordered.push(copyIssueKey(next.key))
 	}
-	return ordered
+	return { ordered, blocked: [] }
+}
+
+function blockedTickets(remaining: ReadonlyMap<string, IssueState>): BlockedTicket[] {
+	return [...remaining.values()]
+		.map((ticket) => ({
+			ticket,
+			blockers: sortIssueKeys(
+				ticket.blockers
+					.filter((blocker) => blocker.status === "open")
+					.filter((blocker) => remaining.has(keyOf(blocker.key)))
+					.map((blocker) => blocker.key),
+			),
+		}))
+		.sort((left, right) => compareIssueKeys(left.ticket.key, right.ticket.key))
 }

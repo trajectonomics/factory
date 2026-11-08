@@ -1,5 +1,5 @@
 /** The inputs an eligibility pass can reject. */
-export type EligibilityErrorCode = "duplicate-allowlist-entry"
+export type EligibilityErrorCode = "duplicate-allowlist-entry" | "duplicate-issue-key"
 
 /** A malformed input to an eligibility pass. */
 export class EligibilityError extends Error {

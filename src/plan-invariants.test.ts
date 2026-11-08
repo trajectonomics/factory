@@ -33,6 +33,8 @@ function fixture(): IssueState[] {
 		issue(key(2), { kind: "spec", labels: ["ready-for-agent"] }),
 		issue(key(3), { parentSpec: SPEC }),
 		issue(key(4), { parentSpec: SPEC, labels: ["ready-for-human"] }),
+		issue(key(6), { parentSpec: SPEC, blockers: [{ key: key(8), status: "open" }] }),
+		issue(key(8), { parentSpec: SPEC }),
 		issue(key(5), { kind: "spec" }),
 		issue(key(10), { labels: ["ready-for-agent"] }),
 		issue(key(11, "trajectonomics/ledger-core"), { labels: ["ready-for-agent"] }),
@@ -59,7 +61,7 @@ function deepFreeze<T>(value: T): T {
 
 const EXPECTED: EligibilityPlan = {
 	runs: [
-		{ kind: "spec-run", spec: SPEC, tickets: [key(3)], host: "homeserver2" },
+		{ kind: "spec-run", spec: SPEC, tickets: [key(3), key(8), key(6)], host: "homeserver2" },
 		{ kind: "ticket-run", ticket: key(10), host: "homeserver2" },
 	],
 	skipped: [

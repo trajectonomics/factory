@@ -60,7 +60,7 @@ export type SkipReason =
 	| { readonly code: "live-thread" }
 	| { readonly code: "different-host"; readonly host: string }
 	| { readonly code: "parent-spec-not-eligible"; readonly spec: IssueKey }
-	| { readonly code: "no-open-children" }
+	| { readonly code: "no-eligible-children" }
 
 /** An issue that was not selected, with the rule that skipped it. */
 export type SkippedWork = {

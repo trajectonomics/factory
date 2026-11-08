@@ -36,7 +36,7 @@ export function planSpecRuns(
 		}
 		const run = planSpecRun(issue, issues, context, { skipped, covered, handled })
 		if (run.tickets.length === 0) {
-			skipped.push({ issue: copyIssueKey(issue.key), reason: { code: "no-open-children" } })
+			skipped.push({ issue: copyIssueKey(issue.key), reason: { code: "no-eligible-children" } })
 			continue
 		}
 		runs.push(run)
@@ -81,12 +81,15 @@ function planSpecRun(
 	}
 
 	dropBlockedCandidates(candidates, openBlockers, siblingKeys, results)
-	const coveredTickets = [...candidates.values()]
-	for (const ticket of coveredTickets) results.covered.add(keyOf(ticket.key))
+	const { ordered, blocked } = orderTickets([...candidates.values()])
+	for (const { ticket, blockers } of blocked) {
+		skipChild(ticket, { code: "open-blocker", blockers: blockers.map(copyIssueKey) }, results)
+	}
+	for (const key of ordered) results.covered.add(keyOf(key))
 	return {
 		kind: "spec-run",
 		spec: copyIssueKey(spec.key),
-		tickets: orderTickets(coveredTickets),
+		tickets: ordered,
 		host: specHost,
 	}
 }

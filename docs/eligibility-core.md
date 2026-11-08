@@ -10,6 +10,11 @@ so it is marked with the existing `ready-for-human` triage label (see
 including as a Spec Run child. It never infers this from an issue body: labels, blocking edges,
 parent links and live threads are the only inputs (ADR 0001).
 
+## Claims
+
+A label-only `agent-working` (no `claimedAtMs`) never expires in the core, so the adapter must
+always supply `claimedAtMs`.
+
 ## One Run per repository is the Dispatcher's rule
 
 The eligibility core decides per issue. The one-Run-per-repository mutual exclusion from ADR 0003
