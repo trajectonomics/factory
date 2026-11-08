@@ -1,0 +1,16 @@
+{
+	"extends": "./tsconfig.base.json",
+	"compilerOptions": {
+		"lib": ["ES2022"],
+		"types": ["node"]
+	},
+	"include": [
+		"src/github/index.ts",
+		"src/github/gh-client.ts",
+		"src/github/gh-read.ts",
+		"src/github/gh-run.ts",
+		"src/github/gh-write.ts",
+		"src/github/fixtures/load.ts"
+	],
+	"exclude": ["src/**/*.test.ts"]
+}
