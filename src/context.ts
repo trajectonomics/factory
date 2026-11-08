@@ -1,4 +1,6 @@
-import type { AllowlistEntry, IssueKey, IssueState, RepositoryState } from "./contracts"
+import type { AllowlistEntry, IssueState, RepositoryState } from "./contracts"
+import { EligibilityError } from "./errors"
+import { keyOf } from "./keys"
 
 /** The lookup state shared by the eligibility rules. */
 export type EligibilityContext = {
@@ -8,11 +10,6 @@ export type EligibilityContext = {
 	readonly nowMs: number
 }
 
-/** A stable key for an issue across repositories. */
-export function keyOf(issue: IssueKey): string {
-	return `${issue.repository}#${issue.number}`
-}
-
 /** Builds the lookup state one eligibility pass needs. */
 export function createContext(
 	state: RepositoryState,
@@ -20,11 +17,28 @@ export function createContext(
 	nowMs: number,
 ): EligibilityContext {
 	return {
-		allowlist: new Map(allowlist.map((entry) => [entry.repository, entry])),
+		allowlist: allowlistLookup(allowlist),
 		issuesByKey: new Map(state.issues.map((entry) => [keyOf(entry.key), entry])),
 		liveThreads: new Set(state.liveThreads.map(keyOf)),
 		nowMs,
 	}
+}
+
+function allowlistLookup(
+	allowlist: readonly AllowlistEntry[],
+): ReadonlyMap<string, AllowlistEntry> {
+	const entries = new Map<string, AllowlistEntry>()
+	for (const entry of allowlist) {
+		if (entries.has(entry.repository)) {
+			throw new EligibilityError(
+				"duplicate-allowlist-entry",
+				`allowlist[${entry.repository}]`,
+				`The allowlist maps ${entry.repository} to more than one host`,
+			)
+		}
+		entries.set(entry.repository, entry)
+	}
+	return entries
 }
 
 /** Whether the human approved an issue by labelling it ready-for-agent. */
@@ -37,7 +51,7 @@ export function needsHuman(issue: IssueState): boolean {
 	return issue.labels.includes("ready-for-human")
 }
 
-/** The host an allowlisted issue's Runs run on. Only call after the allowlist rule passed. */
+/** The host an allowlisted issue's Runs run on. */
 export function hostOf(issue: IssueState, context: EligibilityContext): string {
 	const entry = context.allowlist.get(issue.key.repository)
 	if (entry === undefined) throw new Error(`${issue.key.repository} is not allowlisted`)

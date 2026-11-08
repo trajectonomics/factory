@@ -30,7 +30,7 @@ function issue(issueKey: IssueKey, overrides: Partial<IssueState> = {}): IssueSt
 
 function fixture(): IssueState[] {
 	return [
-		issue(SPEC, { kind: "spec", labels: ["ready-for-agent"] }),
+		issue(key(2), { kind: "spec", labels: ["ready-for-agent"] }),
 		issue(key(3), { parentSpec: SPEC }),
 		issue(key(4), { parentSpec: SPEC, labels: ["ready-for-human"] }),
 		issue(key(5), { kind: "spec" }),
@@ -49,6 +49,12 @@ function permutations<T>(items: readonly T[]): T[][] {
 		const rest = [...items.slice(0, index), ...items.slice(index + 1)]
 		return permutations(rest).map((ordering) => [item, ...ordering])
 	})
+}
+
+function deepFreeze<T>(value: T): T {
+	if (typeof value !== "object" || value === null) return value
+	for (const nested of Object.values(value)) deepFreeze(nested)
+	return Object.freeze(value) as T
 }
 
 const EXPECTED: EligibilityPlan = {
@@ -74,13 +80,47 @@ describe("eligibility plan invariants", () => {
 	})
 
 	it("never mutates the repository state it is given", () => {
-		const issues = fixture().map((entry) => Object.freeze(entry))
-		const frozen = Object.freeze({
-			issues: Object.freeze(issues),
-			liveThreads: Object.freeze([]),
+		const frozen = deepFreeze(state(fixture()))
+
+		expect(Object.isFrozen(frozen.issues[0]?.key)).toBe(true)
+		expect(() => evaluateEligibility(frozen, ALLOWLIST, NOW_MS)).not.toThrow()
+	})
+
+	it("copies issue keys into its decisions instead of freezing the caller's objects", () => {
+		const issues = fixture()
+		const plan = evaluateEligibility(state(issues), ALLOWLIST, NOW_MS)
+		const spec = issues.find((entry) => entry.kind === "spec" && entry.labels.length > 0)
+		const child = issues.find((entry) => entry.key.number === 3)
+		const ticket = issues.find((entry) => entry.key.number === 10)
+		const specRun = plan.runs.find((run) => run.kind === "spec-run")
+		const ticketRun = plan.runs.find((run) => run.kind === "ticket-run")
+		if (spec === undefined || child === undefined || ticket === undefined) {
+			throw new Error("fixture shape changed")
+		}
+		if (specRun?.kind !== "spec-run" || ticketRun?.kind !== "ticket-run") {
+			throw new Error("expected both Run kinds")
+		}
+
+		expect(specRun.spec).not.toBe(spec.key)
+		expect(specRun.tickets[0]).not.toBe(child.key)
+		expect(ticketRun.ticket).not.toBe(ticket.key)
+		expect(Object.isFrozen(spec.key)).toBe(false)
+		expect(Object.isFrozen(ticket.key)).toBe(false)
+	})
+
+	it("copies blocker keys in skip reasons", () => {
+		const blocker = key(9)
+		const ticket = issue(key(4), {
+			labels: ["ready-for-agent"],
+			blockers: [{ key: blocker, status: "open" }],
 		})
 
-		expect(() => evaluateEligibility(frozen, ALLOWLIST, NOW_MS)).not.toThrow()
+		const plan = evaluateEligibility(state([ticket]), ALLOWLIST, NOW_MS)
+		const reason = plan.skipped[0]?.reason
+		if (reason?.code !== "open-blocker") throw new Error("expected an open blocker")
+
+		expect(reason.blockers[0]).not.toBe(blocker)
+		expect(reason.blockers[0]).toEqual(blocker)
 	})
 
 	it("returns frozen decisions", () => {

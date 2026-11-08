@@ -1,6 +1,7 @@
-import { type EligibilityContext, hostOf, isApproved, keyOf } from "./context"
+import { type EligibilityContext, hostOf, isApproved } from "./context"
 import type { IssueState, SkippedWork, SkipReason, TicketRun } from "./contracts"
-import { baseSkipReason, readinessSkipReason } from "./skip-rules"
+import { copyIssueKey, keyOf } from "./keys"
+import { baseSkipReason, eligibilitySkipReason } from "./skip-rules"
 import type { SpecRunPass } from "./spec-runs"
 
 /** The Ticket Runs, and skips, left once the Spec Runs are planned. */
@@ -18,10 +19,14 @@ export function planTicketRuns(
 		if (specPass.covered.has(key) || specPass.handled.has(key)) continue
 		const reason = ticketSkipReason(ticket, context)
 		if (reason !== undefined) {
-			skipped.push({ issue: ticket.key, reason })
+			skipped.push({ issue: copyIssueKey(ticket.key), reason })
 			continue
 		}
-		runs.push({ kind: "ticket-run", ticket: ticket.key, host: hostOf(ticket, context) })
+		runs.push({
+			kind: "ticket-run",
+			ticket: copyIssueKey(ticket.key),
+			host: hostOf(ticket, context),
+		})
 	}
 	return { runs, skipped }
 }
@@ -30,9 +35,11 @@ function ticketSkipReason(ticket: IssueState, context: EligibilityContext): Skip
 	const base = baseSkipReason(ticket, context, "covered")
 	if (base !== undefined) return base
 	const parent = approvedParentSpec(ticket, context)
-	if (parent !== undefined) return { code: "parent-spec-not-eligible", spec: parent.key }
+	if (parent !== undefined) {
+		return { code: "parent-spec-not-eligible", spec: copyIssueKey(parent.key) }
+	}
 	if (!isApproved(ticket)) return { code: "not-approved" }
-	return readinessSkipReason(ticket, context, null)
+	return eligibilitySkipReason(ticket, context)
 }
 
 function approvedParentSpec(

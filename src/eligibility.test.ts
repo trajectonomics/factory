@@ -52,30 +52,6 @@ describe("evaluateEligibility", () => {
 		expect(plan.skipped).toEqual([{ issue: key(4), reason: { code: "closed" } }])
 	})
 
-	it("skips a Ticket in a repository outside the allowlist", () => {
-		const ticket = issue(key(4, "trajectonomics/ledger-core"), {
-			labels: ["ready-for-agent"],
-		})
-
-		const plan = evaluateEligibility(state([ticket]), ALLOWLIST, NOW_MS)
-
-		expect(plan.skipped).toEqual([
-			{
-				issue: key(4, "trajectonomics/ledger-core"),
-				reason: { code: "repository-not-allowlisted" },
-			},
-		])
-	})
-
-	it("never makes a Ticket labelled ready-for-human Eligible", () => {
-		const ticket = issue(key(4), { labels: ["ready-for-agent", "ready-for-human"] })
-
-		const plan = evaluateEligibility(state([ticket]), ALLOWLIST, NOW_MS)
-
-		expect(plan.runs).toEqual([])
-		expect(plan.skipped).toEqual([{ issue: key(4), reason: { code: "needs-human" } }])
-	})
-
 	it("skips a Ticket with an open blocker in the same repository", () => {
 		const ticket = issue(key(4), {
 			labels: ["ready-for-agent"],

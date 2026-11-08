@@ -1,11 +1,15 @@
-import { isClaimLive } from "./claim"
-import { type EligibilityContext, isApproved, keyOf, needsHuman } from "./context"
-import type { IssueKey, IssueState, SkipReason } from "./contracts"
+import { CLAIM_LABEL, isClaimLive } from "./claim"
+import { type EligibilityContext, isApproved, needsHuman } from "./context"
+import type { IssueState, SkipReason } from "./contracts"
+import { copyIssueKey, keyOf } from "./keys"
 import { sortIssueKeys } from "./sort"
 
 /** How a Ticket's Approval is supplied: its own label, or its parent Spec's. */
 export type Approval = "required" | "covered"
 
+// The first failing rule wins: closed, needs-human, wontfix, needs-info,
+// repository-not-allowlisted, not-approved, open-blocker, live-claim, live-thread.
+// Callers decide different-host and parent-spec-not-eligible.
 /** Why an issue fails the rules that apply before its parent and blockers. */
 export function baseSkipReason(
 	issue: IssueState,
@@ -14,51 +18,48 @@ export function baseSkipReason(
 ): SkipReason | undefined {
 	if (issue.status === "closed") return { code: "closed" }
 	if (needsHuman(issue)) return { code: "needs-human" }
+	if (issue.labels.includes("wontfix")) return { code: "wontfix" }
+	if (issue.labels.includes("needs-info")) return { code: "needs-info" }
 	if (!context.allowlist.has(issue.key.repository)) return { code: "repository-not-allowlisted" }
 	if (approval === "required" && !isApproved(issue)) return { code: "not-approved" }
 	return undefined
 }
 
-/** Why an approved issue cannot start or join a Run. */
-export function readinessSkipReason(
+/** Why an issue cannot join a Run, ignoring blockers waived as ordering. */
+export function eligibilitySkipReason(
 	issue: IssueState,
 	context: EligibilityContext,
-	insideSpec: IssueState | null,
+	waivedBlockers: ReadonlySet<string> = new Set<string>(),
 ): SkipReason | undefined {
 	const openBlockers = sortIssueKeys(
 		issue.blockers
 			.filter((blocker) => blocker.status === "open")
-			.filter((blocker) => !isSiblingBlocker(blocker.key, insideSpec, context))
+			.filter((blocker) => !waivedBlockers.has(keyOf(blocker.key)))
 			.map((blocker) => blocker.key),
 	)
-	if (openBlockers.length > 0) return { code: "open-blocker", blockers: openBlockers }
+	if (openBlockers.length > 0) {
+		return { code: "open-blocker", blockers: openBlockers.map(copyIssueKey) }
+	}
 	const hasLiveThread = context.liveThreads.has(keyOf(issue.key))
 	if (issue.claim !== undefined && isClaimLive(issue.claim, hasLiveThread, context.nowMs)) {
+		return { code: "live-claim" }
+	}
+	if (issue.claim === undefined && issue.labels.includes(CLAIM_LABEL)) {
 		return { code: "live-claim" }
 	}
 	if (hasLiveThread) return { code: "live-thread" }
 	return undefined
 }
 
-/** The base and readiness rules together. */
+/** The base and eligibility rules together. */
 export function issueSkipReason(
 	issue: IssueState,
 	context: EligibilityContext,
 	approval: Approval,
-	insideSpec: IssueState | null,
+	waivedBlockers: ReadonlySet<string> = new Set<string>(),
 ): SkipReason | undefined {
-	return baseSkipReason(issue, context, approval) ?? readinessSkipReason(issue, context, insideSpec)
-}
-
-/** A blocker inside the same Spec is ordering for its Run, not a block. */
-function isSiblingBlocker(
-	blocker: IssueKey,
-	insideSpec: IssueState | null,
-	context: EligibilityContext,
-): boolean {
-	if (insideSpec === null) return false
-	const blockerIssue = context.issuesByKey.get(keyOf(blocker))
-	if (blockerIssue === undefined) return false
-	if (blockerIssue.kind !== "ticket" || blockerIssue.parentSpec === undefined) return false
-	return keyOf(blockerIssue.parentSpec) === keyOf(insideSpec.key)
+	return (
+		baseSkipReason(issue, context, approval) ??
+		eligibilitySkipReason(issue, context, waivedBlockers)
+	)
 }

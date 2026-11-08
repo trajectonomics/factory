@@ -51,12 +51,16 @@ export type Allowlist = readonly AllowlistEntry[]
 export type SkipReason =
 	| { readonly code: "closed" }
 	| { readonly code: "needs-human" }
+	| { readonly code: "needs-info" }
+	| { readonly code: "wontfix" }
 	| { readonly code: "repository-not-allowlisted" }
 	| { readonly code: "not-approved" }
 	| { readonly code: "open-blocker"; readonly blockers: readonly IssueKey[] }
 	| { readonly code: "live-claim" }
 	| { readonly code: "live-thread" }
+	| { readonly code: "different-host"; readonly host: string }
 	| { readonly code: "parent-spec-not-eligible"; readonly spec: IssueKey }
+	| { readonly code: "no-open-children" }
 
 /** An issue that was not selected, with the rule that skipped it. */
 export type SkippedWork = {

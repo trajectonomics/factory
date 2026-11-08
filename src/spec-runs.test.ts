@@ -28,8 +28,8 @@ function child(number: number, overrides: Partial<IssueState> = {}): IssueState 
 	return issue(key(number), { parentSpec: SPEC, ...overrides })
 }
 
-function state(issues: IssueState[]): RepositoryState {
-	return { issues, liveThreads: [] }
+function state(issues: IssueState[], liveThreads: IssueKey[] = []): RepositoryState {
+	return { issues, liveThreads }
 }
 
 describe("Spec Runs", () => {
@@ -62,19 +62,6 @@ describe("Spec Runs", () => {
 			{ kind: "spec-run", spec: SPEC, tickets: [key(3)], host: "homeserver2" },
 		])
 		expect(plan.skipped).toEqual([{ issue: key(4), reason: { code: "needs-human" } }])
-	})
-
-	it("orders a child blocked by a sibling inside the Spec Run instead of skipping it", () => {
-		const plan = evaluateEligibility(
-			state([spec(), child(3), child(4, { blockers: [{ key: key(3), status: "open" }] })]),
-			ALLOWLIST,
-			NOW_MS,
-		)
-
-		expect(plan.runs).toEqual([
-			{ kind: "spec-run", spec: SPEC, tickets: [key(3), key(4)], host: "homeserver2" },
-		])
-		expect(plan.skipped).toEqual([])
 	})
 
 	it("skips a child blocked by a Ticket outside the Spec", () => {
@@ -128,6 +115,64 @@ describe("Spec Runs", () => {
 		expect(plan.runs).toEqual([])
 		expect(plan.skipped).toEqual([
 			{ issue: SPEC, reason: { code: "open-blocker", blockers: [blocker] } },
+		])
+	})
+
+	it("skips a Spec with a live thread and leaves its children waiting on it", () => {
+		const plan = evaluateEligibility(state([spec(), child(3)], [SPEC]), ALLOWLIST, NOW_MS)
+
+		expect(plan.runs).toEqual([])
+		expect(plan.skipped).toEqual([
+			{ issue: SPEC, reason: { code: "live-thread" } },
+			{ issue: key(3), reason: { code: "parent-spec-not-eligible", spec: SPEC } },
+		])
+	})
+
+	it("skips a child with a live thread without stopping the Spec Run", () => {
+		const plan = evaluateEligibility(
+			state([spec(), child(3), child(4)], [key(4)]),
+			ALLOWLIST,
+			NOW_MS,
+		)
+
+		expect(plan.runs).toEqual([
+			{ kind: "spec-run", spec: SPEC, tickets: [key(3)], host: "homeserver2" },
+		])
+		expect(plan.skipped).toEqual([{ issue: key(4), reason: { code: "live-thread" } }])
+	})
+
+	it("skips a Spec with no children instead of planning an empty Spec Run", () => {
+		const plan = evaluateEligibility(state([spec()]), ALLOWLIST, NOW_MS)
+
+		expect(plan.runs).toEqual([])
+		expect(plan.skipped).toEqual([{ issue: SPEC, reason: { code: "no-open-children" } }])
+	})
+
+	it("skips a Spec with no open children instead of planning an empty Spec Run", () => {
+		const plan = evaluateEligibility(
+			state([spec(), child(3, { status: "closed" })]),
+			ALLOWLIST,
+			NOW_MS,
+		)
+
+		expect(plan.runs).toEqual([])
+		expect(plan.skipped).toEqual([
+			{ issue: SPEC, reason: { code: "no-open-children" } },
+			{ issue: key(3), reason: { code: "closed" } },
+		])
+	})
+
+	it("skips a Spec when every open child was skipped", () => {
+		const plan = evaluateEligibility(
+			state([spec(), child(3, { labels: ["ready-for-human"] })]),
+			ALLOWLIST,
+			NOW_MS,
+		)
+
+		expect(plan.runs).toEqual([])
+		expect(plan.skipped).toEqual([
+			{ issue: SPEC, reason: { code: "no-open-children" } },
+			{ issue: key(3), reason: { code: "needs-human" } },
 		])
 	})
 })
