@@ -25,7 +25,7 @@ function t3Error(run: () => void): T3Error | undefined {
 	return undefined
 }
 
-describe("runLaunchRequest", () => {
+describe("Run launch requests", () => {
 	it("titles the Run thread after its issue", () => {
 		expect(runLaunchRequest(input()).title).toBe("traj/trajectonomics/factory#8")
 	})

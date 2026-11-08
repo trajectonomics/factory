@@ -32,7 +32,7 @@ function fakeClient(
 	}
 }
 
-describe("listLiveThreads", () => {
+describe("live Run thread listing", () => {
 	it("lists the issues behind the live threads in a recorded T3 listing", async () => {
 		const client = fakeClient(RECORDED_THREADS)
 
@@ -63,7 +63,7 @@ describe("listLiveThreads", () => {
 	})
 })
 
-describe("launchRun", () => {
+describe("Run launches", () => {
 	it("launches a Run thread on the requested provider and model", async () => {
 		const client = fakeClient([])
 

@@ -12,12 +12,12 @@ export type RunLaunchOutcome =
 	| { readonly kind: "launched"; readonly request: T3LaunchRequest; readonly thread: T3Thread }
 	| { readonly kind: "dry-run"; readonly request: T3LaunchRequest }
 
-/** Lists the issues behind the live T3 threads, for matching against Claims. */
+/** The issues behind the live T3 threads, for matching against Claims. */
 export async function listLiveThreads(client: T3Client): Promise<readonly IssueKey[]> {
 	return liveThreadIssues(await client.listThreads())
 }
 
-/** Launches a Run thread, or plans it without touching T3 in a dry run. */
+/** The outcome of launching a Run thread, or of planning one in a dry run. */
 export async function launchRun(
 	client: T3Client,
 	input: RunLaunchInput,
