@@ -1,4 +1,5 @@
 import type { IssueKey } from "../contracts"
+import type { CreateIssueRequest, CreatePullRequestRequest } from "./create"
 
 /** A GitHub project by owner and number. */
 export type ProjectRef = {
@@ -65,6 +66,8 @@ export type GitHubClient = {
 	readonly addLabel: (issue: IssueKey, label: string) => Promise<void>
 	readonly removeLabel: (issue: IssueKey, label: string) => Promise<void>
 	readonly addComment: (issue: IssueKey, body: string) => Promise<void>
+	readonly createIssue: (request: CreateIssueRequest) => Promise<void>
+	readonly createPullRequest: (request: CreatePullRequestRequest) => Promise<void>
 	readonly updateProjectStatus: (
 		itemId: string,
 		projectId: string,

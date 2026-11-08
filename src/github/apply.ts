@@ -1,5 +1,7 @@
 import { CLAIM_LABEL } from "../claim"
 import { applyComment } from "./apply-comment"
+import { applyFollowUp } from "./apply-follow-up"
+import { applyPullRequest } from "./apply-pull-request"
 import { applyStatus } from "./apply-status"
 import type { Board } from "./board"
 import type { GitHubClient } from "./client"
@@ -47,6 +49,10 @@ async function applyWrite(
 			return applyStatus(client, board, write, index, options.dryRun, options.print)
 		case "comment":
 			return applyComment(client, write, alreadyPosted, options.dryRun, options.print)
+		case "pull-request":
+			return applyPullRequest(client, write, options)
+		case "follow-up":
+			return applyFollowUp(client, write, options)
 	}
 }
 

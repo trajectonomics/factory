@@ -15,5 +15,11 @@ export function formatWrite(write: FactoryWrite): string {
 			return `set status ${issue} to "${write.status}"`
 		case "comment":
 			return `comment ${issue} "${write.key}":\n${write.body}`
+		case "pull-request": {
+			const kind = write.draft ? "draft" : "ready"
+			return `open ${kind} pull request "${write.title}" from ${write.head} into ${write.base}`
+		}
+		case "follow-up":
+			return `file follow-up "${write.title}" in ${write.issue.repository}`
 	}
 }
