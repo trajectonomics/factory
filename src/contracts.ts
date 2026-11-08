@@ -15,13 +15,22 @@ export type Claim = {
 	readonly claimedAtMs: number
 }
 
+/** Why a Run stopped short of a ready pull request. */
+export type RunFailureCause = "failed" | "provider-rate-limit"
+
+/** One finished Run that stopped short of a ready pull request. */
+export type RunFailure = {
+	readonly cause: RunFailureCause
+	readonly failedAtMs: number
+}
+
 /** One blocking edge and the state of its blocker at read time. */
 export type Blocker = {
 	readonly key: IssueKey
 	readonly status: IssueStatus
 }
 
-/** An issue as read for one eligibility pass. */
+/** An issue as read for one Dispatcher pass. */
 export type IssueState = {
 	readonly key: IssueKey
 	readonly kind: IssueKind
@@ -30,9 +39,10 @@ export type IssueState = {
 	readonly parentSpec?: IssueKey
 	readonly blockers: readonly Blocker[]
 	readonly claim?: Claim
+	readonly runFailures?: readonly RunFailure[]
 }
 
-/** Every issue and live thread read for one eligibility pass. */
+/** Every issue and live thread read for one Dispatcher pass. */
 export type RepositoryState = {
 	readonly issues: readonly IssueState[]
 	readonly liveThreads: readonly IssueKey[]
