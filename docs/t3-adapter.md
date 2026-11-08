@@ -11,7 +11,9 @@ thread. A dry run builds the launch request and returns it without calling `laun
 ## Titles and branches
 
 A Run thread is titled `traj/<repo>#<n>`, where `<repo>` is the full `owner/name`. An issue number
-that is not a safe integer is rejected with `T3Error` code `unsafe-issue-number`.
+that is not a safe integer is rejected with `T3Error` code `unsafe-issue-number`. One live foreign
+thread whose title carries an unsafe issue number makes `listLiveThreads` fail closed with that code,
+rather than skipping the thread.
 
 A Run branch is `factory/<issue>-<slug>`. The slug is lowercase ASCII, capped at 50 characters so
 the branch stays inside git's limit. A title with no usable ASCII characters, such as Thai, CJK or
