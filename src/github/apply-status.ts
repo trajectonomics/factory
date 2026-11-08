@@ -1,7 +1,6 @@
-import { keyOf } from "../keys"
 import type { Board } from "./board"
+import { boardItemId } from "./board-item"
 import type { GitHubClient } from "./client"
-import { GitHubAdapterError } from "./errors"
 import { formatWrite } from "./format-write"
 import type { StatusWrite } from "./writes"
 
@@ -10,17 +9,11 @@ export async function applyStatus(
 	client: GitHubClient,
 	board: Board,
 	write: StatusWrite,
+	index: number,
 	dryRun: boolean,
 	print: (line: string) => void,
 ): Promise<void> {
-	const itemId = board.itemIds[keyOf(write.issue)]
-	if (itemId === undefined) {
-		throw new GitHubAdapterError(
-			"issue-not-on-board",
-			"writes[status].issue",
-			`${keyOf(write.issue)} has no card on project ${board.projectId}`,
-		)
-	}
+	const itemId = boardItemId(board, write.issue, `writes[${index}].issue`)
 	if (dryRun) return print(formatWrite(write))
 	await client.updateProjectStatus(
 		itemId,

@@ -1,14 +1,14 @@
 import { execFile } from "node:child_process"
 
 /** Runs one `gh` invocation and returns its stdout. */
-export type GhRunner = (args: readonly string[]) => Promise<string>
+export type GhRunner = (args: readonly string[], input?: string) => Promise<string>
 
 const MAX_BUFFER_BYTES = 20 * 1024 * 1024
 
 /** Runs the installed `gh` CLI, which supplies its own authentication. */
-export function runGh(args: readonly string[]): Promise<string> {
+export function runGh(args: readonly string[], input?: string): Promise<string> {
 	return new Promise((resolve, reject) => {
-		execFile(
+		const child = execFile(
 			"gh",
 			[...args],
 			{ encoding: "utf8", maxBuffer: MAX_BUFFER_BYTES },
@@ -17,6 +17,7 @@ export function runGh(args: readonly string[]): Promise<string> {
 				else resolve(stdout)
 			},
 		)
+		child.stdin?.end(input ?? "")
 	})
 }
 

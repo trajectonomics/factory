@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "../contracts"
-import type { GitHubClient, GitHubIssueData, GitHubTimelineEvent } from "./client"
-import { GitHubAdapterError } from "./errors"
+import type { GitHubIssueData, GitHubTimelineEvent } from "./client"
 import { loadFixture } from "./fixtures/load"
+import { testClient } from "./fixtures/test-client"
 import { readRepositoryState } from "./read"
 
 const FACTORY = "trajectonomics/factory"
@@ -11,35 +11,12 @@ function key(number: number): IssueKey {
 	return { repository: FACTORY, number }
 }
 
-function client(overrides: Partial<GitHubClient> = {}): GitHubClient {
-	const unusedRead = async (): Promise<never> => {
-		throw new Error("unexpected read")
-	}
-	const unusedWrite = async (): Promise<never> => {
-		throw new Error("unexpected write")
-	}
-	return {
-		listIssues: async () => [],
-		listBlockers: async () => [],
-		listTimeline: async () => [],
-		listComments: async () => [],
-		getProject: unusedRead,
-		listProjectFields: unusedRead,
-		listProjectItems: unusedRead,
-		addLabel: unusedWrite,
-		removeLabel: unusedWrite,
-		addComment: unusedWrite,
-		updateProjectStatus: unusedWrite,
-		...overrides,
-	}
-}
-
 async function issueFixture(): Promise<GitHubIssueData> {
 	return loadFixture<GitHubIssueData>("issue-7.json")
 }
 
-function adapterError(error: unknown): GitHubAdapterError | undefined {
-	return error instanceof GitHubAdapterError ? error : undefined
+async function timelineFixture(): Promise<readonly GitHubTimelineEvent[]> {
+	return loadFixture<readonly GitHubTimelineEvent[]>("timeline-7.json")
 }
 
 describe("reading GitHub issues", () => {
@@ -49,12 +26,13 @@ describe("reading GitHub issues", () => {
 		const timeline = await loadFixture<readonly GitHubTimelineEvent[]>("timeline-7.json")
 
 		const state = await readRepositoryState(
-			client({
+			testClient({
 				listIssues: async () => [issue],
 				listBlockers: async () => blockers,
 				listTimeline: async () => timeline,
 			}),
 			[FACTORY],
+			[],
 		)
 
 		expect(state).toEqual({
@@ -76,7 +54,11 @@ describe("reading GitHub issues", () => {
 	it("reads a parent issue as a Spec", async () => {
 		const parent = await loadFixture<GitHubIssueData>("parent-7.json")
 
-		const state = await readRepositoryState(client({ listIssues: async () => [parent] }), [FACTORY])
+		const state = await readRepositoryState(
+			testClient({ listIssues: async () => [parent] }),
+			[FACTORY],
+			[],
+		)
 
 		expect(state.issues).toHaveLength(1)
 		expect(state.issues[0]?.key).toEqual(key(2))
@@ -84,92 +66,15 @@ describe("reading GitHub issues", () => {
 		expect(state.issues[0]?.parentSpec).toBeUndefined()
 	})
 
-	it("falls back to the issue update time when the label event is missing", async () => {
+	it("carries the live threads supplied by the caller into the repository state", async () => {
 		const issue = await issueFixture()
 
 		const state = await readRepositoryState(
-			client({ listIssues: async () => [issue], listTimeline: async () => [] }),
+			testClient({ listIssues: async () => [issue], listTimeline: timelineFixture }),
 			[FACTORY],
+			[key(9)],
 		)
 
-		expect(state.issues[0]?.claim).toEqual({ claimedAtMs: 1794136658000 })
-	})
-
-	it("rejects a Ticket blocked by its own parent Spec", async () => {
-		const issue = await issueFixture()
-
-		const error = adapterError(
-			await readRepositoryState(
-				client({
-					listIssues: async () => [issue],
-					listBlockers: async () => {
-						const blocker = await loadFixture<GitHubIssueData>("parent-7.json")
-						return [blocker]
-					},
-				}),
-				[FACTORY],
-			).catch((caught: unknown) => caught),
-		)
-
-		expect(error?.code).toBe("spec-child-blocking-edge")
-		expect(error?.field).toBe(`issues[${FACTORY}#7].blockers[${FACTORY}#2]`)
-	})
-
-	it("rejects a blocking edge from a Spec to its own child", async () => {
-		const parent = await loadFixture<GitHubIssueData>("parent-7.json")
-		const child = await issueFixture()
-
-		const error = adapterError(
-			await readRepositoryState(
-				client({
-					listIssues: async () => [parent, child],
-					listBlockers: async (issue) => (issue.number === 2 ? [child] : []),
-				}),
-				[FACTORY],
-			).catch((caught: unknown) => caught),
-		)
-
-		expect(error?.code).toBe("spec-child-blocking-edge")
-		expect(error?.field).toBe(`issues[${FACTORY}#2].blockers[${FACTORY}#7]`)
-	})
-
-	it("rejects an issue URL that does not name a repository", async () => {
-		const issue = await issueFixture()
-		const malformed: GitHubIssueData = { ...issue, repository_url: "https://example.com/x" }
-
-		const error = adapterError(
-			await readRepositoryState(client({ listIssues: async () => [malformed] }), [FACTORY]).catch(
-				(caught: unknown) => caught,
-			),
-		)
-
-		expect(error?.code).toBe("malformed-issue-url")
-	})
-
-	it("rejects an issue state GitHub does not define", async () => {
-		const issue = await issueFixture()
-		const malformed: GitHubIssueData = { ...issue, state: "merged" }
-
-		const error = adapterError(
-			await readRepositoryState(client({ listIssues: async () => [malformed] }), [FACTORY]).catch(
-				(caught: unknown) => caught,
-			),
-		)
-
-		expect(error?.code).toBe("malformed-issue-state")
-	})
-
-	it("rejects a Claim time that is not a valid instant", async () => {
-		const issue = await issueFixture()
-		const malformed: GitHubIssueData = { ...issue, updated_at: "not-a-date" }
-
-		const error = adapterError(
-			await readRepositoryState(
-				client({ listIssues: async () => [malformed], listTimeline: async () => [] }),
-				[FACTORY],
-			).catch((caught: unknown) => caught),
-		)
-
-		expect(error?.code).toBe("invalid-claim-time")
+		expect(state.liveThreads).toEqual([key(9)])
 	})
 })

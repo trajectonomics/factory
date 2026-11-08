@@ -29,15 +29,10 @@ export function createGhWriteClient(
 			])
 		},
 		addComment: async (issue, body) => {
-			await run([
-				"issue",
-				"comment",
-				String(issue.number),
-				"--repo",
-				issue.repository,
-				"--body",
+			await run(
+				["issue", "comment", String(issue.number), "--repo", issue.repository, "--body-file", "-"],
 				body,
-			])
+			)
 		},
 		updateProjectStatus: async (itemId, projectId, fieldId, optionId) => {
 			await run([

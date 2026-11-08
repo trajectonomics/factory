@@ -34,7 +34,7 @@ describe("Factory writes", () => {
 		expect(error?.code).toBe("invalid-comment-key")
 	})
 
-	it("rejects a Claim time that is not a valid instant", () => {
+	it("rejects a Claim time that is not a non-negative integer", () => {
 		const error = thrown(() => claimWrite(key(), Number.NaN))
 
 		expect(error?.code).toBe("invalid-claim-time")

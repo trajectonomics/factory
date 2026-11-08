@@ -27,7 +27,17 @@
 				"default": "./dist/index.cjs"
 			}
 		},
-		"./package.json": "./package.json"
+		"./package.json": "./package.json",
+		"./github": {
+			"import": {
+				"types": "./dist/github.d.mts",
+				"default": "./dist/github.mjs"
+			},
+			"require": {
+				"types": "./dist/github.d.cts",
+				"default": "./dist/github.cjs"
+			}
+		}
 	},
 	"files": [
 		"dist"
@@ -35,7 +45,7 @@
 	"scripts": {
 		"build": "tsdown",
 		"test": "bun test",
-		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+		"typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.github.json && tsc -p tsconfig.test.json",
 		"lint": "biome ci --error-on-warnings .",
 		"format": "biome check --write .",
 		"check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run lint:package",

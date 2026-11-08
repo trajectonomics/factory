@@ -7,6 +7,7 @@ import type {
 	GitHubProjectItemData,
 	GitHubTimelineEvent,
 } from "./client"
+import { GitHubAdapterError } from "./errors"
 import { type GhRunner, getApi, getJson } from "./gh-run"
 
 const PAGE_LIMIT = 1000
@@ -62,8 +63,11 @@ export function createGhReadClient(
 				"--format",
 				"json",
 			]).then((response) => response.fields),
-		listProjectItems: async (project) =>
-			getJson<{ readonly items: readonly GitHubProjectItemData[] }>(run, [
+		listProjectItems: async (project) => {
+			const response = await getJson<{
+				readonly items: readonly GitHubProjectItemData[]
+				readonly totalCount: number
+			}>(run, [
 				"project",
 				"item-list",
 				String(project.number),
@@ -73,6 +77,15 @@ export function createGhReadClient(
 				"json",
 				"--limit",
 				String(PAGE_LIMIT),
-			]).then((response) => response.items),
+			])
+			if (response.items.length !== response.totalCount) {
+				throw new GitHubAdapterError(
+					"project-items-incomplete",
+					"project.items",
+					`Returned ${response.items.length} of ${response.totalCount} project items`,
+				)
+			}
+			return response.items
+		},
 	}
 }

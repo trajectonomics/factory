@@ -2,6 +2,7 @@ import type { IssueKey } from "../contracts"
 import { deepFreeze } from "../freeze"
 import { copyIssueKey } from "../keys"
 import type { BoardStatus } from "./board"
+import { assertClaimTime } from "./claim-time"
 import { GitHubAdapterError } from "./errors"
 
 /** The first line of every comment the Factory posts. */
@@ -44,13 +45,7 @@ export type FactoryWrite = ClaimWrite | LabelWrite | StatusWrite | CommentWrite
 
 /** Creates a Claim write for an issue. */
 export function claimWrite(issue: IssueKey, claimedAtMs: number): ClaimWrite {
-	if (!Number.isSafeInteger(claimedAtMs) || claimedAtMs < 0) {
-		throw new GitHubAdapterError(
-			"invalid-claim-time",
-			`writes[claim].claimedAtMs`,
-			`The Claim time must be a non-negative integer: ${claimedAtMs}`,
-		)
-	}
+	assertClaimTime(claimedAtMs, "writes[claim].claimedAtMs")
 	return deepFreeze({ kind: "claim", issue: copyIssueKey(issue), claimedAtMs })
 }
 
@@ -66,7 +61,7 @@ export function statusWrite(issue: IssueKey, status: BoardStatus): StatusWrite {
 
 /** Creates a comment write with the AI disclaimer and a stable idempotency marker. */
 export function commentWrite(issue: IssueKey, key: string, body: string): CommentWrite {
-	assertCommentKey(key)
+	assertCommentKey(key, "writes[comment].key")
 	const text = body.trim()
 	const disclosed = text.startsWith(AI_DISCLAIMER) ? text : `${AI_DISCLAIMER}\n\n${text}`
 	const marked = disclosed.includes(commentMarker(key))
@@ -81,11 +76,16 @@ export function commentMarker(key: string): string {
 }
 
 /** Rejects a comment key that cannot be embedded in its marker. */
-export function assertCommentKey(key: string): void {
+export function assertCommentKey(key: string, field: string): void {
 	if (COMMENT_KEY_PATTERN.test(key)) return
 	throw new GitHubAdapterError(
 		"invalid-comment-key",
-		`writes[comment].key`,
+		field,
 		`A comment key must be letters, digits, dot, colon, underscore or dash: ${key}`,
 	)
+}
+
+/** Whether an existing comment is one the Factory already posted for this key. */
+export function isFactoryComment(body: string, key: string): boolean {
+	return body.startsWith(AI_DISCLAIMER) && body.includes(commentMarker(key))
 }

@@ -12,7 +12,6 @@ export type GitHubIssueData = {
 	readonly state: string
 	readonly labels: readonly { readonly name: string }[]
 	readonly repository_url: string
-	readonly updated_at: string
 	readonly parent_issue_url?: string | null
 	readonly sub_issues_summary?: { readonly total: number }
 	readonly pull_request?: unknown

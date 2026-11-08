@@ -1,15 +1,16 @@
 import { CLAIM_LABEL } from "../claim"
 import type { Blocker, IssueKey, IssueState, RepositoryState } from "../contracts"
 import { deepFreeze } from "../freeze"
-import { keyOf } from "../keys"
+import { copyIssueKey, keyOf } from "../keys"
 import type { GitHubClient, GitHubIssueData, GitHubTimelineEvent } from "./client"
 import { GitHubAdapterError } from "./errors"
 import { claimOf, issueKeyOf, issueKindOf, issueStatusOf, parentOf } from "./parse"
 
-/** Reads open issues, their native blockers and parent links into the core's input contract. */
+/** Reads open issues, native blockers, parent links and the caller's live threads into the core's input. */
 export async function readRepositoryState(
 	client: GitHubClient,
 	repositories: readonly string[],
+	liveThreads: readonly IssueKey[],
 ): Promise<RepositoryState> {
 	const issues: IssueState[] = []
 	for (const repository of repositories) {
@@ -18,12 +19,12 @@ export async function readRepositoryState(
 		}
 	}
 	rejectSpecChildBlockingEdges(issues)
-	return deepFreeze({ issues, liveThreads: [] })
+	return deepFreeze({ issues, liveThreads: liveThreads.map(copyIssueKey) })
 }
 
 async function readIssue(client: GitHubClient, issue: GitHubIssueData): Promise<IssueState> {
-	const key = issueKeyOf(issue)
-	const parentSpec = parentOf(issue)
+	const key = issueKeyOf(issue, `issues[#${issue.number}].repository_url`)
+	const parentSpec = parentOf(issue, key)
 	const claim = claimOf(issue, await claimEvents(client, issue, key), key)
 	return {
 		key,
@@ -31,7 +32,7 @@ async function readIssue(client: GitHubClient, issue: GitHubIssueData): Promise<
 		status: issueStatusOf(issue.state, `issues[${keyOf(key)}].state`),
 		labels: issue.labels.map((label) => label.name),
 		...(parentSpec === undefined ? {} : { parentSpec }),
-		blockers: (await client.listBlockers(key)).map(blockerOf),
+		blockers: (await client.listBlockers(key)).map((blocker) => blockerOf(blocker, key)),
 		...(claim === undefined ? {} : { claim }),
 	}
 }
@@ -45,11 +46,12 @@ async function claimEvents(
 	return client.listTimeline(key)
 }
 
-function blockerOf(issue: GitHubIssueData): Blocker {
-	const key = issueKeyOf(issue)
+function blockerOf(issue: GitHubIssueData, parent: IssueKey): Blocker {
+	const parentKey = keyOf(parent)
+	const key = issueKeyOf(issue, `issues[${parentKey}].blockers[#${issue.number}].repository_url`)
 	return {
 		key,
-		status: issueStatusOf(issue.state, `issues[${keyOf(key)}].state`),
+		status: issueStatusOf(issue.state, `issues[${parentKey}].blockers[${keyOf(key)}].state`),
 	}
 }
 
@@ -67,7 +69,7 @@ function rejectBlockedByOwnParent(issue: IssueState): void {
 	const parentKey = keyOf(issue.parentSpec)
 	if (!issue.blockers.some((blocker) => keyOf(blocker.key) === parentKey)) return
 	throw new GitHubAdapterError(
-		"spec-child-blocking-edge",
+		"ticket-blocked-by-parent-spec",
 		`issues[${keyOf(issue.key)}].blockers[${parentKey}]`,
 		`${keyOf(issue.key)} is blocked by its own parent Spec ${parentKey}`,
 	)
@@ -79,7 +81,7 @@ function rejectBlockedByOwnChild(spec: IssueState, issues: ReadonlyMap<string, I
 		if (child?.parentSpec === undefined) continue
 		if (keyOf(child.parentSpec) !== keyOf(spec.key)) continue
 		throw new GitHubAdapterError(
-			"spec-child-blocking-edge",
+			"spec-blocked-by-child",
 			`issues[${keyOf(spec.key)}].blockers[${keyOf(blocker.key)}]`,
 			`${keyOf(spec.key)} is blocked by its own child ${keyOf(blocker.key)}`,
 		)

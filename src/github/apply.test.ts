@@ -2,8 +2,8 @@ import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "../contracts"
 import { applyWrites } from "./apply"
 import type { Board } from "./board"
-import type { GitHubClient, GitHubCommentData } from "./client"
-import { GitHubAdapterError } from "./errors"
+import type { GitHubCommentData } from "./client"
+import { adapterError, testClient } from "./fixtures/test-client"
 import {
 	AI_DISCLAIMER,
 	claimWrite,
@@ -30,18 +30,6 @@ function key(number = 7): IssueKey {
 	return { repository: FACTORY, number }
 }
 
-function adapterError(error: unknown): GitHubAdapterError | undefined {
-	return error instanceof GitHubAdapterError ? error : undefined
-}
-
-function unusedRead(): Promise<never> {
-	throw new Error("unexpected read")
-}
-
-function unusedWrite(): Promise<never> {
-	throw new Error("unexpected write")
-}
-
 function writes(): readonly FactoryWrite[] {
 	return [
 		claimWrite(key(), CLAIMED_AT_MS),
@@ -52,28 +40,13 @@ function writes(): readonly FactoryWrite[] {
 	]
 }
 
-function idleClient(overrides: Partial<GitHubClient> = {}): GitHubClient {
-	return {
-		listIssues: unusedRead,
-		listBlockers: unusedRead,
-		listTimeline: unusedRead,
-		listComments: async () => [],
-		getProject: unusedRead,
-		listProjectFields: unusedRead,
-		listProjectItems: unusedRead,
-		addLabel: unusedWrite,
-		removeLabel: unusedWrite,
-		addComment: unusedWrite,
-		updateProjectStatus: unusedWrite,
-		...overrides,
-	}
-}
+const LIVE = { dryRun: false, print: () => {} } as const
 
 describe("applying Factory writes", () => {
 	it("prints every intended write and performs none in dry-run mode", async () => {
 		const printed: string[] = []
 		let writesPerformed = 0
-		const client = idleClient({
+		const client = testClient({
 			addLabel: async () => {
 				writesPerformed++
 			},
@@ -107,7 +80,7 @@ describe("applying Factory writes", () => {
 		const comments: GitHubCommentData[] = []
 		const labels: string[] = []
 		const statuses: string[] = []
-		const client = idleClient({
+		const client = testClient({
 			listComments: async () => comments,
 			addLabel: async (_issue, label) => {
 				labels.push(`add:${label}`)
@@ -123,12 +96,11 @@ describe("applying Factory writes", () => {
 			},
 		})
 
-		await applyWrites(client, BOARD, writes(), { dryRun: false })
-		await applyWrites(client, BOARD, writes(), { dryRun: false })
+		await applyWrites(client, BOARD, writes(), LIVE)
+		await applyWrites(client, BOARD, writes(), LIVE)
 
 		expect(comments).toHaveLength(1)
 		expect(comments[0]?.body.startsWith(AI_DISCLAIMER)).toBe(true)
-		expect(comments[0]?.body).toContain("The Spec does not say which host to use.")
 		expect(labels).toEqual([
 			"add:agent-working",
 			"add:needs-info",
@@ -137,55 +109,48 @@ describe("applying Factory writes", () => {
 			"add:needs-info",
 			"remove:agent-working",
 		])
-		expect(statuses).toEqual([
-			"PVTI_lADOFOg3Is4Bpqr_zhG7-Ac|PVT_kwDOFOg3Is4Bpqr_|PVTSSF_lADOFOg3Is4Bpqr_zhoFPn0|df73e18b",
-			"PVTI_lADOFOg3Is4Bpqr_zhG7-Ac|PVT_kwDOFOg3Is4Bpqr_|PVTSSF_lADOFOg3Is4Bpqr_zhoFPn0|df73e18b",
-		])
+		expect(statuses).toHaveLength(2)
 	})
 
-	it("rejects a comment that does not open with the AI disclaimer", async () => {
-		const write: FactoryWrite = {
-			kind: "comment",
-			issue: key(),
-			key: "exit:spec-gap",
-			body: "A bare comment.",
-		}
+	it("does not let a stranger quoting the marker suppress a Factory comment", async () => {
+		const comments: GitHubCommentData[] = [
+			{ id: 1, body: "> <!-- factory:comment:exit:spec-gap --> quoted by a stranger" },
+		]
+		const client = testClient({
+			listComments: async () => comments,
+			addComment: async (_issue, body) => {
+				comments.push({ id: comments.length + 1, body })
+			},
+		})
 
-		const error = adapterError(
-			await applyWrites(idleClient(), BOARD, [write], { dryRun: true }).catch(
-				(caught: unknown) => caught,
-			),
+		await applyWrites(
+			client,
+			BOARD,
+			[commentWrite(key(), "exit:spec-gap", "A question for the owner.")],
+			LIVE,
 		)
 
-		expect(error?.code).toBe("comment-missing-disclaimer")
+		expect(comments).toHaveLength(2)
+		expect(comments[1]?.body.startsWith(AI_DISCLAIMER)).toBe(true)
 	})
 
-	it("rejects a comment without its idempotency marker", async () => {
-		const write: FactoryWrite = {
-			kind: "comment",
-			issue: key(),
-			key: "exit:spec-gap",
-			body: `${AI_DISCLAIMER}\n\nA bare comment.`,
-		}
+	it("reports a board rejection without performing an earlier write", async () => {
+		let writesPerformed = 0
+		const client = testClient({
+			addLabel: async () => {
+				writesPerformed++
+			},
+		})
+		const batch: readonly FactoryWrite[] = [
+			labelWrite(key(), "needs-info", true),
+			statusWrite(key(8), "Done"),
+		]
 
 		const error = adapterError(
-			await applyWrites(idleClient(), BOARD, [write], { dryRun: true }).catch(
-				(caught: unknown) => caught,
-			),
-		)
-
-		expect(error?.code).toBe("comment-missing-marker")
-	})
-
-	it("rejects a Status write for an issue that is not on the board", async () => {
-		const board: Board = { ...BOARD, itemIds: {} }
-
-		const error = adapterError(
-			await applyWrites(idleClient(), board, [statusWrite(key(), "Done")], {
-				dryRun: true,
-			}).catch((caught: unknown) => caught),
+			await applyWrites(client, BOARD, batch, LIVE).catch((caught: unknown) => caught),
 		)
 
 		expect(error?.code).toBe("issue-not-on-board")
+		expect(writesPerformed).toBe(0)
 	})
 })

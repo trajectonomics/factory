@@ -2,8 +2,13 @@
 	"extends": "./tsconfig.base.json",
 	"compilerOptions": {
 		"lib": ["ES2022"],
-		"types": ["node"]
+		"types": []
 	},
 	"include": ["src"],
-	"exclude": ["src/**/*.test.ts"]
+	"exclude": [
+		"src/**/*.test.ts",
+		"src/github/gh-*.ts",
+		"src/github/index.ts",
+		"src/github/fixtures"
+	]
 }
