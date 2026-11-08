@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { type Notifier, sendTicketRunNotification } from "./notify"
+import { type Notifier, planAndNotifyTicketRun, sendTicketRunNotification } from "./notify"
 import type { TicketRunPlan } from "./ticket-run-contracts"
 
 const URGENT_MESSAGE = "Ticket Run for trajectonomics/factory#9 needs the owner: The token expired."
@@ -23,6 +23,24 @@ describe("urgent Ticket Run notifications", () => {
 		await sendTicketRunNotification(notifier, URGENT)
 
 		expect(sent).toEqual([URGENT_MESSAGE])
+	})
+
+	it("plans and sends the notification in one call", async () => {
+		const sent: string[] = []
+		const notifier: Notifier = async (notification) => {
+			sent.push(notification)
+		}
+
+		const plan = await planAndNotifyTicketRun(notifier, {
+			kind: "urgent",
+			ticket: { repository: "trajectonomics/factory", number: 9 },
+			reason: "The token expired.",
+		})
+
+		expect(plan.kind).toBe("urgent")
+		expect(plan.waiting).toBe(true)
+		expect(sent).toHaveLength(1)
+		expect(sent[0]).toContain("The token expired.")
 	})
 
 	it("sends nothing for a plan without a notification", async () => {

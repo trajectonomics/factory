@@ -119,11 +119,7 @@ describe("planning a Ticket Run", () => {
 			label: "agent-working",
 			present: false,
 		})
-		expect(writeOf(plan, "status")).toEqual({
-			kind: "status",
-			issue: TICKET,
-			status: "In review",
-		})
+		expect(writeOf(plan, "status")).toBeUndefined()
 	})
 
 	it("posts the spec-gap question, applies needs-info and releases the Claim", () => {

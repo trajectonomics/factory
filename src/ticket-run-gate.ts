@@ -20,9 +20,9 @@ function planGateWrites(report: GateReport, draft: boolean, body: string): Ticke
 	const writes: FactoryWrite[] = [
 		pullRequestWrite(report.ticket, pullRequestRequest(report, draft, body)),
 		labelWrite(report.ticket, CLAIM_LABEL, false),
-		statusWrite(report.ticket, "In review"),
 	]
 	if (draft) writes.push(labelWrite(report.ticket, READY_FOR_HUMAN_LABEL, true))
+	else writes.push(statusWrite(report.ticket, "In review"))
 	return deepFreeze({
 		kind: draft ? "gate-failure" : "ready",
 		waiting: false,

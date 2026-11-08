@@ -29,7 +29,6 @@ gate report
     -> draft pull request with the findings
     -> add ready-for-human
     -> remove agent-working
-    -> move the card to In review
 follow-up report
   -> file each Follow-up Ticket labelled ready-for-human
   -> no pull request yet; the Run continues
@@ -59,9 +58,9 @@ draft pull request with the same label and the findings. Both use `Closes #<tick
 closes the Ticket, and both end with a `## Reviews` section built from the reported reviewer
 provider, model, thread, verdict and number of fixed findings, as the Merge gate requires.
 
-A failed Gate still moves the card to **In review** because its draft pull request is waiting for the
-owner. A spec gap leaves the card where it is: the board has no `needs-info` Status, and Status is
-write-only output (ADR 0001).
+A failed Gate leaves the card where it is; the issue asks for the draft pull request and
+`ready-for-human`, and the board has no draft-review Status. A spec gap also leaves the card where it
+is: there is no `needs-info` Status, and Status is write-only output (ADR 0001).
 
 A Follow-up Ticket is filed in the Run's repository with `ready-for-human` and the body the Run
 reported. Filing it is its own report, so the Run keeps going and a later ready Gate opens the pull
@@ -77,6 +76,6 @@ labels, comments and Status. The `github` adapter performs them through `gh pr c
 ## Urgent Exit
 
 The urgent plan has no writes. It sets `waiting: true` and returns a `notification` string naming the
-Ticket and the reason. `sendTicketRunNotification(notifier, plan)` delivers it through the injected
-`Notifier`; the Dispatcher supplies that push adapter and keeps the Run thread alive, and the Claim
-stays with the waiting Run.
+Ticket and the reason. `planAndNotifyTicketRun(notifier, report)` plans the Run and sends that
+notification through the injected `Notifier`; the Dispatcher supplies its push adapter and keeps the
+Run thread alive, and the Claim stays with the waiting Run.

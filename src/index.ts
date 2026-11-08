@@ -27,7 +27,7 @@ export * from "./human-queue"
 export * from "./intake-guard"
 export * from "./kill-switch"
 export type { Notifier } from "./notify"
-export { sendTicketRunNotification } from "./notify"
+export { planAndNotifyTicketRun, sendTicketRunNotification } from "./notify"
 export * from "./pacing-guard"
 export { PROVIDER_RATE_LIMIT_BACKOFF_MS, reconcileWork } from "./reconciliation"
 export type {
