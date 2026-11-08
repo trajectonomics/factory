@@ -1,3 +1,7 @@
+import type { RunFailure } from "./run-failure"
+
+export type { RunFailure, RunFailureCause } from "./run-failure"
+
 /** Identifies an issue by repository and number. */
 export type IssueKey = {
 	readonly repository: string
@@ -21,7 +25,7 @@ export type Blocker = {
 	readonly status: IssueStatus
 }
 
-/** An issue as read for one eligibility pass. */
+/** An issue as read for one Dispatcher pass. */
 export type IssueState = {
 	readonly key: IssueKey
 	readonly kind: IssueKind
@@ -30,9 +34,10 @@ export type IssueState = {
 	readonly parentSpec?: IssueKey
 	readonly blockers: readonly Blocker[]
 	readonly claim?: Claim
+	readonly runFailures?: readonly RunFailure[]
 }
 
-/** Every issue and live thread read for one eligibility pass. */
+/** Every issue and live thread read for one Dispatcher pass. */
 export type RepositoryState = {
 	readonly issues: readonly IssueState[]
 	readonly liveThreads: readonly IssueKey[]

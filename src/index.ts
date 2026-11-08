@@ -22,3 +22,10 @@ export * from "./human-queue"
 export * from "./intake-guard"
 export * from "./kill-switch"
 export * from "./pacing-guard"
+export { PROVIDER_RATE_LIMIT_BACKOFF_MS, reconcileWork } from "./reconciliation"
+export type {
+	ClaimRelease,
+	ReconciliationPlan,
+	TicketHandoff,
+	TicketRequeue,
+} from "./reconciliation-plan"
