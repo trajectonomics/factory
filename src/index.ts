@@ -9,6 +9,6 @@ export { PROVIDER_RATE_LIMIT_BACKOFF_MS, reconcileWork } from "./reconciliation"
 export type {
 	ClaimRelease,
 	ReconciliationPlan,
-	TicketEscalation,
+	TicketHandoff,
 	TicketRequeue,
 } from "./reconciliation-plan"

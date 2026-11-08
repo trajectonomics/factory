@@ -1,51 +1,51 @@
 import { isClaimLive } from "./claim"
 import type { IssueState } from "./contracts"
 import { copyIssueKey } from "./keys"
-import type { ClaimRelease, TicketEscalation, TicketRequeue } from "./reconciliation-plan"
+import type { ClaimRelease, TicketHandoff, TicketRequeue } from "./reconciliation-plan"
 import type { RunFailure } from "./run-failure"
 import { countFailedAttempts, latestRunFailure } from "./run-failures"
 
 /** The label a Ticket carries once two failed attempts exhaust it. */
-export const ESCALATION_LABEL: TicketEscalation["label"] = "ready-for-human"
+export const READY_FOR_HUMAN_LABEL: TicketHandoff["label"] = "ready-for-human"
 
 /** The delay after a provider rate-limit before the Ticket is retried. */
 export const PROVIDER_RATE_LIMIT_BACKOFF_MS: number = 15 * 60 * 1000
 
 const FAILED_ATTEMPT_LIMIT = 2
 const APPROVAL_LABEL = "ready-for-agent"
-const REQUEUE_BLOCKING_LABELS = ["needs-info", "wontfix", ESCALATION_LABEL] as const
+const REQUEUE_BLOCKING_LABELS = ["needs-info", "wontfix", READY_FOR_HUMAN_LABEL] as const
 
 /** The actions one issue calls for in a reconciliation pass. */
 export type IssueReconciliation = {
 	readonly release: ClaimRelease | undefined
-	readonly escalation: TicketEscalation | undefined
+	readonly handoff: TicketHandoff | undefined
 	readonly requeue: TicketRequeue | undefined
 }
 
-/** Decides the release, escalation and requeue actions for one issue. */
+/** Decides the release, handoff and requeue actions for one issue. */
 export function reconcileIssue(issue: IssueState, nowMs: number): IssueReconciliation {
 	const failures = issue.runFailures ?? []
 	if (countFailedAttempts(failures) >= FAILED_ATTEMPT_LIMIT) {
 		return {
 			release: staleRelease(issue, nowMs),
-			escalation: escalationFor(issue),
+			handoff: handoffFor(issue),
 			requeue: undefined,
 		}
 	}
 	const requeue = requeueFor(issue, failures)
 	return {
 		release: requeue === undefined ? staleRelease(issue, nowMs) : undefined,
-		escalation: undefined,
+		handoff: undefined,
 		requeue,
 	}
 }
 
-function escalationFor(issue: IssueState): TicketEscalation | undefined {
-	if (!isOpenTicket(issue) || issue.labels.includes(ESCALATION_LABEL)) return undefined
+function handoffFor(issue: IssueState): TicketHandoff | undefined {
+	if (!isOpenTicket(issue) || issue.labels.includes(READY_FOR_HUMAN_LABEL)) return undefined
 	return {
 		issue: copyIssueKey(issue.key),
 		reason: "attempts-exhausted",
-		label: ESCALATION_LABEL,
+		label: READY_FOR_HUMAN_LABEL,
 	}
 }
 

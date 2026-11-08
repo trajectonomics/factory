@@ -14,7 +14,7 @@ const LEASE_MS = 2 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
 const NO_DECISIONS: ReconciliationPlan = {
 	releasedClaims: [],
-	escalatedTickets: [],
+	handedOffTickets: [],
 	requeuedTickets: [],
 }
 
@@ -46,7 +46,7 @@ function expectNoDecisions(plan: ReconciliationPlan): void {
 }
 
 describe("Claim reconciliation edges", () => {
-	it("releases a stale Claim and escalates the exhausted Ticket that held it", () => {
+	it("releases a stale Claim and hands off the exhausted Ticket that held it", () => {
 		const ticket = issue(4, {
 			claim: { claimedAtMs: NOW_MS - LEASE_MS },
 			runFailures: [failure("failed", NOW_MS - 180 * MINUTE_MS), failure("failed", NOW_MS)],
@@ -55,10 +55,10 @@ describe("Claim reconciliation edges", () => {
 		const plan = reconcileWork(state([ticket]), NOW_MS)
 
 		expect(plan.releasedClaims).toEqual([{ issue: key(4), reason: "lease-expired" }])
-		expect(plan.escalatedTickets).toHaveLength(1)
+		expect(plan.handedOffTickets).toHaveLength(1)
 	})
 
-	it("does not escalate or re-queue a closed Ticket", () => {
+	it("does not hand off or re-queue a closed Ticket", () => {
 		const exhausted = issue(4, {
 			status: "closed",
 			runFailures: [failure("failed", NOW_MS - 1), failure("failed", NOW_MS)],
@@ -138,7 +138,7 @@ describe("Claim reconciliation edges", () => {
 		expectNoDecisions(reconcileWork(state([second]), NOW_MS))
 	})
 
-	it("escalates and re-queues only Tickets, never a Spec", () => {
+	it("hands off and re-queues only Tickets, never a Spec", () => {
 		const spec = issue(4, {
 			kind: "spec",
 			runFailures: [

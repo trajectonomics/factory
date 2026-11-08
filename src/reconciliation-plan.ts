@@ -7,7 +7,7 @@ export type ClaimRelease = {
 }
 
 /** A Ticket to label ready-for-human after its second failed attempt. */
-export type TicketEscalation = {
+export type TicketHandoff = {
 	readonly issue: IssueKey
 	readonly reason: "attempts-exhausted"
 	readonly label: "ready-for-human"
@@ -23,6 +23,6 @@ export type TicketRequeue = {
 /** The decisions from one reconciliation pass. */
 export type ReconciliationPlan = {
 	readonly releasedClaims: readonly ClaimRelease[]
-	readonly escalatedTickets: readonly TicketEscalation[]
+	readonly handedOffTickets: readonly TicketHandoff[]
 	readonly requeuedTickets: readonly TicketRequeue[]
 }

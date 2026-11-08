@@ -5,7 +5,7 @@ import { keyOf } from "./keys"
 import type {
 	ClaimRelease,
 	ReconciliationPlan,
-	TicketEscalation,
+	TicketHandoff,
 	TicketRequeue,
 } from "./reconciliation-plan"
 import { reconcileIssue } from "./reconciliation-rules"
@@ -18,20 +18,20 @@ export function reconcileWork(state: RepositoryState, nowMs: number): Reconcilia
 	const issues = indexIssues(state.issues)
 	const liveThreads = new Set(state.liveThreads.map(keyOf))
 	const releasedClaims: ClaimRelease[] = []
-	const escalatedTickets: TicketEscalation[] = []
+	const handedOffTickets: TicketHandoff[] = []
 	const requeuedTickets: TicketRequeue[] = []
 
 	for (const issue of issues.values()) {
 		if (liveThreads.has(keyOf(issue.key))) continue
 		const decision = reconcileIssue(issue, nowMs)
-		if (decision.escalation !== undefined) escalatedTickets.push(decision.escalation)
+		if (decision.handoff !== undefined) handedOffTickets.push(decision.handoff)
 		if (decision.requeue !== undefined) requeuedTickets.push(decision.requeue)
 		if (decision.release !== undefined) releasedClaims.push(decision.release)
 	}
 
 	return deepFreeze({
 		releasedClaims: releasedClaims.sort(byIssue),
-		escalatedTickets: escalatedTickets.sort(byIssue),
+		handedOffTickets: handedOffTickets.sort(byIssue),
 		requeuedTickets: requeuedTickets.sort(byIssue),
 	})
 }

@@ -15,7 +15,7 @@ const LEASE_MS = 2 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
 const NO_DECISIONS: ReconciliationPlan = {
 	releasedClaims: [],
-	escalatedTickets: [],
+	handedOffTickets: [],
 	requeuedTickets: [],
 }
 
@@ -62,7 +62,7 @@ describe("Claim reconciliation", () => {
 		const plan = reconcileWork(state([ticket]), NOW_MS)
 
 		expect(plan.releasedClaims).toEqual([{ issue: key(4), reason: "lease-expired" }])
-		expect(plan.escalatedTickets).toEqual([])
+		expect(plan.handedOffTickets).toEqual([])
 		expect(plan.requeuedTickets).toEqual([])
 	})
 
@@ -84,14 +84,14 @@ describe("Claim reconciliation", () => {
 		expectNoDecisions(reconcileWork(state([ticket]), NOW_MS))
 	})
 
-	it("escalates a Ticket after its second failed attempt", () => {
+	it("hands off a Ticket after its second failed attempt", () => {
 		const ticket = issue(4, {
 			runFailures: [failure("failed", NOW_MS - 120 * MINUTE_MS), failure("failed", NOW_MS)],
 		})
 
 		const plan = reconcileWork(state([ticket]), NOW_MS)
 
-		expect(plan.escalatedTickets).toEqual([
+		expect(plan.handedOffTickets).toEqual([
 			{ issue: key(4), reason: "attempts-exhausted", label: "ready-for-human" },
 		])
 	})
@@ -99,16 +99,16 @@ describe("Claim reconciliation", () => {
 	it("keeps a Ticket with one failed attempt", () => {
 		const ticket = issue(4, { runFailures: [failure("failed", NOW_MS)] })
 
-		expect(reconcileWork(state([ticket]), NOW_MS).escalatedTickets).toEqual([])
+		expect(reconcileWork(state([ticket]), NOW_MS).handedOffTickets).toEqual([])
 	})
 
-	it("does not escalate a Ticket that is already ready-for-human", () => {
+	it("does not hand off a Ticket that is already ready-for-human", () => {
 		const ticket = issue(4, {
 			labels: ["ready-for-agent", "ready-for-human"],
 			runFailures: [failure("failed", NOW_MS - 1), failure("failed", NOW_MS)],
 		})
 
-		expect(reconcileWork(state([ticket]), NOW_MS).escalatedTickets).toEqual([])
+		expect(reconcileWork(state([ticket]), NOW_MS).handedOffTickets).toEqual([])
 	})
 
 	it("re-queues an approved rate-limited Ticket with a backoff", () => {
@@ -136,11 +136,11 @@ describe("Claim reconciliation", () => {
 
 		const plan = reconcileWork(state([ticket]), NOW_MS)
 
-		expect(plan.escalatedTickets).toEqual([])
+		expect(plan.handedOffTickets).toEqual([])
 		expect(plan.requeuedTickets).toHaveLength(1)
 	})
 
-	it("escalates an exhausted Ticket even when its latest Run was rate-limited", () => {
+	it("hands off an exhausted Ticket even when its latest Run was rate-limited", () => {
 		const ticket = issue(4, {
 			runFailures: [
 				failure("failed", NOW_MS - 30 * MINUTE_MS),
@@ -151,7 +151,7 @@ describe("Claim reconciliation", () => {
 
 		const plan = reconcileWork(state([ticket]), NOW_MS)
 
-		expect(plan.escalatedTickets).toHaveLength(1)
+		expect(plan.handedOffTickets).toHaveLength(1)
 		expect(plan.requeuedTickets).toEqual([])
 	})
 

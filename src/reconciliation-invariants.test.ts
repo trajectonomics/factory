@@ -58,7 +58,7 @@ function permutations<T>(items: readonly T[]): T[][] {
 
 const EXPECTED: ReconciliationPlan = {
 	releasedClaims: [{ issue: key(4), reason: "lease-expired" }],
-	escalatedTickets: [{ issue: key(5), reason: "attempts-exhausted", label: "ready-for-human" }],
+	handedOffTickets: [{ issue: key(5), reason: "attempts-exhausted", label: "ready-for-human" }],
 	requeuedTickets: [
 		{
 			issue: key(6),
