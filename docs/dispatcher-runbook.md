@@ -37,7 +37,8 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
    - `modelSelection`: provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `factory/<n>-<slug>` (Spec Run: `factory/spec-<n>-<slug>`). The slug is lowercase ASCII, at most 40 characters; use plain `factory/<n>` if nothing is usable.
    If the launch errors, remove `agent-working`, do not retry in a loop, and report the error. If the repository lacks `implement`, `tdd` and `code-review` under `.agents/skills`, do not launch: comment on the issue and add `needs-info`.
-9. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, and skipped issues with a one-word reason. Also flag any live Run that has review child threads but none on `claudeAgent` or `antigravity`: its reviews were not independent. Do not wait for the Runs to finish.
+9. **Review audit.** For every open, non-draft pull request whose head branch starts with `factory/`, check that its body has a `## Reviews` section naming a Conformance Review on `claudeAgent` and a Standards Review on `antigravity`, and that those threads exist (`t3_thread_list`, `includeSubagents`). If either is missing, the pull request is unreviewed: launch the missing reviewer or reviewers yourself with the same `target` as in the launch brief, as read-only tasks against `gh pr diff <pr>` and the issue, and ask each to post its findings as a pull request comment (`gh pr comment`). Do not edit the branch. Do this at most once per pull request per pass, and for at most 3 pull requests.
+10. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
 
 ## Models
 
@@ -62,14 +63,14 @@ Use this as the thread message, filling the placeholders.
 > Steps:
 > 1. Read the issue (`gh issue view <n> --json number,title,body,labels,comments`), AGENTS.md, GLOSSARY.md and docs/adr/.
 > 2. Work on branch `<branch>`. Never commit to `main`.
-> 3. Run `/implement` (Spec Run: `/implement-spec`), test-first with `/tdd`.
+> 3. Build it test-first. The `implement` and `implement-spec` skills are marked `disable-model-invocation`, so you cannot call them as tools: read `.agents/skills/implement/SKILL.md` (Spec Run: `.agents/skills/implement-spec/SKILL.md`) and follow it yourself. You may call the `tdd` skill. Where `implement` says to call `code-review`, do step 5 instead.
 > 4. Gate: `bun run check` must pass. Never loosen tsconfig or biome config. Never edit `version` in package.json.
-> 5. Reviews. Do NOT review in this thread and do NOT run `/code-review` yourself: its sub-agents would run on your own model and only mark your own work. Instead call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` as below (a call without a `target` inherits your DeepSeek model):
+> 5. Reviews (mandatory). You may not open a ready pull request until both reviewers below have returned for the current round. Reading your own diff, or "reviewing" inline in this thread, does not count. Do NOT review in this thread and do NOT run `/code-review` yourself: its sub-agents would run on your own model and only mark your own work. Instead call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` as below (a call without a `target` inherits your DeepSeek model):
 >    - Conformance Review: `target: { providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { effort: "high" } }`. Task: review `git diff origin/main...HEAD` against issue #`<n>` (the Spec axis of `code-review`): requirements missing or partial, behaviour that was not asked for, requirements implemented wrongly. Quote the issue line for each finding. Under 400 words.
 >    - Standards Review: `target: { providerInstanceId: "antigravity", model: "gemini-3.8-flash" }`. Task: review the same diff against CODING_STANDARDS.md and the smell baseline in `.agents/skills/code-review/SKILL.md` (the Standards axis); cite the rule for each finding; smells are judgement calls. Under 400 words.
 >
 >    Tell each reviewer to read only and edit no files. Fix the findings, then run both reviewers again. At most two rounds. If a reviewer's provider is unavailable, retry once; if it still fails, do not fall back to your own model: take the Urgent exit and say which provider failed. A review by your own model does not count towards the Gate.
-> 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>`.
+> 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>` and ends with a `## Reviews` section: one line per reviewer per round with the reviewer's role, provider and model, its thread link, its verdict, and how many findings you fixed. A pull request without this section is treated as unreviewed.
 >
 > Hard rules: never merge, approve, or add `ready-for-agent` or `wontfix`. Never touch a host or cloud platform. Never commit secrets. Bun only.
 >
