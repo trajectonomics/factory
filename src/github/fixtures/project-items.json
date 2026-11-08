@@ -1,0 +1,20 @@
+{
+	"items": [
+		{
+			"content": {
+				"body": "## Parent\n\nPart of https://github.com/trajectonomics/factory/issues/2\n\n## What to build\n\nRead issues, blocking edges, parents and the board from GitHub, and write Claims, labels, Status and comments. A dry-run mode writes nothing.\n\n## Acceptance criteria\n\n- [ ] Reads match recorded GitHub fixtures\n- [ ] Dry-run prints the intended writes and performs none\n- [ ] Every comment the Factory posts opens with the AI disclaimer and is idempotent on re-run\n",
+				"number": 7,
+				"repository": "trajectonomics/factory",
+				"title": "GitHub adapter",
+				"type": "Issue",
+				"url": "https://github.com/trajectonomics/factory/issues/7"
+			},
+			"id": "PVTI_lADOFOg3Is4Bpqr_zhG7-Ac",
+			"labels": ["enhancement", "ready-for-agent", "agent-working"],
+			"repository": "https://github.com/trajectonomics/factory",
+			"status": "Backlog",
+			"title": "GitHub adapter"
+		}
+	],
+	"totalCount": 1
+}

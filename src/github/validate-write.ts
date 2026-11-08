@@ -1,0 +1,46 @@
+import type { Board } from "./board"
+import { boardItemId } from "./board-item"
+import { assertClaimTime } from "./claim-time"
+import { GitHubAdapterError } from "./errors"
+import {
+	AI_DISCLAIMER,
+	assertCommentKey,
+	type CommentWrite,
+	commentMarker,
+	type FactoryWrite,
+} from "./writes"
+
+/** Rejects one write before any write in a batch is performed. */
+export function validateWrite(write: FactoryWrite, index: number, board: Board): void {
+	switch (write.kind) {
+		case "claim":
+			assertClaimTime(write.claimedAtMs, `writes[${index}].claimedAtMs`)
+			return
+		case "label":
+			return
+		case "status":
+			boardItemId(board, write.issue, `writes[${index}].issue`)
+			return
+		case "comment":
+			validateComment(write, index)
+			return
+	}
+}
+
+function validateComment(write: CommentWrite, index: number): void {
+	assertCommentKey(write.key, `writes[${index}].key`)
+	if (!write.body.startsWith(AI_DISCLAIMER)) {
+		throw new GitHubAdapterError(
+			"comment-missing-disclaimer",
+			`writes[${index}].body`,
+			`Every Factory comment must open with: ${AI_DISCLAIMER}`,
+		)
+	}
+	if (!write.body.includes(commentMarker(write.key))) {
+		throw new GitHubAdapterError(
+			"comment-missing-marker",
+			`writes[${index}].body`,
+			`The comment for ${write.key} has no idempotency marker`,
+		)
+	}
+}
