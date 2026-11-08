@@ -7,6 +7,8 @@ const THRESHOLDS: HostThresholds = {
 	diskUsedFraction: 0.9,
 }
 
+const NON_FINITE_MEASUREMENTS: readonly number[] = [Number.NaN, Number.POSITIVE_INFINITY]
+
 function health(overrides: Partial<HostHealth> = {}): HostHealth {
 	return { loadAverage: 1.5, memoryUsedFraction: 0.5, diskUsedFraction: 0.6, ...overrides }
 }
@@ -74,6 +76,42 @@ describe("the host Guard", () => {
 				],
 			},
 		})
+	})
+
+	it("treats a non-finite host load as pressure", () => {
+		for (const loadAverage of NON_FINITE_MEASUREMENTS) {
+			expect(evaluateHostGuard(health({ loadAverage }), THRESHOLDS)).toEqual({
+				allowed: false,
+				reason: {
+					code: "host-pressure",
+					pressures: [{ code: "load", loadAverage, threshold: 4 }],
+				},
+			})
+		}
+	})
+
+	it("treats non-finite host memory as pressure", () => {
+		for (const memoryUsedFraction of NON_FINITE_MEASUREMENTS) {
+			expect(evaluateHostGuard(health({ memoryUsedFraction }), THRESHOLDS)).toEqual({
+				allowed: false,
+				reason: {
+					code: "host-pressure",
+					pressures: [{ code: "memory", usedFraction: memoryUsedFraction, threshold: 0.9 }],
+				},
+			})
+		}
+	})
+
+	it("treats non-finite host disk as pressure", () => {
+		for (const diskUsedFraction of NON_FINITE_MEASUREMENTS) {
+			expect(evaluateHostGuard(health({ diskUsedFraction }), THRESHOLDS)).toEqual({
+				allowed: false,
+				reason: {
+					code: "host-pressure",
+					pressures: [{ code: "disk", usedFraction: diskUsedFraction, threshold: 0.9 }],
+				},
+			})
+		}
 	})
 
 	it("returns a frozen decision with frozen pressures", () => {

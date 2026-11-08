@@ -10,16 +10,18 @@ export type KillSwitch = {
 	readonly pausedRepositories: readonly string[]
 }
 
-/** The repositories whose issues carry the factory:pause label, in repository order. */
+/** The repositories whose open issues carry the factory:pause label, in repository order. */
 export function pausedRepositories(issues: readonly IssueState[]): readonly string[] {
 	const repositories = new Set<string>()
 	for (const issue of issues) {
-		if (issue.labels.includes(PAUSE_LABEL)) repositories.add(issue.key.repository)
+		if (issue.status === "open" && issue.labels.includes(PAUSE_LABEL)) {
+			repositories.add(issue.key.repository)
+		}
 	}
 	return Object.freeze([...repositories].sort())
 }
 
-/** Stops every launch when the schedule is disabled, and one repository's launches when paused. */
+/** The Guard decision on schedule status and paused repositories. */
 export function evaluateKillSwitch(killSwitch: KillSwitch, repository: string): GuardDecision {
 	if (!killSwitch.scheduleEnabled) return launchStopped({ code: "schedule-disabled" })
 	if (killSwitch.pausedRepositories.includes(repository)) {

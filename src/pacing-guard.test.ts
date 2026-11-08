@@ -32,4 +32,13 @@ describe("the launch pacing Guard", () => {
 			reason: { code: "launch-too-soon", waitMs: 20_000 },
 		})
 	})
+
+	it("clamps the wait to the pacing interval when the clock is behind the last launch", () => {
+		const decision = evaluatePacingGuard(pacing({ nowMs: LAST_LAUNCH_MS - 30_000 }))
+
+		expect(decision).toEqual({
+			allowed: false,
+			reason: { code: "launch-too-soon", waitMs: MINUTE_MS },
+		})
+	})
 })

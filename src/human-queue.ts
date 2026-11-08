@@ -12,7 +12,7 @@ export function queueDepth(queue: HumanQueue): number {
 	return queue.openPullRequests + queue.needsSpecReview + queue.readyForHuman
 }
 
-/** Stops launches while the human's queue is deeper than its threshold. */
+/** The Guard decision on whether the human queue depth exceeds its threshold. */
 export function evaluateQueueGuard(queue: HumanQueue, depthThreshold: number): GuardDecision {
 	const depth = queueDepth(queue)
 	if (depth <= depthThreshold) return launchAllowed()

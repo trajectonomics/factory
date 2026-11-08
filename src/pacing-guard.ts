@@ -7,10 +7,11 @@ export type LaunchPacing = {
 	readonly minIntervalMs: number
 }
 
-/** Stops a launch that arrives before the host's pacing interval has passed. */
+/** The Guard decision on host launch pacing. */
 export function evaluatePacingGuard(pacing: LaunchPacing): GuardDecision {
 	if (pacing.lastLaunchAtMs === undefined) return launchAllowed()
 	const elapsedMs = pacing.nowMs - pacing.lastLaunchAtMs
 	if (elapsedMs >= pacing.minIntervalMs) return launchAllowed()
-	return launchStopped({ code: "launch-too-soon", waitMs: pacing.minIntervalMs - elapsedMs })
+	const waitMs = Math.min(pacing.minIntervalMs, pacing.minIntervalMs - elapsedMs)
+	return launchStopped({ code: "launch-too-soon", waitMs })
 }

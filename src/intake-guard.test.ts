@@ -18,7 +18,7 @@ describe("the trusted-author intake Guard", () => {
 	}
 
 	for (const association of UNTRUSTED) {
-		it(`blocks Spec pipeline intake for the "${association}" association`, () => {
+		it(`stops Spec pipeline intake for the "${association}" association`, () => {
 			expect(evaluateIntakeGuard(association)).toEqual({
 				allowed: false,
 				reason: { code: "untrusted-author", association },

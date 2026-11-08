@@ -10,8 +10,19 @@ import {
 const CLI = "trajectonomics/cli"
 const SIM = "trajectonomics/sim-core"
 
-function issue(repository: string, labels: string[] = []): IssueState {
-	return { key: { repository, number: 1 }, kind: "spec", status: "open", labels, blockers: [] }
+function issue(
+	repository: string,
+	labels: string[] = [],
+	overrides: Partial<IssueState> = {},
+): IssueState {
+	return {
+		key: { repository, number: 1 },
+		kind: "spec",
+		status: "open",
+		labels,
+		blockers: [],
+		...overrides,
+	}
 }
 
 function killSwitch(overrides: Partial<KillSwitch> = {}): KillSwitch {
@@ -44,6 +55,18 @@ describe("the kill switch", () => {
 	it("leaves another repository launching while one is paused", () => {
 		const paused = pausedRepositories([issue(SIM, [PAUSE_LABEL])])
 
+		expect(evaluateKillSwitch(killSwitch({ pausedRepositories: paused }), CLI)).toEqual({
+			allowed: true,
+		})
+	})
+
+	it("does not pause a repository when factory:pause is only on a closed issue", () => {
+		const paused = pausedRepositories([
+			issue(CLI, [PAUSE_LABEL], { status: "closed" }),
+			issue(SIM, [PAUSE_LABEL]),
+		])
+
+		expect(paused).toEqual([SIM])
 		expect(evaluateKillSwitch(killSwitch({ pausedRepositories: paused }), CLI)).toEqual({
 			allowed: true,
 		})
