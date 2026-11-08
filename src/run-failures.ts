@@ -1,4 +1,4 @@
-import type { RunFailure } from "./contracts"
+import type { RunFailure } from "./run-failure"
 
 /** How many of the Run's failures consumed an attempt. */
 export function countFailedAttempts(failures: readonly RunFailure[]): number {

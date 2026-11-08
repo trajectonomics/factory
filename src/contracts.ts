@@ -1,3 +1,7 @@
+import type { RunFailure } from "./run-failure"
+
+export type { RunFailure, RunFailureCause } from "./run-failure"
+
 /** Identifies an issue by repository and number. */
 export type IssueKey = {
 	readonly repository: string
@@ -13,15 +17,6 @@ export type IssueKind = "ticket" | "spec"
 /** The `agent-working` Claim on an issue, and when it was applied. */
 export type Claim = {
 	readonly claimedAtMs: number
-}
-
-/** Why a Run stopped short of a ready pull request. */
-export type RunFailureCause = "failed" | "provider-rate-limit"
-
-/** One finished Run that stopped short of a ready pull request. */
-export type RunFailure = {
-	readonly cause: RunFailureCause
-	readonly failedAtMs: number
 }
 
 /** One blocking edge and the state of its blocker at read time. */

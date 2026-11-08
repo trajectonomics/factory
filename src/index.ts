@@ -5,5 +5,10 @@ export { CLAIM_LEASE_MS } from "./claim"
 export * from "./contracts"
 export { evaluateEligibility } from "./eligibility"
 export * from "./errors"
-export * from "./reconciliation"
-export * from "./reconciliation-plan"
+export { PROVIDER_RATE_LIMIT_BACKOFF_MS, reconcileWork } from "./reconciliation"
+export type {
+	ClaimRelease,
+	ReconciliationPlan,
+	TicketEscalation,
+	TicketRequeue,
+} from "./reconciliation-plan"

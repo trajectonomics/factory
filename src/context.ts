@@ -1,5 +1,6 @@
 import type { AllowlistEntry, IssueState, RepositoryState } from "./contracts"
 import { EligibilityError } from "./errors"
+import { indexIssues } from "./issue-index"
 import { keyOf } from "./keys"
 
 /** The lookup state shared by the eligibility rules. */
@@ -37,22 +38,6 @@ function allowlistLookup(
 			)
 		}
 		entries.set(entry.repository, entry)
-	}
-	return entries
-}
-
-function indexIssues(issues: readonly IssueState[]): ReadonlyMap<string, IssueState> {
-	const entries = new Map<string, IssueState>()
-	for (const issue of issues) {
-		const key = keyOf(issue.key)
-		if (entries.has(key)) {
-			throw new EligibilityError(
-				"duplicate-issue-key",
-				`issues[${key}]`,
-				`The repository state contains ${key} more than once`,
-			)
-		}
-		entries.set(key, issue)
 	}
 	return entries
 }

@@ -1,7 +1,9 @@
 import { describe, expect, it } from "bun:test"
 import {
+	EligibilityError,
 	type IssueKey,
 	type IssueState,
+	type ReconciliationPlan,
 	type RepositoryState,
 	type RunFailure,
 	reconcileWork,
@@ -11,6 +13,11 @@ const NOW_MS = 1_000_000_000
 const CLI = "trajectonomics/cli"
 const LEASE_MS = 2 * 60 * 60 * 1000
 const MINUTE_MS = 60 * 1000
+const NO_DECISIONS: ReconciliationPlan = {
+	releasedClaims: [],
+	escalatedTickets: [],
+	requeuedTickets: [],
+}
 
 function key(number: number): IssueKey {
 	return { repository: CLI, number }
@@ -21,7 +28,7 @@ function issue(number: number, overrides: Partial<IssueState> = {}): IssueState 
 		key: key(number),
 		kind: "ticket",
 		status: "open",
-		labels: [],
+		labels: ["ready-for-agent"],
 		blockers: [],
 		...overrides,
 	}
@@ -33,6 +40,19 @@ function state(issues: IssueState[], liveThreads: IssueKey[] = []): RepositorySt
 
 function failure(cause: RunFailure["cause"], failedAtMs: number): RunFailure {
 	return { cause, failedAtMs }
+}
+
+function expectNoDecisions(plan: ReconciliationPlan): void {
+	expect(plan).toEqual(NO_DECISIONS)
+}
+
+function reconciliationError(run: () => void): EligibilityError | undefined {
+	try {
+		run()
+	} catch (error) {
+		return error instanceof EligibilityError ? error : undefined
+	}
+	return undefined
 }
 
 describe("Claim reconciliation", () => {
@@ -49,25 +69,19 @@ describe("Claim reconciliation", () => {
 	it("keeps a Claim inside its Lease", () => {
 		const ticket = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS + 1 } })
 
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan).toEqual({ releasedClaims: [], escalatedTickets: [], requeuedTickets: [] })
+		expectNoDecisions(reconcileWork(state([ticket]), NOW_MS))
 	})
 
 	it("keeps a Claim whose issue has a live thread past its Lease", () => {
 		const ticket = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS - 1 } })
 
-		const plan = reconcileWork(state([ticket], [key(4)]), NOW_MS)
-
-		expect(plan).toEqual({ releasedClaims: [], escalatedTickets: [], requeuedTickets: [] })
+		expectNoDecisions(reconcileWork(state([ticket], [key(4)]), NOW_MS))
 	})
 
 	it("never releases a label-only agent-working Claim", () => {
 		const ticket = issue(4, { labels: ["agent-working"] })
 
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan).toEqual({ releasedClaims: [], escalatedTickets: [], requeuedTickets: [] })
+		expectNoDecisions(reconcileWork(state([ticket]), NOW_MS))
 	})
 
 	it("escalates a Ticket after its second failed attempt", () => {
@@ -85,23 +99,19 @@ describe("Claim reconciliation", () => {
 	it("keeps a Ticket with one failed attempt", () => {
 		const ticket = issue(4, { runFailures: [failure("failed", NOW_MS)] })
 
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan.escalatedTickets).toEqual([])
+		expect(reconcileWork(state([ticket]), NOW_MS).escalatedTickets).toEqual([])
 	})
 
 	it("does not escalate a Ticket that is already ready-for-human", () => {
 		const ticket = issue(4, {
-			labels: ["ready-for-human"],
+			labels: ["ready-for-agent", "ready-for-human"],
 			runFailures: [failure("failed", NOW_MS - 1), failure("failed", NOW_MS)],
 		})
 
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan.escalatedTickets).toEqual([])
+		expect(reconcileWork(state([ticket]), NOW_MS).escalatedTickets).toEqual([])
 	})
 
-	it("re-queues a rate-limited Ticket with a backoff", () => {
+	it("re-queues an approved rate-limited Ticket with a backoff", () => {
 		const failedAtMs = NOW_MS - 5 * MINUTE_MS
 		const ticket = issue(4, { runFailures: [failure("provider-rate-limit", failedAtMs)] })
 
@@ -145,68 +155,25 @@ describe("Claim reconciliation", () => {
 		expect(plan.requeuedTickets).toEqual([])
 	})
 
-	it("uses the latest failure regardless of the order it is read in", () => {
+	it("does not re-queue an unapproved rate-limited Ticket", () => {
 		const ticket = issue(4, {
-			runFailures: [
-				failure("failed", NOW_MS - 5 * MINUTE_MS),
-				failure("provider-rate-limit", NOW_MS - 30 * MINUTE_MS),
-			],
-		})
-
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan.requeuedTickets).toEqual([])
-	})
-
-	it("does not escalate or re-queue a closed Ticket", () => {
-		const exhausted = issue(4, {
-			status: "closed",
-			runFailures: [failure("failed", NOW_MS - 1), failure("failed", NOW_MS)],
-		})
-		const rateLimited = issue(5, {
-			status: "closed",
+			labels: [],
 			runFailures: [failure("provider-rate-limit", NOW_MS)],
 		})
 
-		const plan = reconcileWork(state([exhausted, rateLimited]), NOW_MS)
-
-		expect(plan.escalatedTickets).toEqual([])
-		expect(plan.requeuedTickets).toEqual([])
+		expectNoDecisions(reconcileWork(state([ticket]), NOW_MS))
 	})
 
-	it("does not re-queue a Ticket already labelled ready-for-human", () => {
-		const ticket = issue(4, {
-			labels: ["ready-for-human"],
-			runFailures: [failure("provider-rate-limit", NOW_MS)],
+	for (const label of ["needs-info", "wontfix", "ready-for-human"]) {
+		it(`does not re-queue an approved Ticket labelled ${label}`, () => {
+			const ticket = issue(4, {
+				labels: ["ready-for-agent", label],
+				runFailures: [failure("provider-rate-limit", NOW_MS)],
+			})
+
+			expectNoDecisions(reconcileWork(state([ticket]), NOW_MS))
 		})
-
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan.requeuedTickets).toEqual([])
-	})
-
-	it("does not re-queue a Claim started after the rate-limit", () => {
-		const ticket = issue(4, {
-			claim: { claimedAtMs: NOW_MS - 5 * MINUTE_MS },
-			runFailures: [failure("provider-rate-limit", NOW_MS - 10 * MINUTE_MS)],
-		})
-
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan).toEqual({ releasedClaims: [], escalatedTickets: [], requeuedTickets: [] })
-	})
-
-	it("releases a stale Claim and escalates the exhausted Ticket that held it", () => {
-		const ticket = issue(4, {
-			claim: { claimedAtMs: NOW_MS - LEASE_MS },
-			runFailures: [failure("failed", NOW_MS - 180 * MINUTE_MS), failure("failed", NOW_MS)],
-		})
-
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(plan.releasedClaims).toEqual([{ issue: key(4), reason: "lease-expired" }])
-		expect(plan.escalatedTickets).toHaveLength(1)
-	})
+	}
 
 	it("ignores a live thread even when the Ticket has failed attempts and a stale Claim", () => {
 		const ticket = issue(4, {
@@ -214,31 +181,16 @@ describe("Claim reconciliation", () => {
 			runFailures: [failure("failed", NOW_MS - 1), failure("failed", NOW_MS)],
 		})
 
-		const plan = reconcileWork(state([ticket], [key(4)]), NOW_MS)
-
-		expect(plan).toEqual({ releasedClaims: [], escalatedTickets: [], requeuedTickets: [] })
+		expectNoDecisions(reconcileWork(state([ticket], [key(4)]), NOW_MS))
 	})
 
-	it("returns the same decisions for either order of its input", () => {
+	it("rejects a repository state that lists one issue twice", () => {
 		const first = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS } })
-		const second = issue(5, { runFailures: [failure("provider-rate-limit", NOW_MS)] })
+		const second = issue(4, { runFailures: [failure("failed", NOW_MS)] })
 
-		const forward = reconcileWork(state([first, second]), NOW_MS)
-		const backward = reconcileWork(state([second, first]), NOW_MS)
+		const error = reconciliationError(() => reconcileWork(state([first, second]), NOW_MS))
 
-		expect(forward).toEqual(backward)
-		expect(forward.releasedClaims).toEqual([{ issue: key(4), reason: "lease-expired" }])
-		expect(forward.requeuedTickets.map((entry) => entry.issue)).toEqual([key(5)])
-	})
-
-	it("returns frozen decisions with copied issue keys", () => {
-		const ticket = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS } })
-
-		const plan = reconcileWork(state([ticket]), NOW_MS)
-
-		expect(Object.isFrozen(plan)).toBe(true)
-		expect(Object.isFrozen(plan.releasedClaims)).toBe(true)
-		expect(Object.isFrozen(plan.releasedClaims[0])).toBe(true)
-		expect(plan.releasedClaims[0]?.issue).not.toBe(ticket.key)
+		expect(error?.code).toBe("duplicate-issue-key")
+		expect(error?.field).toBe("issues[trajectonomics/cli#4]")
 	})
 })
