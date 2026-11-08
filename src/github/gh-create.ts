@@ -1,11 +1,5 @@
 import type { GitHubClient } from "./client"
-import type { CreatePullRequestRequest } from "./create"
-import { type GhRunner, getJson } from "./gh-run"
-
-type CreatedPullRequest = {
-	readonly number: number
-	readonly url: string
-}
+import type { GhRunner } from "./gh-run"
 
 /** The creation half of the GitHub client: Follow-up Tickets and pull requests. */
 export function createGhCreateClient(
@@ -29,7 +23,6 @@ export function createGhCreateClient(
 			)
 		},
 		createPullRequest: async (request) => {
-			if (await pullRequestOnBranch(run, request)) return
 			await run(
 				[
 					"pr",
@@ -51,25 +44,6 @@ export function createGhCreateClient(
 			)
 		},
 	}
-}
-
-async function pullRequestOnBranch(
-	run: GhRunner,
-	request: CreatePullRequestRequest,
-): Promise<CreatedPullRequest | undefined> {
-	const pullRequests = await getJson<readonly CreatedPullRequest[]>(run, [
-		"pr",
-		"list",
-		"--repo",
-		request.repository,
-		"--head",
-		request.head,
-		"--state",
-		"open",
-		"--json",
-		"number,url",
-	])
-	return pullRequests[0]
 }
 
 function labelArgs(labels: readonly string[]): string[] {

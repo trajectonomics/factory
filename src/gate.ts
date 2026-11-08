@@ -48,8 +48,7 @@ export function evaluateGate(rounds: readonly GateRound[]): GateDecision {
 			`A Gate takes at most ${MAX_GATE_ROUNDS} rounds, received ${rounds.length}`,
 		)
 	}
-	if (rounds.length === 0) return deepFreeze({ kind: "rerun" })
-	const latest = rounds[rounds.length - 1]
+	const latest = rounds.at(-1)
 	if (latest === undefined) return deepFreeze({ kind: "rerun" })
 	if (isClean(latest)) return deepFreeze({ kind: "ready" })
 	if (rounds.length < MAX_GATE_ROUNDS) return deepFreeze({ kind: "rerun" })

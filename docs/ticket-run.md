@@ -9,16 +9,18 @@ or calls GitHub.
 
 ## From Claim to pull request
 
+`ticketRunBrief(ticket)` is the role brief injected into the Run thread. It names `/implement`, the
+Gate and the four Exits, and it states the repository-only rule.
+
 `startTicketRun(ticket, claimedAtMs)` claims the Ticket with `agent-working` and moves its card to
 **In progress**. The Run then works on `factory/<issue>-<slug>`, the branch from the T3 launch.
 
-`planTicketRun(report)` is the decision at the end of the Run:
+`planTicketRun(report)` is the decision at each report:
 
 ```text
 gate report
   Gate ready
     -> ready pull request labelled factory
-    -> file any Follow-up Tickets
     -> remove agent-working
     -> move the card to In review
   Gate needs another round
@@ -28,8 +30,11 @@ gate report
     -> add ready-for-human
     -> remove agent-working
     -> move the card to In review
+follow-up report
+  -> file each Follow-up Ticket labelled ready-for-human
+  -> no pull request yet; the Run continues
 spec-gap report
-  -> comment the question with the exit:spec-gap key
+  -> comment the question with a key derived from it
   -> add needs-info
   -> remove agent-working
 urgent report
@@ -53,11 +58,9 @@ A ready pull request is never a draft and always carries the `factory` label. A 
 draft pull request with the same label and the findings. Both use `Closes #<ticket>` so the merge
 closes the Ticket.
 
-`gh pr list --head <branch> --state open` runs before creation, so re-planning a Run reuses the open
-pull request on its branch instead of opening a second one.
-
 A Follow-up Ticket is filed in the Run's repository with `ready-for-human` and the body the Run
-reported. Filing it does not hold up the pull request: a ready Gate still opens one.
+reported. Filing it is its own report, so the Run keeps going and a later ready Gate opens the pull
+request.
 
 ## Writes and dry runs
 
@@ -69,5 +72,5 @@ labels, comments and Status. The `github` adapter performs them through `gh pr c
 ## Urgent Exit
 
 The urgent plan has no writes. It sets `waiting: true` and returns a `notification` string naming the
-Ticket and the reason. The Dispatcher keeps the Run thread alive and delivers that notification; the
-Claim stays with the waiting Run.
+Ticket and the reason. `sendTicketRunNotification(notifier, plan)` delivers it through the injected
+`Notifier`; the Dispatcher keeps the Run thread alive, and the Claim stays with the waiting Run.

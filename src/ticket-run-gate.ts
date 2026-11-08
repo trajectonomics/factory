@@ -1,24 +1,25 @@
+import { CLAIM_LABEL } from "./claim"
 import type { IssueKey } from "./contracts"
 import { deepFreeze } from "./freeze"
 import { evaluateGate } from "./gate"
 import type { CreatePullRequestRequest } from "./github/create"
-import { followUpWrite, pullRequestWrite } from "./github/run-writes"
+import { pullRequestWrite } from "./github/run-writes"
 import { type FactoryWrite, labelWrite, statusWrite } from "./github/writes"
 import { FACTORY_LABEL, READY_FOR_HUMAN_LABEL } from "./labels"
 import type { GateReport, TicketRunPlan } from "./ticket-run-contracts"
 
-export function planGateReport(report: GateReport): TicketRunPlan {
+/** Plans another Gate round, a ready pull request, or a draft after a gate failure. */
+export function planReportedGate(report: GateReport): TicketRunPlan {
 	const decision = evaluateGate(report.rounds)
 	if (decision.kind === "rerun") return deepFreeze({ kind: "rerun", waiting: false, writes: [] })
-	if (decision.kind === "ready") return gatePlan(report, false, closesBody(report.ticket))
-	return gatePlan(report, true, findingsBody(report.ticket, decision.findings))
+	if (decision.kind === "ready") return gateWrites(report, false, closesBody(report.ticket))
+	return gateWrites(report, true, findingsBody(report.ticket, decision.findings))
 }
 
-function gatePlan(report: GateReport, draft: boolean, body: string): TicketRunPlan {
+function gateWrites(report: GateReport, draft: boolean, body: string): TicketRunPlan {
 	const writes: FactoryWrite[] = [
 		pullRequestWrite(report.ticket, pullRequestRequest(report, draft, body)),
-		...report.followUps.map((followUp) => followUpWrite(report.ticket, followUp)),
-		labelWrite(report.ticket, "agent-working", false),
+		labelWrite(report.ticket, CLAIM_LABEL, false),
 		statusWrite(report.ticket, "In review"),
 	]
 	if (draft) writes.push(labelWrite(report.ticket, READY_FOR_HUMAN_LABEL, true))

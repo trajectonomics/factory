@@ -11,7 +11,13 @@ export type GateReport = {
 	readonly branch: string
 	readonly base: string
 	readonly rounds: readonly GateRound[]
-	readonly followUps: readonly FollowUpTicket[]
+}
+
+/** A follow-up Exit: human-only work is filed and the Run continues. */
+export type FollowUpReport = {
+	readonly kind: "follow-up"
+	readonly ticket: IssueKey
+	readonly tickets: readonly FollowUpTicket[]
 }
 
 /** A spec-gap Exit: the Ticket does not say enough to finish. */
@@ -29,11 +35,11 @@ export type UrgentReport = {
 }
 
 /** What a Ticket Run reports back to the Factory. */
-export type TicketRunReport = GateReport | SpecGapReport | UrgentReport
+export type TicketRunReport = GateReport | FollowUpReport | SpecGapReport | UrgentReport
 
 /** The writes and waiting state one Ticket Run calls for. */
 export type TicketRunPlan = {
-	readonly kind: "rerun" | "ready" | "gate-failure" | "spec-gap" | "urgent"
+	readonly kind: "rerun" | "ready" | "gate-failure" | "follow-up" | "spec-gap" | "urgent"
 	readonly waiting: boolean
 	readonly writes: readonly FactoryWrite[]
 	readonly notification?: string

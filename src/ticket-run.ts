@@ -1,5 +1,7 @@
+import { CLAIM_LABEL } from "./claim"
 import type { IssueKey } from "./contracts"
 import { deepFreeze } from "./freeze"
+import { followUpWrite } from "./github/run-writes"
 import {
 	claimWrite,
 	commentWrite,
@@ -9,23 +11,17 @@ import {
 } from "./github/writes"
 import { keyOf } from "./keys"
 import { NEEDS_INFO_LABEL } from "./labels"
+import { slugify } from "./run-branch"
 import type {
+	FollowUpReport,
 	SpecGapReport,
 	TicketRunPlan,
 	TicketRunReport,
 	UrgentReport,
 } from "./ticket-run-contracts"
-import { planGateReport } from "./ticket-run-gate"
+import { planReportedGate } from "./ticket-run-gate"
 
-export type {
-	GateReport,
-	SpecGapReport,
-	TicketRunPlan,
-	TicketRunReport,
-	UrgentReport,
-} from "./ticket-run-contracts"
-
-const EXIT_COMMENT_KEY = "exit:spec-gap"
+const SPEC_GAP_KEY = "exit:spec-gap"
 
 /** Claims a Ticket and moves its card to In progress when the Run starts. */
 export function startTicketRun(ticket: IssueKey, claimedAtMs: number): readonly FactoryWrite[] {
@@ -36,7 +32,9 @@ export function startTicketRun(ticket: IssueKey, claimedAtMs: number): readonly 
 export function planTicketRun(report: TicketRunReport): TicketRunPlan {
 	switch (report.kind) {
 		case "gate":
-			return planGateReport(report)
+			return planReportedGate(report)
+		case "follow-up":
+			return followUpPlan(report)
 		case "spec-gap":
 			return specGapPlan(report)
 		case "urgent":
@@ -44,16 +42,29 @@ export function planTicketRun(report: TicketRunReport): TicketRunPlan {
 	}
 }
 
+function followUpPlan(report: FollowUpReport): TicketRunPlan {
+	return deepFreeze({
+		kind: "follow-up",
+		waiting: false,
+		writes: report.tickets.map((ticket) => followUpWrite(report.ticket, ticket)),
+	})
+}
+
 function specGapPlan(report: SpecGapReport): TicketRunPlan {
 	return deepFreeze({
 		kind: "spec-gap",
 		waiting: false,
 		writes: [
-			commentWrite(report.ticket, EXIT_COMMENT_KEY, report.question),
+			commentWrite(report.ticket, specGapKey(report.question), report.question),
 			labelWrite(report.ticket, NEEDS_INFO_LABEL, true),
-			labelWrite(report.ticket, "agent-working", false),
+			labelWrite(report.ticket, CLAIM_LABEL, false),
 		],
 	})
+}
+
+function specGapKey(question: string): string {
+	const slug = slugify(question)
+	return slug === "" ? SPEC_GAP_KEY : `${SPEC_GAP_KEY}:${slug}`
 }
 
 function urgentPlan(report: UrgentReport): TicketRunPlan {

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "./contracts"
 import type { GateRound } from "./gate"
-import { planTicketRun, startTicketRun, type TicketRunReport } from "./ticket-run"
+import { planTicketRun, startTicketRun } from "./ticket-run"
+import type { TicketRunReport } from "./ticket-run-contracts"
 
 const TICKET: IssueKey = { repository: "trajectonomics/factory", number: 9 }
 const TITLE = "Ticket Run end to end"
@@ -26,7 +27,6 @@ function gateReport(overrides: Partial<Extract<TicketRunReport, { kind: "gate" }
 		branch: BRANCH,
 		base: BASE,
 		rounds: [round()],
-		followUps: [],
 		...overrides,
 	}
 	return report
@@ -130,7 +130,7 @@ describe("planning a Ticket Run", () => {
 		expect(plan.writes.map((write) => write.kind)).toEqual(["comment", "label", "label"])
 		const comment = writeOf(plan, "comment")
 		if (comment?.kind !== "comment") throw new Error("expected a comment")
-		expect(comment.key).toBe("exit:spec-gap")
+		expect(comment.key).toBe("exit:spec-gap:which-host-should-the-run-use")
 		expect(comment.body).toContain("Which host should the Run use?")
 		expect(plan.writes).toContainEqual({
 			kind: "label",
@@ -146,32 +146,52 @@ describe("planning a Ticket Run", () => {
 		})
 	})
 
-	it("files a Follow-up Ticket without holding up the ready pull request", () => {
-		const plan = planTicketRun(
-			gateReport({
-				followUps: [
-					{
-						title: "Provision the release token",
-						body: "Only the owner can create the release token.",
-					},
-				],
-			}),
-		)
+	it("posts a new spec-gap question under its own comment key", () => {
+		const first = planTicketRun({
+			kind: "spec-gap",
+			ticket: TICKET,
+			question: "Which host should the Run use?",
+		})
+		const second = planTicketRun({
+			kind: "spec-gap",
+			ticket: TICKET,
+			question: "Which model should the Run use?",
+		})
+		const firstComment = writeOf(first, "comment")
+		const secondComment = writeOf(second, "comment")
+		if (firstComment?.kind !== "comment" || secondComment?.kind !== "comment") {
+			throw new Error("expected spec-gap comments")
+		}
 
-		expect(plan.kind).toBe("ready")
-		expect(plan.writes.map((write) => write.kind)).toEqual([
-			"pull-request",
-			"follow-up",
-			"label",
-			"status",
-		])
-		expect(writeOf(plan, "follow-up")).toEqual({
+		expect(firstComment.key).not.toBe(secondComment.key)
+	})
+
+	it("files a Follow-up Ticket and then continues to the ready pull request", () => {
+		const followUp = planTicketRun({
+			kind: "follow-up",
+			ticket: TICKET,
+			tickets: [
+				{
+					title: "Provision the release token",
+					body: "Only the owner can create the release token.",
+				},
+			],
+		})
+
+		expect(followUp.kind).toBe("follow-up")
+		expect(followUp.waiting).toBe(false)
+		expect(followUp.writes.map((write) => write.kind)).toEqual(["follow-up"])
+		expect(writeOf(followUp, "follow-up")).toEqual({
 			kind: "follow-up",
 			issue: TICKET,
 			title: "Provision the release token",
 			body: "Only the owner can create the release token.",
 			labels: ["ready-for-human"],
 		})
+
+		const ready = planTicketRun(gateReport())
+		expect(ready.kind).toBe("ready")
+		expect(writeOf(ready, "pull-request")?.kind).toBe("pull-request")
 	})
 
 	it("leaves an urgent Run waiting and sends a notification", () => {

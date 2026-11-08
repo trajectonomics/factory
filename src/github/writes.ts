@@ -41,9 +41,6 @@ export type CommentWrite = {
 	readonly body: string
 }
 
-export type { FollowUpWrite, PullRequestWrite } from "./run-writes"
-export { followUpWrite, pullRequestWrite } from "./run-writes"
-
 /** One write the Factory asks GitHub to perform. */
 export type FactoryWrite =
 	| ClaimWrite
