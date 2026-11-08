@@ -2,7 +2,7 @@
 
 How the Dispatcher works while it is run by an agent from a scheduled task or by hand, before the entrypoint (factory#10) exists. The scheduled task "Factory Dispatcher" reads this file from `origin/main` on every pass, so a change here takes effect on the next pass once it is merged.
 
-The Dispatcher finds Eligible work and launches Runs. It never merges, approves, or touches a host or cloud platform. It never adds `ready-for-agent` or `wontfix`. It does one pass, then stops. Language is in [`GLOSSARY.md`](../GLOSSARY.md); the decisions are in [`docs/adr/`](./adr/).
+The Dispatcher finds Eligible work and launches Runs. It never approves and never touches a host or cloud platform. A pull request is merged only when it passes the Merge gate below ([ADR 0005](./adr/0005-run-merges-its-own-pull-request.md)): by the Run that opened it, as the last step of its loop, or by the Dispatcher's sweep (step 10). It never adds `ready-for-agent` or `wontfix`. It does one pass, then stops. Language is in [`GLOSSARY.md`](../GLOSSARY.md); the decisions are in [`docs/adr/`](./adr/).
 
 ## Allowlist
 
@@ -49,7 +49,29 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
 9. **Review audit.** For every open, non-draft pull request whose head branch starts with `factory/`, check that its body has a `## Reviews` section naming a Conformance Review on `claudeAgent` and a Standards Review on `antigravity`, and that those threads exist (`t3_thread_list`, `includeSubagents`). A `## Reviews` section that says the owner accepted the review as it is satisfies the audit; leave that pull request alone. If either is missing, the pull request is unreviewed: launch the missing reviewer or reviewers yourself with the same `target` as in the launch brief, as read-only tasks against `gh pr diff <pr>` and the issue, and ask each to post its findings as a pull request comment (`gh pr comment`). Do not edit the branch. Do this at most once per pull request per pass, and for at most 3 pull requests.
    - **Last round not clean.** If the final round in the `## Reviews` section has the verdict "changes requested", or says findings were fixed after that round and not re-reviewed, launch one verification round (both reviewers, same targets, read-only, findings posted as a pull request comment) over the current head. Do this once per pull request. If the verification still finds problems, add `ready-for-human` to the issue and say so in the report.
    - **Conflicts.** If a pull request is `CONFLICTING` with `main` (for example because a sibling pull request merged), send its Run thread a message to rebase on `origin/main`, resolve the conflicts, and re-run `bun run check`. If the Run thread has finished, the message restarts it. Do not review again unless the conflict resolution changed behaviour.
-10. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
+10. **Merge sweep** (a backstop: a Run normally merges its own pull request at the end of its loop). Take the open `factory/*` pull requests oldest first, at most 3 per pass. For each, check the [Merge gate](#merge-gate) against its current head commit. If every condition holds and `Mode` is `live`, merge it with `gh pr merge <n> -R trajectonomics/<repo> --squash --delete-branch`, then confirm the issue closed (close it with a comment if `Closes #<n>` did not), remove `agent-working` (for a Spec Run, from the Spec and its children too), and re-check the repository's other open pull requests for conflicts before the next merge. In `dry-run`, report "would merge". For a pull request that fails a condition, name the first failed condition in the report and leave it for the owner.
+11. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
+
+## Merge gate
+
+```text
+Mode: live
+Max changed lines: 1500
+Max files: 40
+Human-merge repositories: tax-core, infra, cicd
+```
+
+`Mode: dry-run` makes the Runs and the sweep report "would merge" and merge nothing. If the file `/home/prame_assistant/.factory-no-automerge` exists, merge nothing. The owner changes the four lines above in a pull request; nobody else does.
+
+The gate holds when all of these are true now, checked against the pull request's current head commit (`gh pr view <n> --json headRefOid,isDraft,mergeable,statusCheckRollup,additions,deletions,changedFiles,files,commits`):
+
+- it is not a draft, it is `mergeable`, its head branch starts `factory/`, its repository is allowlisted and has no `factory:pause` label;
+- every check on the head commit passed and none is pending;
+- the `## Reviews` section shows a Conformance Review on `claudeAgent` and a Standards Review on `antigravity` (their threads exist on those providers), both with no findings in the latest round, no `FALLBACK (quota)`, no "accepted by the owner", no "not re-reviewed", and no commit on the branch newer than the last review;
+- the linked issue and its Spec carry neither `needs-info` nor `ready-for-human`, and no Run exit is waiting for the owner;
+- at most `Max changed lines` changed lines (additions plus deletions) and `Max files` files;
+- no changed file matches `.github/workflows/**`, `biome.json`, `tsconfig*.json`, `AGENTS.md`, `CODING_STANDARDS.md`, `docs/adr/**`, a `.env` or secrets file, or a release or publish configuration, and no `version` field changed;
+- the repository is not a human-merge repository.
 
 ## Models
 
@@ -69,24 +91,26 @@ Each reviewer is a separate child thread on another provider. It is not the Pi s
 
 ## Launch brief
 
-Use this as the thread message, filling the placeholders.
+This is the only prompt a Run gets. It covers the whole loop: build, independent review, fix, merge. Use it as the thread message, filling the placeholders.
 
-> You are a Factory Run (Ticket Run or Spec Run) for trajectonomics/`<repo>`#`<n>` "`<title>`". The issue is Approved and Claimed (`agent-working`).
+> You are a Factory Run (Ticket Run or Spec Run) for trajectonomics/`<repo>`#`<n>` "`<title>`". The issue is Approved and Claimed (`agent-working`). You own the whole loop below, from reading the issue to merging the pull request. Do not stop to ask the owner unless an Exit at the end applies.
 >
-> Steps:
 > 1. Read the issue (`gh issue view <n> --json number,title,body,labels,comments`), AGENTS.md, GLOSSARY.md and docs/adr/.
 > 2. Work on branch `<branch>`. Never commit to `main`.
 > 3. Build it test-first. The `implement` and `implement-spec` skills are marked `disable-model-invocation`, so you cannot call them as tools: read `.agents/skills/implement/SKILL.md` (Spec Run: `.agents/skills/implement-spec/SKILL.md`) and follow it yourself. You may call the `tdd` skill. Where `implement` says to call `code-review`, do step 5 instead.
-> 4. Gate: `bun run check` must pass. Never loosen tsconfig or biome config. Never edit `version` in package.json.
-> 5. Reviews (mandatory). You may not open a ready pull request until both reviewers below have returned for the current round. Reading your own diff, or "reviewing" inline in this thread, does not count. Do NOT review in this thread and do NOT run `/code-review` yourself: its sub-agents would run on your own model and only mark your own work. Instead call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` as below (a call without a `target` inherits your DeepSeek model):
+> 4. Check: `bun run check` must pass. Never loosen tsconfig or biome config. Never edit `version` in package.json.
+> 5. Review loop, at most 3 rounds. Reviews are independent and mandatory. Reading your own diff, or "reviewing" inline in this thread, does not count, and do NOT call `/code-review` (its sub-agents would run on your own model). In each round call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` (a call without a `target` inherits your DeepSeek model):
 >    - Conformance Review: `target: { providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { effort: "high" } }`. Task: review `git diff origin/main...HEAD` against issue #`<n>` (the Spec axis of `code-review`): requirements missing or partial, behaviour that was not asked for, requirements implemented wrongly. Quote the issue line for each finding. Under 400 words.
 >    - Standards Review: `target: { providerInstanceId: "antigravity", model: "gemini-3.8-flash" }`. Task: review the same diff against CODING_STANDARDS.md and the smell baseline in `.agents/skills/code-review/SKILL.md` (the Standards axis); cite the rule for each finding; smells are judgement calls. Under 400 words.
 >
->    Tell each reviewer to read only and edit no files. Fix the findings, then run both reviewers again. At most two rounds. If a reviewer call fails for any reason other than quota, retry that reviewer once; if it still fails, take the Urgent exit and say which provider failed. Never review with your own thread. Quota fallback: if the failure says the provider's quota or usage limit is used up (the error mentions quota, usage limit, limit reached, rate limit or 429), run that same review once more with `target: { providerInstanceId: "pi", model: "command-code/deepseek/deepseek-v4.1-flash" }` and the same task, and write `FALLBACK (quota)` and the model beside it in the `## Reviews` section. Use the fallback only for a quota failure, never because a reviewer is slow, disagrees, or found problems.
-> 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>` and ends with a `## Reviews` section: one line per reviewer per round with the reviewer's role, provider and model, its thread link, its verdict, and how many findings you fixed. If the last round still had findings, or you fixed anything after it, say "fixed after the last review, not re-reviewed" on that line instead of "clean". A pull request without this section is treated as unreviewed.
+>    Tell each reviewer to read only and edit no files. Fix every finding that is correct and run `bun run check`; for a finding you reject, write why in the Reviews line. Then run the next round. The loop ends when a round returns no findings from both reviewers. If round 3 still has findings, take the Gate-failure exit. Never end the loop on a round that had findings: any fix needs another round.
+>    If a reviewer call fails for any reason other than quota, retry that reviewer once; if it still fails, take the Urgent exit and say which provider failed. Never review with your own thread. Quota fallback: if the failure says the provider's quota or usage limit is used up (the error mentions quota, usage limit, limit reached, rate limit or 429), run that same review once more with `target: { providerInstanceId: "pi", model: "command-code/deepseek/deepseek-v4.1-flash" }` and the same task, and write `FALLBACK (quota)` beside it in the Reviews section. Use the fallback only for a quota failure, never because a reviewer is slow, disagrees, or found problems.
+> 6. Open a ready pull request with `/pr`. Conventional-commit title. Body says `Closes #<n>` and ends with a `## Reviews` section: one line per reviewer per round with the reviewer's role, provider and model, its thread link, its verdict, and how many findings you fixed.
+> 7. Merge. Run `git fetch -q origin main`, read the "Merge gate" section of `docs/dispatcher-runbook.md` from `origin/main` (`git show origin/main:docs/dispatcher-runbook.md`), and check every condition against your pull request's current head commit. Wait for the checks to finish (`gh pr checks <pr> --watch`). If every condition holds and `Mode` is `live`, merge with `gh pr merge <pr> --squash --delete-branch`, confirm the issue closed (close it with a comment if not), and remove `agent-working` (Spec Run: from the Spec and its children too). If a condition fails, do not merge: comment on the pull request "Not auto-merged: <first failed condition>", leave `agent-working` on, and stop; the owner decides.
+>    If `main` moved and your pull request conflicts, rebase on `origin/main`, run `bun run check`, and review again only if resolving the conflict changed behaviour. If another open Factory pull request in this repository changes the same files and has to land first, wait for it (check every 2 minutes, at most 30 minutes), then rebase.
 >
-> Hard rules: never merge, approve, or add `ready-for-agent` or `wontfix`. Never touch a host or cloud platform. Never commit secrets. Bun only.
+> Hard rules: never approve, and never add `ready-for-agent` or `wontfix`. Merge only in step 7, only when the Merge gate holds. Never touch a host or cloud platform. Never commit secrets. Bun only.
 >
-> Exits: spec gap = comment the question, add `needs-info`, remove `agent-working`, stop. Follow-up = file a `ready-for-human` Follow-up Ticket and keep going. Urgent = stay in the thread and wait for the owner. Gate failure after two rounds = DRAFT pull request with the findings, add `ready-for-human`, remove `agent-working`.
+> Exits: spec gap = comment the question, add `needs-info`, remove `agent-working`, stop. Follow-up = file a `ready-for-human` Follow-up Ticket and keep going. Urgent = stay in the thread and wait for the owner. Gate failure (round 3 still had findings) = open a DRAFT pull request with the findings, add `ready-for-human`, remove `agent-working`.
 >
-> Leave `agent-working` on until the owner merges. Finish with one line: `PR <url>, head <sha>, checks <state>`.
+> Finish with one line: `PR <url>, head <sha>, merged <yes, or no: reason>`.
