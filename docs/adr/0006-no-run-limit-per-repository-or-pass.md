@@ -13,7 +13,7 @@ The owner wants to complete a lot of work without a fixed limit. ADR 0003 alread
 1. The Dispatcher launches a Run for every Eligible issue in a pass. There is no cap per repository and none per pass. The Guards (queue, host, kill switch, trusted author) and host placement stay the only limits.
 2. Two Runs in one repository work on separate branches and open separate pull requests. The Run that lands second rebases on `origin/main` and re-checks. A conflict is handled by the existing Conflicts rule in the review audit.
 3. Each pass aims to have at least 6 items moving, 7 as the better target. An item moving is a Run launched or a Spec draft posted. When fewer than 6 Runs launch, the Dispatcher fills the pass with Spec drafts for `needs-triage` issues by trusted authors. The target is a recommended procedure and never a reason to bypass a Guard or to launch work that is not Approved.
-4. A Spec draft is one comment on the existing issue, never a new issue and never an edit of the owner's text. It ends with Open Decisions and recommended answers, and the issue is labelled `needs-spec-review`. Only the owner moves it to `ready-for-agent`.
+4. "Pick some Specs to do" means draft them. A Spec draft is one comment on the existing issue, never a new issue and never an edit of the owner's text. It ends with Open Decisions and recommended answers, and the issue is labelled `needs-spec-review`. Only the owner moves it to `ready-for-agent`.
 
 The skills for this are `factory-triage` (draft a Spec from an issue) and `run-the-spec` (build an approved Spec), kept in `trajectonomics/internal-skills`. The name `triage` is not reused, because the upstream `triage` skill applies `ready-for-agent` and `wontfix`, which the Factory never does.
 
