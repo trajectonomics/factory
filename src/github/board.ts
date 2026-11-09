@@ -1,4 +1,3 @@
-import type { IssueKey } from "../contracts"
 import { keyOf } from "../keys"
 import type {
 	GitHubClient,
@@ -74,12 +73,9 @@ function statusOptionId(field: GitHubProjectFieldData, status: BoardStatus): str
 function itemLookup(items: readonly GitHubProjectItemData[]): Record<string, string> {
 	const itemIds: Record<string, string> = {}
 	for (const item of items) {
-		if (item.content === undefined) continue
-		const key: IssueKey = {
-			repository: item.content.repository,
-			number: item.content.number,
-		}
-		itemIds[keyOf(key)] = item.id
+		const { repository, number } = item.content ?? {}
+		if (repository === undefined || number === undefined) continue
+		itemIds[keyOf({ repository, number })] = item.id
 	}
 	return itemIds
 }

@@ -1,14 +1,15 @@
-import type {
-	GitHubClient,
-	GitHubCommentData,
-	GitHubIssueData,
-	GitHubProjectData,
-	GitHubProjectFieldData,
-	GitHubProjectItemData,
-	GitHubTimelineEvent,
-} from "./client"
+import type { GitHubClient } from "./client"
 import { GitHubAdapterError } from "./errors"
-import { type GhRunner, getApi, getJson } from "./gh-run"
+import { getApi, getJson } from "./gh-json"
+import type { GhRunner } from "./gh-run"
+import {
+	isCommentData,
+	isFieldList,
+	isIssueData,
+	isItemList,
+	isProjectData,
+	isTimelineEvent,
+} from "./gh-shapes"
 
 const PAGE_LIMIT = 1000
 const PAGE_SIZE = 100
@@ -29,55 +30,58 @@ export function createGhReadClient(
 	return {
 		listIssues: async (repository) =>
 			(
-				await getApi<GitHubIssueData>(
+				await getApi(
 					run,
 					`repos/${repository}/issues?state=open&per_page=${PAGE_SIZE}`,
+					isIssueData,
 				)
 			).filter((issue) => issue.pull_request === undefined),
 		listBlockers: async (issue) =>
-			getApi<GitHubIssueData>(
+			getApi(
 				run,
 				`repos/${issue.repository}/issues/${issue.number}/dependencies/blocked_by`,
+				isIssueData,
 			),
 		listTimeline: async (issue) =>
-			getApi<GitHubTimelineEvent>(run, `repos/${issue.repository}/issues/${issue.number}/timeline`),
+			getApi(run, `repos/${issue.repository}/issues/${issue.number}/timeline`, isTimelineEvent),
 		listComments: async (issue) =>
-			getApi<GitHubCommentData>(run, `repos/${issue.repository}/issues/${issue.number}/comments`),
+			getApi(run, `repos/${issue.repository}/issues/${issue.number}/comments`, isCommentData),
 		getProject: async (project) =>
-			getJson<GitHubProjectData>(run, [
-				"project",
-				"view",
-				String(project.number),
-				"--owner",
-				project.owner,
-				"--format",
-				"json",
-			]),
+			getJson(
+				run,
+				["project", "view", String(project.number), "--owner", project.owner, "--format", "json"],
+				isProjectData,
+			),
 		listProjectFields: async (project) =>
-			getJson<{ readonly fields: readonly GitHubProjectFieldData[] }>(run, [
-				"project",
-				"field-list",
-				String(project.number),
-				"--owner",
-				project.owner,
-				"--format",
-				"json",
-			]).then((response) => response.fields),
+			getJson(
+				run,
+				[
+					"project",
+					"field-list",
+					String(project.number),
+					"--owner",
+					project.owner,
+					"--format",
+					"json",
+				],
+				isFieldList,
+			).then((response) => response.fields),
 		listProjectItems: async (project) => {
-			const response = await getJson<{
-				readonly items: readonly GitHubProjectItemData[]
-				readonly totalCount: number
-			}>(run, [
-				"project",
-				"item-list",
-				String(project.number),
-				"--owner",
-				project.owner,
-				"--format",
-				"json",
-				"--limit",
-				String(PAGE_LIMIT),
-			])
+			const response = await getJson(
+				run,
+				[
+					"project",
+					"item-list",
+					String(project.number),
+					"--owner",
+					project.owner,
+					"--format",
+					"json",
+					"--limit",
+					String(PAGE_LIMIT),
+				],
+				isItemList,
+			)
 			if (response.items.length !== response.totalCount) {
 				throw new GitHubAdapterError(
 					"project-items-incomplete",

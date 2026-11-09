@@ -55,6 +55,12 @@ describe("validating Factory writes", () => {
 		expect(code).toBe("comment-missing-marker")
 	})
 
+	it("rejects a label name that gh would split on a comma", async () => {
+		const code = await rejection({ kind: "label", issue: key(), label: "a,b", present: true })
+
+		expect(code).toBe("invalid-label-name")
+	})
+
 	it("rejects a Status write for an issue that is not on the board", async () => {
 		const board: Board = { ...BOARD, itemIds: {} }
 		const error = adapterError(

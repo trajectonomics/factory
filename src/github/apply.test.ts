@@ -89,7 +89,7 @@ describe("applying Factory writes", () => {
 				labels.push(`remove:${label}`)
 			},
 			addComment: async (_issue, body) => {
-				comments.push({ id: comments.length + 1, body })
+				comments.push({ id: comments.length + 1, body, author_association: "MEMBER" })
 			},
 			updateProjectStatus: async (itemId, projectId, fieldId, optionId) => {
 				statuses.push([itemId, projectId, fieldId, optionId].join("|"))
