@@ -12,7 +12,7 @@ The owner chose to run with no fixed limits on concurrent Runs or daily drafts. 
 
 The Dispatcher applies Guards that react to measured pressure rather than fixed numbers:
 
-1. **Queue guard**: stop launching while the human's queue (open Factory pull requests, `needs-spec-review`, `ready-for-human`) exceeds a threshold.
+1. **Queue guard**: stop launching while the human's queue (open Factory pull requests, issues waiting for an owner answer, `ready-for-human`) exceeds a threshold.
 2. **Host guard**: stop launching when load, memory or disk cross a threshold, and pace launches so a burst does not start together.
 3. **Throttle-aware retry**: a provider rate-limit re-queues with backoff and does not consume a Ticket's attempts.
 4. **Kill switch**: disabling the scheduled task, or a `factory:pause` label per repository, stops launching.

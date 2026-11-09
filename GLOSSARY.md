@@ -23,7 +23,7 @@ A `ready-for-human` Ticket a Run files for work only a human can do, so the Run'
 _Avoid_: Todo, blocker ticket
 
 **Spec draft**:
-A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is Approval only when the conditions in step 5 of its brief hold; otherwise the issue goes to `needs-spec-review` and the owner decides.
+A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is Approval when the conditions in step 5 of its brief hold, and the drafter then labels the issue `ready-for-agent`. Otherwise the issue keeps its state and the drafter asks the owner in its thread. There is no review label ([ADR 0010](./docs/adr/0010-retire-needs-spec-review.md)).
 _Avoid_: Proposal, generated ticket
 
 **Owner question**:
@@ -77,7 +77,7 @@ The review of a diff against the repository's `CODING_STANDARDS.md`.
 _Avoid_: Lint review
 
 **Spec Review**:
-The loop that critiques a drafted Spec: a drafter, two critics, and a stronger adjudicator, ending with the Spec labelled `needs-spec-review` for the human.
+The loop that critiques a drafted Spec: a drafter and two consultants, ending with the Spec labelled `ready-for-agent`, or an Owner question in the drafter's thread.
 _Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triage" otherwise means the five-label routine.
 
 ### Outcomes
