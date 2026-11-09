@@ -12,7 +12,7 @@ The owner wants to complete a lot of work. ADR 0003 already replaced fixed caps 
 
 1. The Dispatcher launches a Run for every Eligible issue in a pass. Neither the repository nor the pass restricts how many. The Guards (queue, host, kill switch, trusted author) and host placement stay the only brakes.
 2. Two Runs in one repository work on separate branches and open separate pull requests. The Run that lands second rebases on `origin/main` and re-checks. A conflict is handled by the existing Conflicts rule in the review audit.
-3. Each pass aims to have at least 6 items moving, 7 as the better target. An item moving is a Run launched or a Spec draft posted. When fewer than 6 items are moving, the Dispatcher fills the pass with Spec drafts for `needs-triage` or unlabelled issues by trusted authors, and refreshes a draft the owner has answered. The target is a recommended procedure and never a reason to bypass a Guard or to launch work that is not Approved.
+3. Each pass aims to have at least 8 items moving, 9 as the better target (raised from 6 and 7 by the owner on 2026-11-09). An item moving is a Run launched or a Spec draft posted. When fewer than 8 items are moving, the Dispatcher fills the pass with Spec drafts for `needs-triage` or unlabelled issues by trusted authors, and refreshes a draft the owner has answered. The target is a recommended procedure and never a reason to bypass a Guard or to launch work that is not Approved.
 4. "Pick some Specs to do" means draft them. A Spec draft is one comment on the existing issue, never a new issue and never an edit of the owner's text. It ends with Open Decisions and recommended answers, and the issue is labelled `needs-spec-review`. Only the owner moves it to `ready-for-agent`. (Superseded by ADR 0007 and ADR 0010.)
 
 The skills for this are `factory-triage` (draft a Spec from an issue) and `run-the-spec` (build an approved Spec), kept in `trajectonomics/internal-skills`. The name `triage` is not reused, because the upstream `triage` skill applies `ready-for-agent` and `wontfix`, which the Factory never does.
@@ -21,7 +21,7 @@ The skills for this are `factory-triage` (draft a Spec from an issue) and `run-t
 
 - Keep one Run per repository and raise the pace per pass: simple, but a repository with several Approved issues still builds them one pass at a time.
 - Let drafts count toward approval: faster, but it removes Approval from the owner (ADR 0001, Glossary).
-- Do nothing when fewer than 6 are Eligible: safest, but leaves the owner's triage queue to grow while hosts sit idle.
+- Do nothing when fewer than 8 are Eligible: safest, but leaves the owner's triage queue to grow while hosts sit idle.
 
 ## Consequences
 
