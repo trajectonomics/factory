@@ -7,10 +7,29 @@ describe("listing a repository's skills", () => {
 	it("returns the skill folder names", async () => {
 		const client = createGhSkillsClient(async (args) => {
 			expect(args.join(" ")).toBe(PATH)
-			return JSON.stringify([[{ name: "implement" }, { name: "tdd" }]])
+			return JSON.stringify([
+				[
+					{ name: "implement", type: "dir" },
+					{ name: "tdd", type: "dir" },
+				],
+			])
 		})
 
 		expect(await client.listSkills("trajectonomics/cli")).toEqual(["implement", "tdd"])
+	})
+
+	it("does not count a file or a symlink named like a skill", async () => {
+		const client = createGhSkillsClient(async () =>
+			JSON.stringify([
+				[
+					{ name: "tdd", type: "file" },
+					{ name: "implement", type: "symlink" },
+					{ name: "code-review", type: "dir" },
+				],
+			]),
+		)
+
+		expect(await client.listSkills("trajectonomics/cli")).toEqual(["code-review"])
 	})
 
 	it("returns none for a repository without the folder", async () => {

@@ -18,5 +18,5 @@ planDispatch(reading with skills)
 reading without skills              -> no preflight (library callers that do not supply them)
 ```
 
-The check is by presence of the skill folders, as the runbook says. It does not compare the repository's
-`skills-lock.json` with the curated profile in `trajectonomics/internal-skills`.
+The check is by presence of the skill folders (each must be a directory), as the runbook says. It does not compare the repository's
+`skills-lock.json` with the curated profile in `trajectonomics/internal-skills`. That comparison is tracked in [factory#50](https://github.com/trajectonomics/factory/issues/50).
