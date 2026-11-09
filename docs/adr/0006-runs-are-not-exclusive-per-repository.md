@@ -25,7 +25,7 @@ The skills for this are `factory-triage` (draft a Spec from an issue) and `run-t
 
 ## Consequences
 
-- More pull requests are open at once, so the queue guard (6 open `factory/` pull requests) becomes the effective throttle. The owner tunes it with the threshold, not with a per-repository rule.
+- More pull requests are open at once, so the queue guard (8 open `factory/` pull requests, raised from 6 on 2026-11-09) becomes the effective throttle. The owner tunes it with the threshold, not with a per-repository rule.
 - Sibling pull requests in one repository conflict more often; Runs rebase, and a rebase that changes behaviour needs a new review round.
 - Drafts have their own queue guard (10 issues waiting for an owner answer; ADR 0010), because they add to the owner's review queue without adding a pull request.
 - The draft brief has a drafter and two critics. The stronger adjudicator of the Spec Review loop (Glossary) arrives with factory#12; until then a disagreement goes to the draft's Open Decisions.

@@ -26,7 +26,7 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
 ## One pass
 
 1. **Guards.** Launch nothing and report if any trips:
-   - Queue guard: 6 or more open pull requests with a head branch starting `factory/` across the allowlist. It stops new Runs only; drafts continue unless the kill switch, the host guard or the draft guard trips. Spec drafts have their own queue guard: 10 or more issues waiting for an owner answer stop new drafts (Runs continue); an issue waits when its draft thread ends in an `ASKING` line without a later `DRAFT` line, or it still carries the retired `needs-spec-review` label ([ADR 0010](./adr/0010-retire-needs-spec-review.md)). These by-hand thresholds are deliberately simpler than the entrypoint's single queue depth (`openPullRequests + needsSpecReview + readyForHuman`, [`docs/guards.md`](./guards.md)); when the entrypoint (factory#10) drives a pass, it supplies that depth and threshold instead. The target in step 6 never overrides either guard.
+   - Queue guard: 8 or more open pull requests with a head branch starting `factory/` across the allowlist. It stops new Runs only; drafts continue unless the kill switch, the host guard or the draft guard trips. Spec drafts have their own queue guard: 10 or more issues waiting for an owner answer stop new drafts (Runs continue); an issue waits when its draft thread ends in an `ASKING` line without a later `DRAFT` line, or it still carries the retired `needs-spec-review` label ([ADR 0010](./adr/0010-retire-needs-spec-review.md)). These by-hand thresholds are deliberately simpler than the entrypoint's single queue depth (`openPullRequests + needsSpecReview + readyForHuman`, [`docs/guards.md`](./guards.md)); when the entrypoint (factory#10) drives a pass, it supplies that depth and threshold instead. The target in step 6 never overrides either guard.
    - Kill switch: the file `/home/prame_assistant/.factory-stop` exists, or the repository carries a `factory:pause` label (skip only that repository).
    - Host guard: a host that is unreachable is not a candidate. Skip a host whose load average is above its core count, if you can read it.
 2. **Reconcile Claims.** For every open allowlisted issue labelled `agent-working`, look for a live thread on **both** hosts titled `traj/trajectonomics/<repo>#<n>`. List threads with `t3_thread_list` using `allProjects`, `titleContains` (`traj/` or `triage/`) and `statuses` set to the live states, never unfiltered: an unfiltered list is over 100K characters. Live means `preparing`, `queued`, `starting`, `running` or `waiting`; `idle` is not live. If there is no live thread, no open `factory/*` pull request for it, and the label is older than the Lease (2 hours, from `gh api repos/trajectonomics/<repo>/issues/<n>/events`), remove `agent-working`. Leave issues with a live thread alone.
@@ -183,8 +183,8 @@ Brief:
 
 ## Scheduled task prompt
 
-The scheduled task's prompt must stay this short, so every rule has one source (this file):
+The scheduled task's prompt is one skill call, so every rule has one source (this file):
 
-> You are the Factory Dispatcher for the trajectonomics GitHub org. Do exactly one pass, then stop. Run `git -C /home/prame_assistant/project/factory fetch -q origin main`, read `docs/dispatcher-runbook.md`, `GLOSSARY.md` and every ADR the runbook links from `origin/main` (`git show origin/main:<path>`), and follow the runbook exactly, from "One pass" step 1 to the report. If you cannot read the runbook, launch and merge nothing and report that. Do not wait for Runs or reviewers to finish.
+> Use the `factory-dispatcher` skill.
 
-A rule copied into the prompt goes stale and contradicts this file. Change the rule here, never in the prompt.
+The skill (`.agents/skills/factory-dispatcher/SKILL.md`) only points here: it fetches `origin/main`, reads this file, `GLOSSARY.md` and the linked ADRs from `origin/main`, and follows the pass. A rule copied into the prompt or the skill goes stale and contradicts this file. Change the rule here, never there.
