@@ -10,7 +10,7 @@ A Spec draft thread already critiques its draft with two independent reviewers a
 
 ## Decision
 
-1. A Spec drafter adds `ready-for-agent` itself, and removes `needs-spec-review` and `needs-triage`, when all of these hold: the Open Decisions list is empty; every question it asked the owner in its thread is answered and confirmed (or it had none); the critique ended with no disagreement; no review is marked `FALLBACK (quota)`; the issue carries none of `needs-info`, `ready-for-human`, `wontfix`; the issue author is `OWNER`, `MEMBER` or `COLLABORATOR`. Otherwise it adds `needs-spec-review` and the owner decides, as before.
+1. A Spec drafter adds `ready-for-agent` itself, and removes `needs-spec-review` and `needs-triage`, when all of these hold: no decision is waiting for the owner (ADR 0009 says which decisions reach the owner); every question it asked the owner in its thread is answered (or it had none); the consultation ended with no unanswered disagreement; no review is marked `FALLBACK (quota)`; the issue carries none of `needs-info`, `ready-for-human`, `wontfix`; the issue author is `OWNER`, `MEMBER` or `COLLABORATOR`. Otherwise it adds `needs-spec-review` and the owner decides, as before.
 2. Only the drafter thread approves. The Dispatcher and Runs never add `ready-for-agent`, and nobody but the owner adds `wontfix`.
 3. The next pass treats the label like any Approval: the issue becomes Eligible and, with no sub-issues, gets a Ticket Run that follows the draft's Ticket order.
 4. Spec drafter threads run on `claudeAgent` `claude-sonnet-5-5` with `effort: high`. Implementer Runs stay on `pi` DeepSeek.
