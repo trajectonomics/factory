@@ -122,13 +122,9 @@ describe("a Dispatcher pass", () => {
 
 		expect(fake.launches).toEqual([])
 		expect(result.report.runs).toEqual([])
-		expect(result.errors).toEqual([
-			{
-				issue: key(4),
-				message: "launch skipped: claim write failed",
-				launched: false,
-			},
-		])
+		expect(result.errors).toEqual([])
+		expect(result.writeError).toBe("claim write failed")
+		expect(fake.printed).toContain("write failed: claim write failed")
 		expect(fake.printed.some((line) => line.startsWith("Runs"))).toBe(true)
 	})
 

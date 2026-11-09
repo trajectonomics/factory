@@ -22,4 +22,5 @@ export type DispatchPassResult = {
 	readonly plan: DispatchPlan
 	readonly errors: readonly DispatchLaunchError[]
 	readonly report: DispatchReport
+	readonly writeError?: string
 }
