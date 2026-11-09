@@ -1,5 +1,5 @@
 import type { DispatchConfig } from "./dispatch-contracts"
-import { applyPlan } from "./dispatch-pass-apply"
+import { applyPlan, claimReleaseKeys } from "./dispatch-pass-apply"
 import type { DispatchAdapters, DispatchPassResult } from "./dispatch-pass-contracts"
 import { printPlan } from "./dispatch-pass-print"
 import { planDispatch } from "./dispatch-plan"
@@ -15,7 +15,11 @@ export async function runDispatchPass(
 	const plan = planDispatch(reading, config)
 	const outcome =
 		config.mode === "dry-run"
-			? { errors: printPlan(adapters, plan), applied: true }
+			? {
+					errors: printPlan(adapters, plan),
+					applied: true,
+					released: claimReleaseKeys(plan.writes),
+				}
 			: await applyPlan(adapters, plan)
 	const failed = new Set(
 		outcome.errors.filter((error) => !error.launched).map((error) => keyOf(error.issue)),

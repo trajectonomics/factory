@@ -1,3 +1,4 @@
+import { CLAIM_LABEL } from "./claim"
 import type { DispatchAdapters, DispatchLaunchError } from "./dispatch-pass-contracts"
 import { releaseWrites, statusWrites } from "./dispatch-plan"
 import type { DispatchLaunch, DispatchPlan } from "./dispatch-plan-contracts"
@@ -19,7 +20,7 @@ export async function applyPlan(
 	try {
 		for (const write of plan.writes) {
 			await applyBatch(adapters, [write])
-			released.add(keyOf(write.issue))
+			for (const key of claimReleaseKeys([write])) released.add(key)
 		}
 		await applyBatch(adapters, plan.claims)
 	} catch (error) {
@@ -44,6 +45,17 @@ export async function applyPlan(
 	}
 	return { errors, applied: true, released }
 }
+/** The issue keys whose agent-working Claim a batch removes. */
+export function claimReleaseKeys(writes: readonly FactoryWrite[]): ReadonlySet<string> {
+	const released = new Set<string>()
+	for (const write of writes) {
+		if (write.kind === "label" && write.label === CLAIM_LABEL && !write.present) {
+			released.add(keyOf(write.issue))
+		}
+	}
+	return released
+}
+
 async function applyBatch(
 	adapters: DispatchAdapters,
 	writes: readonly FactoryWrite[],
