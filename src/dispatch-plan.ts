@@ -1,7 +1,7 @@
 import { CLAIM_LABEL } from "./claim"
 import type { EligibleRun, IssueKey } from "./contracts"
 import { type DispatchConfig, DispatchError, type DispatchReading } from "./dispatch-contracts"
-import { assertUniqueHosts, evaluateDispatchGuards, hostLoads } from "./dispatch-guards"
+import { evaluateDispatchGuards, hostLoads } from "./dispatch-guards"
 import type { DispatchDeferralReason, DispatchPlan } from "./dispatch-plan-contracts"
 import { selectLaunches } from "./dispatch-select"
 import {
@@ -18,7 +18,7 @@ import { reconcileWork } from "./reconciliation"
 
 /** The decisions one Dispatcher pass makes. */
 export function planDispatch(reading: DispatchReading, config: DispatchConfig): DispatchPlan {
-	assertConfig(reading, config)
+	assertConfig(config)
 	const reconciliation = reconcileWork(reading.state, reading.nowMs)
 	const reconciled = reconciledState(reading.state, reconciliation)
 	const guards = evaluateDispatchGuards(reading, config.thresholds)
@@ -58,7 +58,7 @@ function globalStopReason(
 	if (!guards.queue.allowed) return "queue-too-deep"
 	return undefined
 }
-function assertConfig(reading: DispatchReading, config: DispatchConfig): void {
+function assertConfig(config: DispatchConfig): void {
 	const pace = config.policy.maxLaunchesPerPass
 	if (pace !== undefined && (!Number.isSafeInteger(pace) || pace < 1)) {
 		throw new DispatchError(
@@ -67,7 +67,6 @@ function assertConfig(reading: DispatchReading, config: DispatchConfig): void {
 			"A launch pace must be a positive integer",
 		)
 	}
-	assertUniqueHosts(reading.hosts)
 }
 /** The Claim writes that hold one Run's issues before its launch. */
 export function claimWrites(run: EligibleRun, claimedAtMs: number): readonly FactoryWrite[] {

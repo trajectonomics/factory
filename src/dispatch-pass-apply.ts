@@ -2,12 +2,12 @@ import type { DispatchAdapters, DispatchLaunchError } from "./dispatch-pass-cont
 import { releaseWrites, statusWrites } from "./dispatch-plan"
 import type { DispatchLaunch, DispatchPlan } from "./dispatch-plan-contracts"
 import type { FactoryWrite } from "./github/writes"
-import { issueOfRun } from "./keys"
+import { issueOfRun, keyOf } from "./keys"
 /** The writes applied and the errors seen before and during one pass's launches. */
 export type ApplyOutcome = {
 	readonly errors: readonly DispatchLaunchError[]
 	readonly applied: boolean
-	readonly reconciliationApplied: boolean
+	readonly released?: ReadonlySet<string>
 	readonly writeError?: string
 }
 /** Applies one plan's writes and launches, keeping launch and Status failures. */
@@ -15,13 +15,15 @@ export async function applyPlan(
 	adapters: DispatchAdapters,
 	plan: DispatchPlan,
 ): Promise<ApplyOutcome> {
-	let reconciliationApplied = false
+	const released = new Set<string>()
 	try {
-		await applyBatch(adapters, plan.writes)
-		reconciliationApplied = true
+		for (const write of plan.writes) {
+			await applyBatch(adapters, [write])
+			released.add(keyOf(write.issue))
+		}
 		await applyBatch(adapters, plan.claims)
 	} catch (error) {
-		return { errors: [], applied: false, reconciliationApplied, writeError: messageOf(error) }
+		return { errors: [], applied: false, released, writeError: messageOf(error) }
 	}
 	const errors: DispatchLaunchError[] = []
 	for (const launch of plan.launches) {
@@ -40,7 +42,7 @@ export async function applyPlan(
 			})
 		}
 	}
-	return { errors, applied: true, reconciliationApplied: true }
+	return { errors, applied: true, released }
 }
 async function applyBatch(
 	adapters: DispatchAdapters,

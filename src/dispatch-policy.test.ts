@@ -46,16 +46,6 @@ describe("per-pass launch pace", () => {
 		expect(error?.field).toBe("policy.maxLaunchesPerPass")
 	})
 
-	it("rejects a reading that names one host twice", () => {
-		const error = dispatchError(() =>
-			planDispatch(reading({ state: state([approved(4)]), hosts: [host(), host()] }), config()),
-		)
-
-		expect(error?.code).toBe("duplicate-host")
-		expect(error?.field).toBe("hosts[homeserver2]")
-	})
-})
-describe("host balancing", () => {
 	it("places the Run on the host with fewer live Runs, keeping the first on a tie", () => {
 		const fewer = planDispatch(
 			reading({

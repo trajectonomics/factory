@@ -1,9 +1,8 @@
-import {
-	DispatchError,
-	type DispatchReading,
-	type DispatchThresholds,
-	type HostLoad,
-	type HostSnapshot,
+import type {
+	DispatchReading,
+	DispatchThresholds,
+	HostLoad,
+	HostSnapshot,
 } from "./dispatch-contracts"
 import type { DispatchGuards, HostGuardReport } from "./dispatch-plan-contracts"
 import { deepFreeze } from "./freeze"
@@ -50,18 +49,4 @@ export function hostLoads(hosts: readonly HostSnapshot[]): readonly HostLoad[] {
 			diskUsedFraction: host.health.diskUsedFraction,
 		})),
 	)
-}
-/** The reading check that names each host once. */
-export function assertUniqueHosts(hosts: readonly HostSnapshot[]): void {
-	const names = new Set<string>()
-	for (const host of hosts) {
-		if (names.has(host.host)) {
-			throw new DispatchError(
-				"duplicate-host",
-				`hosts[${host.host}]`,
-				`The Dispatcher read ${host.host} twice`,
-			)
-		}
-		names.add(host.host)
-	}
 }

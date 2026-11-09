@@ -78,7 +78,7 @@ export type DispatchConfig = {
 	readonly model: T3Model
 }
 /** The inputs a Dispatcher pass rejects. */
-export type DispatchErrorCode = "invalid-launch-pace" | "duplicate-host"
+export type DispatchErrorCode = "invalid-launch-pace"
 
 /** A malformed Dispatcher configuration or reading. */
 export class DispatchError extends Error {
