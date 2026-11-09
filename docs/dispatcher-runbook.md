@@ -116,8 +116,10 @@ Brief:
 Mode: live
 Max changed lines: 1500
 Max files: 40
-Human-merge repositories: tax-core, infra, cicd
+Human-merge repositories: tax-core, infra, cicd, growth, external-comm
 ```
+
+A repository whose `main` cannot be protected (private on the current plan: `infra`, `growth`, `external-comm`) is a human-merge repository until [cicd#14](https://github.com/trajectonomics/cicd/issues/14) lands its hook and detector, and even then until the owner removes it from this list. A hook is an accident guard, not protection (infra ADR 0005).
 
 `Mode: dry-run` makes the Runs and the sweep report "would merge" and merge nothing. If the file `/home/prame_assistant/.factory-no-automerge` exists, merge nothing. The owner changes the four lines above in a pull request; nobody else does.
 
