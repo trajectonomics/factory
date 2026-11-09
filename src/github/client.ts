@@ -11,6 +11,7 @@ export type ProjectRef = {
 export type GitHubIssueData = {
 	readonly number: number
 	readonly title?: string
+	readonly author_association?: string
 	readonly state: string
 	readonly labels: readonly { readonly name: string }[]
 	readonly repository_url: string

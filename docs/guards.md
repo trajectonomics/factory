@@ -29,7 +29,7 @@ reuse the same stale timestamp and start as a burst.
 
 ## GitHub author associations
 
-The adapter maps GitHub's `authorAssociation` values onto `AuthorAssociation`:
+The adapter maps GitHub's `author_association` values onto `AuthorAssociation` and carries the result on `IssueState.authorAssociation` ([factory#22](https://github.com/trajectonomics/factory/issues/22)):
 
 | GitHub | `AuthorAssociation` |
 | --- | --- |

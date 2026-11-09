@@ -1,3 +1,4 @@
+import type { AuthorAssociation } from "./guard-contracts"
 import type { RunFailure } from "./run-failure"
 
 export type { RunFailure, RunFailureCause } from "./run-failure"
@@ -32,6 +33,8 @@ export type IssueState = {
 	readonly status: IssueStatus
 	readonly labels: readonly string[]
 	readonly title?: string
+	/** How GitHub associates the issue author with the repository; absent means unknown, so untrusted. */
+	readonly authorAssociation?: AuthorAssociation
 	readonly parentSpec?: IssueKey
 	readonly blockers: readonly Blocker[]
 	readonly claim?: Claim

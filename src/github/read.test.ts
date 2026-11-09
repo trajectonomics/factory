@@ -43,6 +43,7 @@ describe("reading GitHub issues", () => {
 					status: "open",
 					labels: ["enhancement", "ready-for-agent", "agent-working"],
 					title: "GitHub adapter",
+					authorAssociation: "member",
 					parentSpec: key(2),
 					blockers: [{ key: key(4), status: "closed" }],
 					claim: { claimedAtMs: 1794136657000 },
@@ -50,6 +51,32 @@ describe("reading GitHub issues", () => {
 			],
 			liveThreads: [],
 		})
+	})
+
+	it("carries a stranger's association so the intake Guard can stop the issue", async () => {
+		const issue = { ...(await issueFixture()), author_association: "FIRST_TIME_CONTRIBUTOR" }
+		const timeline = await timelineFixture()
+
+		const state = await readRepositoryState(
+			testClient({ listIssues: async () => [issue], listTimeline: async () => timeline }),
+			[FACTORY],
+			[],
+		)
+
+		expect(state.issues[0]?.authorAssociation).toBe("first-time-contributor")
+	})
+
+	it("treats an issue without an association as untrusted", async () => {
+		const { author_association: _dropped, ...issue } = await issueFixture()
+		const timeline = await timelineFixture()
+
+		const state = await readRepositoryState(
+			testClient({ listIssues: async () => [issue], listTimeline: async () => timeline }),
+			[FACTORY],
+			[],
+		)
+
+		expect(state.issues[0]?.authorAssociation).toBe("none")
 	})
 
 	it("reads a parent issue as a Spec", async () => {

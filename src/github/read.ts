@@ -2,6 +2,7 @@ import { CLAIM_LABEL } from "../claim"
 import type { Blocker, IssueKey, IssueState, RepositoryState } from "../contracts"
 import { deepFreeze } from "../freeze"
 import { copyIssueKey, keyOf } from "../keys"
+import { authorAssociationOf } from "./author-association"
 import type { GitHubClient, GitHubIssueData, GitHubTimelineEvent } from "./client"
 import { GitHubAdapterError } from "./errors"
 import { claimOf, issueKeyOf, issueKindOf, issueStatusOf, parentOf } from "./parse"
@@ -32,6 +33,7 @@ async function readIssue(client: GitHubClient, issue: GitHubIssueData): Promise<
 		status: issueStatusOf(issue.state, `issues[${keyOf(key)}].state`),
 		labels: issue.labels.map((label) => label.name),
 		...(issue.title === undefined ? {} : { title: issue.title }),
+		authorAssociation: authorAssociationOf(issue.author_association),
 		...(parentSpec === undefined ? {} : { parentSpec }),
 		blockers: (await client.listBlockers(key)).map((blocker) => blockerOf(blocker, key)),
 		...(claim === undefined ? {} : { claim }),
