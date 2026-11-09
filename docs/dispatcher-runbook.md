@@ -6,7 +6,7 @@ The Dispatcher finds Eligible work and launches Runs. It never approves and neve
 
 ## Allowlist
 
-Org `trajectonomics`. Repositories: `factory`, `sim-core`, `tax-core`, `cli`, `ledger-core`, `design-system`, `cicd`, `technical-template`, `infra`. Any other repository is out of scope.
+Org `trajectonomics`. Repositories: every repository of the org that is not archived, listed so a new one joins only when it is added here: `factory`, `sim-core`, `tax-core`, `cli`, `ledger-core`, `money`, `design-system`, `cicd`, `docs`, `technical-template`, `infra`, `growth`, `external-comm`, `copy-engine`, `agentic-inbox`, `mcp-auth-gateway`, `skills`, `internal-skills`. Any other repository is out of scope. A repository takes Runs only where it exists as a T3 project on a ready host (step 7) and has `implement`, `tdd` and `code-review` under `.agents/skills` (step 8); the Merge gate's human-merge list is unchanged.
 
 Find each repository's T3 project on a host with `t3_project_list` (pass `environmentId` for the other host) and match `repositoryIdentity.canonicalKey` to `github.com/trajectonomics/<repo>`. Project ids differ per host and must not be hard-coded.
 
@@ -164,7 +164,7 @@ Brief:
 > 1. Read the issue (`gh issue view <n> --json number,title,body,labels,comments`), AGENTS.md, GLOSSARY.md and docs/adr/.
 > 2. Work on branch `<branch>`. Never commit to `main`.
 > 3. Build it test-first. The `implement` and `implement-spec` skills are marked `disable-model-invocation`, so you cannot call them as tools: read `.agents/skills/implement/SKILL.md` (Spec Run, or a Ticket Run on an issue with a `factory:spec-draft` comment: `.agents/skills/run-the-spec/SKILL.md` if it exists, otherwise `.agents/skills/implement-spec/SKILL.md`, and for the draft case follow the draft's Ticket order on this one branch) and follow it yourself. You may call the `tdd` skill. Where `implement` says to call `code-review`, do step 5 instead.
-> 4. Check: `bun run check` must pass. Never loosen tsconfig or biome config. Never edit `version` in package.json.
+> 4. Check: the repository's own check command must pass (`bun run check` where the repository has it; AGENTS.md names it). Never loosen tsconfig or biome config. Never edit `version` in package.json.
 > 5. Review loop, at most 3 rounds. Reviews are independent and mandatory. Reading your own diff, or "reviewing" inline in this thread, does not count, and do NOT call `/code-review` (its sub-agents would run on your own model). In each round call `delegate_task` twice in one message, both with `role: "review"`, `mode: "wait"` and an explicit `target` (a call without a `target` inherits your DeepSeek model):
 >    - Conformance Review: `target: { providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { effort: "high" } }`. Task: review `git diff origin/main...HEAD` against issue #`<n>` (the Spec axis of `code-review`): requirements missing or partial, behaviour that was not asked for, requirements implemented wrongly. Quote the issue line for each finding. Under 400 words.
 >    - Standards Review: `target: { providerInstanceId: "antigravity", model: "gemini-3.8-flash" }`. Task: review the same diff against CODING_STANDARDS.md and the smell baseline in `.agents/skills/code-review/SKILL.md` (the Standards axis); cite the rule for each finding; smells are judgement calls. Under 400 words.
