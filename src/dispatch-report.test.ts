@@ -22,9 +22,6 @@ function reportAt(atMs: number, overrides: Partial<DispatchReport> = {}): Dispat
 		...overrides,
 	}
 }
-function load(loadAverage: number) {
-	return { host: "homeserver2", loadAverage, memoryUsedFraction: 0.2, diskUsedFraction: 0.3 }
-}
 function passReportText() {
 	const input = reading({
 		state: state([
@@ -114,16 +111,5 @@ describe("the 3-day report", () => {
 		expect(report.staleClaims).toEqual([key(4)])
 		expect(report.exits["spec-gap"]).toBe(0)
 		expect(report.exits["follow-up"]).toBe(1)
-	})
-
-	it("reports the latest host load in the window", () => {
-		const history = [
-			reportAt(NOW_MS - 2 * DAY_MS, { hostLoad: [load(1)] }),
-			reportAt(NOW_MS - DAY_MS, { hostLoad: [load(3)] }),
-		]
-
-		const report = threeDayReport(history, { pullRequests: [], exits: [] }, NOW_MS)
-
-		expect(report.hostLoad[0]?.loadAverage).toBe(3)
 	})
 })

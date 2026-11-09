@@ -3,6 +3,8 @@ export const FACTORY_NAME = "@trajectonomics/factory"
 
 export { CLAIM_LEASE_MS } from "./claim"
 export * from "./contracts"
+export * from "./dispatch-command"
+export { dispatchCommand } from "./dispatch-command"
 export * from "./dispatch-contracts"
 export { runDispatchPass } from "./dispatch-pass"
 export * from "./dispatch-pass-contracts"

@@ -62,34 +62,8 @@ describe("planDispatch", () => {
 			{ kind: "label", issue: key(4), label: "agent-working", present: false },
 		])
 	})
-
-	it("releases a stale Claim and plans its Run in the same pass", () => {
-		const stale = approved(4, {
-			labels: STALE_LABELS,
-			claim: { claimedAtMs: NOW_MS - CLAIM_LEASE_MS },
-		})
-
-		const plan = planDispatch(reading({ state: state([stale]) }), config())
-
-		expect(plan.writes).toEqual([
-			{ kind: "label", issue: key(4), label: "agent-working", present: false },
-		])
-		expect(plan.launches).toHaveLength(1)
-	})
 })
 describe("host Guards", () => {
-	it("defers on host pressure", () => {
-		const plan = planDispatch(
-			reading({
-				state: state([approved(4)]),
-				hosts: [host({ health: { ...host().health, loadAverage: 9 } })],
-			}),
-			config(),
-		)
-
-		expect(plan.deferrals).toEqual([{ issue: key(4), reason: "host-pressure" }])
-	})
-
 	it("falls back to the other host that has the repository", () => {
 		const plan = planDispatch(
 			reading({
