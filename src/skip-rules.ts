@@ -2,7 +2,7 @@ import { CLAIM_LABEL, isClaimLive } from "./claim"
 import { type EligibilityContext, isApproved, needsHuman } from "./context"
 import type { IssueState, SkipReason } from "./contracts"
 import { copyIssueKey, keyOf } from "./keys"
-import { sortIssueKeys } from "./sort"
+import { sortedUniqueIssueKeys } from "./sort"
 
 /** How a Ticket's Approval is supplied: its own label, or its parent Spec's. */
 export type Approval = "required" | "covered"
@@ -31,7 +31,7 @@ export function eligibilitySkipReason(
 	context: EligibilityContext,
 	waivedBlockers: ReadonlySet<string> = new Set<string>(),
 ): SkipReason | undefined {
-	const openBlockers = sortIssueKeys(
+	const openBlockers = sortedUniqueIssueKeys(
 		issue.blockers
 			.filter((blocker) => blocker.status === "open")
 			.filter((blocker) => !waivedBlockers.has(keyOf(blocker.key)))

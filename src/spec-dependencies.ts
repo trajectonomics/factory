@@ -1,6 +1,6 @@
 import type { IssueKey, IssueState, SkippedWork } from "./contracts"
 import { copyIssueKey, keyOf } from "./keys"
-import { compareIssueKeys, sortIssueKeys } from "./sort"
+import { compareIssueKeys, sortedUniqueIssueKeys } from "./sort"
 
 /** The skips, coverage and handled Tickets a Spec Run pass accumulates. */
 export type SpecRunResults = {
@@ -34,7 +34,10 @@ export function dropBlockedCandidates(
 			candidates.delete(key)
 			results.skipped.push({
 				issue: copyIssueKey(child.key),
-				reason: { code: "open-blocker", blockers: sortIssueKeys(uncovered).map(copyIssueKey) },
+				reason: {
+					code: "open-blocker",
+					blockers: sortedUniqueIssueKeys(uncovered).map(copyIssueKey),
+				},
 			})
 			results.handled.add(key)
 			dropped = true
@@ -78,7 +81,7 @@ function blockedTickets(remaining: ReadonlyMap<string, IssueState>): BlockedTick
 	return [...remaining.values()]
 		.map((ticket) => ({
 			ticket,
-			blockers: sortIssueKeys(
+			blockers: sortedUniqueIssueKeys(
 				ticket.blockers
 					.filter((blocker) => blocker.status === "open")
 					.filter((blocker) => remaining.has(keyOf(blocker.key)))
