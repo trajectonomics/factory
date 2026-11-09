@@ -36,8 +36,8 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
    - no live thread on either host and no open `factory/<n>-*` pull request;
    - it has not failed twice since its last approval (two draft pull requests or two Lease releases): add `ready-for-human` and launch nothing.
 4. **Run type.** A Spec (has sub-issues) labelled `ready-for-agent` gets one **Spec Run** over its open children, skipping children blocked from outside the Spec. Claim the Spec and the children it will build. A child whose parent Spec is approved is never launched alone. A Spec whose children are all closed gets no Run: comment that it looks complete and leave it for the owner. A ready Ticket with no approved parent gets a **Ticket Run**.
-5. **One Run per repository.** ADR 0003 keeps one live Run per repository as mutual exclusion against merge conflicts. Count a repository as busy if any of its issues carries `agent-working` or has a live thread. Pick at most one new Run for a repository that is not busy.
-6. **Pace.** Launch at most 3 new Runs per pass, oldest approved first, preferring issues that unblock others (`gh api repos/trajectonomics/<repo>/issues/<n>/dependencies/blocking`). Leave the rest for the next pass.
+5. **Runs per repository.** There is no limit on live Runs per repository ([ADR 0006](./adr/0006-no-run-limit-per-repository-or-pass.md)). Two Runs in one repository are separate branches and separate pull requests; the Run that lands second rebases (launch brief step 7, and the Conflicts rule in step 9).
+6. **Launch every Eligible issue, then fill the pass.** Launch a Run for every Eligible issue, oldest approved first, preferring issues that unblock others (`gh api repos/trajectonomics/<repo>/issues/<n>/dependencies/blocking`). There is no cap on launches per pass; the Guards in step 1 and the host placement in step 7 are the only limits. The target is to have at least 6 items moving each pass (7 is better), where an item moving is a Run launched or a Spec draft posted. If the pass launched fewer than 6, run [Fill the pass](#fill-the-pass) for the difference. The target is a recommended procedure, not a gate: a pass with fewer than 6 is fine when a Guard trips, nothing is unblocked, or a host is not ready. Say why in the report.
 7. **Place each Run on a host** ([ADR 0004](./adr/0004-balance-runs-across-homeservers.md)). Count live Runs per host (threads titled `traj/*` in a live state). Choose the host with fewer live Runs, homeserver1 on a tie, and count the Run you place before choosing the next. A host is a candidate only if its Readiness is `ready`, it is reachable, and the repository exists on it as a T3 project. If the chosen host is not a candidate, use the other one and note the fallback in the report. If neither is a candidate, skip the issue with reason `no-host`.
 8. **Claim, then launch.** For each chosen issue make sure the `agent-working` label exists in the repository (create it with colour `FBCA04` if missing), add it, then call `t3_thread_launch` with the chosen host's `environmentId` and that host's project id, and:
    - `title`: `traj/trajectonomics/<repo>#<n>`;
@@ -50,7 +50,37 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
    - **Last round not clean.** If the final round in the `## Reviews` section has the verdict "changes requested", or says findings were fixed after that round and not re-reviewed, launch one verification round (both reviewers, same targets, read-only, findings posted as a pull request comment) over the current head. Do this once per pull request. If the verification still finds problems, add `ready-for-human` to the issue and say so in the report.
    - **Conflicts.** If a pull request is `CONFLICTING` with `main` (for example because a sibling pull request merged), send its Run thread a message to rebase on `origin/main`, resolve the conflicts, and re-run `bun run check`. If the Run thread has finished, the message restarts it. Do not review again unless the conflict resolution changed behaviour.
 10. **Merge sweep** (a backstop: a Run normally merges its own pull request at the end of its loop). Take the open `factory/*` pull requests oldest first, at most 3 per pass. For each, check the [Merge gate](#merge-gate) against its current head commit. If every condition holds and `Mode` is `live`, merge it with `gh pr merge <n> -R trajectonomics/<repo> --squash --delete-branch`, then confirm the issue closed (close it with a comment if `Closes #<n>` did not), remove `agent-working` (for a Spec Run, from the Spec and its children too), and re-check the repository's other open pull requests for conflicts before the next merge. In `dry-run`, report "would merge". For a pull request that fails a condition, name the first failed condition in the report and leave it for the owner.
-11. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
+11. **Report** in under 15 lines: guards, Claims released, Runs launched (repository#n, type, host, thread link), Spec drafts launched or refreshed (repository#n, thread link) and the count of items moving against the target of 6, fallbacks, review audit (pull requests checked, reviewers launched, any `FALLBACK (quota)` reviews), and skipped issues with a one-word reason. Do not wait for the Runs or reviewers to finish.
+
+## Fill the pass
+
+Runs only build Approved work, and Approval is the owner's alone. When fewer than 6 items are moving, the Dispatcher fills the pass with **Spec drafts**, which prepare more work for the owner to approve. A draft never starts implementation.
+
+Candidates, in this order, until the target is met:
+
+1. An open issue labelled `needs-triage`, or carrying no state label, by an org member, owner or collaborator (`author_association` of `OWNER`, `MEMBER` or `COLLABORATOR`; anything else fails closed and is skipped as `stranger`). It must have no open blocker, none of `agent-working`, `needs-info`, `ready-for-human`, `wontfix`, `needs-spec-review`, and no live thread titled `triage/trajectonomics/<repo>#<n>`. Skip an issue that already has a Spec draft comment (see the marker below) unless the owner has replied on it since; in that case refresh the draft once.
+2. An existing Spec draft the owner has answered (a comment from the owner newer than the draft comment): refresh the draft with the answers.
+
+Do not file new issues. Update the existing issue: the draft is one comment on it, and the original body is never edited. Each draft goes to one read-only-for-the-repo thread:
+
+- `title`: `triage/trajectonomics/<repo>#<n>`; `clientRequestId`: `triage-<repo>-<n>-<yyyymmddhh>`;
+- `runtimeMode`: `full-access`; `modelSelection` and host as for a Run (step 7), in the repository's T3 project, with `workspaceStrategy` `root`, because a draft edits no files;
+- the message is the [Spec draft brief](#spec-draft-brief), filled in. The thread may use the `factory-triage` skill if it is installed.
+
+Count a draft thread that is live as an item moving. Drafts are not Claims: do not add `agent-working` to the issue.
+
+### Spec draft brief
+
+> You are a Factory Spec drafter for trajectonomics/`<repo>`#`<n>` "`<title>`". Your job is to turn this issue into a Spec the owner can approve by relabelling. You change no code, open no pull request, create no issue, and never add `ready-for-agent`, `wontfix` or `needs-info` (other than as an Exit below). Every comment you post starts with the line `> *This was generated by AI during triage.*`.
+>
+> 1. Read the issue and its comments (`gh issue view <n> --json number,title,body,labels,comments,author`), AGENTS.md, GLOSSARY.md and docs/adr/, then the code the issue touches. Use the glossary's words.
+> 2. Write the draft with the template in `.agents/skills/to-spec/SKILL.md` (Problem Statement, Solution, User Stories, Implementation Decisions, Testing Decisions, Out of Scope), but do NOT apply any label from that skill and do NOT publish a new issue. Add an **Open Decisions** section: each decision that is the owner's, with a recommended answer, so the owner can approve by saying yes. Split into Tickets (slices sized for one context window, with their blocking edges) only inside the draft; do not create sub-issues.
+> 3. Critique, at most two rounds, both read-only, with `delegate_task`, `role: "review"`, `mode: "wait"` and an explicit `target`: `{ providerInstanceId: "claudeAgent", model: "claude-sonnet-5-5", options: { effort: "high" } }` and `{ providerInstanceId: "antigravity", model: "gemini-3.8-flash" }`. Ask each: what is missing, wrong, ambiguous or already decided by an ADR? Fix what is correct. If they still disagree after round 2, add the disagreement to Open Decisions instead of resolving it yourself. Apply the quota fallback from the Models section only on a quota failure and label it `FALLBACK (quota)`.
+> 4. Post the draft as ONE comment on the issue, starting with the disclaimer line and then `<!-- factory:spec-draft v1 -->` so a later pass can find it; if a comment with that marker exists, edit it (`gh api -X PATCH repos/trajectonomics/<repo>/issues/comments/<id>`) instead of posting another. Then replace `needs-triage` with `needs-spec-review` on the issue.
+> 5. If something blocks the draft and only the owner can answer it, post the question as that comment's first Open Decision, or, if there is nothing to draft at all, post the question as a comment and add `needs-info`. Ask only what changes the draft; for everything else recommend an answer.
+>
+> Finish with one line: `DRAFT <comment url>, open decisions <count>, rounds <count>`.
+
 
 ## Merge gate
 

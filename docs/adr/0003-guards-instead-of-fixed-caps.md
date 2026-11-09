@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. The sentence keeping one Run per repository is amended by [ADR 0006](./0006-no-run-limit-per-repository-or-pass.md).
 
 ## Context
 
