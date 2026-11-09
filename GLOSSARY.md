@@ -23,7 +23,7 @@ A `ready-for-human` Ticket a Run files for work only a human can do, so the Run'
 _Avoid_: Todo, blocker ticket
 
 **Spec draft**:
-A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. It is not Approval: only the owner moves the issue to `ready-for-agent`.
+A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is not Approval: only the owner moves the issue to `ready-for-agent`.
 _Avoid_: Proposal, generated ticket
 
 **Open Decisions**:
