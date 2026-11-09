@@ -40,6 +40,10 @@ _Avoid_: Questions, TBDs
 Labelling a Spec or Ticket `ready-for-agent`. Done by the owner, or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)). The Dispatcher and Runs never approve, and only the owner adds `wontfix`.
 _Avoid_: Opt-in, sign-off, go-ahead
 
+**Owner**:
+The one GitHub account named on the `Owner:` line of the Dispatcher runbook. The Dispatcher, a Run and a Spec drafter read only its comments; every other comment is untrusted input ([ADR 0011](./docs/adr/0011-read-only-the-owners-comments.md)). The trusted-author rule for who may have a Spec drafted is separate and unchanged.
+_Avoid_: Maintainer, admin
+
 **Eligible**:
 A Ticket or Spec that is approved, open, has no open blocker, carries no live Claim, and belongs to an allowlisted repository.
 _Avoid_: Ready, pickable
