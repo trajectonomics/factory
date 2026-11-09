@@ -22,6 +22,10 @@ _Avoid_: Task, story, work item
 A `ready-for-human` Ticket a Run files for work only a human can do, so the Run's pull request is not held up.
 _Avoid_: Todo, blocker ticket
 
+**Spec draft**:
+A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. It is not Approval: only the owner moves the issue to `ready-for-agent`.
+_Avoid_: Proposal, generated ticket
+
 **Open Decisions**:
 The section of a drafted Spec listing each decision that is the human's to make, with a recommended answer.
 _Avoid_: Questions, TBDs
@@ -70,7 +74,7 @@ _Avoid_: Lint review
 
 **Spec Review**:
 The loop that critiques a drafted Spec: a drafter, two critics, and a stronger adjudicator, ending with the Spec labelled `needs-spec-review` for the human.
-_Avoid_: Triage, grooming
+_Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triage" otherwise means the five-label routine.
 
 ### Outcomes
 

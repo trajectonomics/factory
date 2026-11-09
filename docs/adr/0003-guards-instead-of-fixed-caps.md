@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. The sentence keeping one Run per repository is amended by [ADR 0006](./0006-runs-are-not-exclusive-per-repository.md).
 
 ## Context
 
@@ -18,7 +18,7 @@ The Dispatcher applies Guards that react to measured pressure rather than fixed 
 4. **Kill switch**: disabling the scheduled task, or a `factory:pause` label per repository, stops launching.
 5. **Trusted-author intake**: only issues authored by org members or collaborators enter the Spec pipeline.
 
-One Run per repository remains as mutual exclusion against merge conflicts, not as a throughput cap. Numeric thresholds are chosen in the first Tickets and tuned from the 3-day report.
+~~One Run per repository remains as mutual exclusion against merge conflicts, not as a throughput cap.~~ Removed by ADR 0006. Numeric thresholds are chosen in the first Tickets and tuned from the 3-day report.
 
 ## Consequences
 

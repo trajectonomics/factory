@@ -15,8 +15,8 @@ parent links and live threads are the only inputs (ADR 0001).
 A label-only `agent-working` (no `claimedAtMs`) never expires in the core, so the adapter must
 always supply `claimedAtMs`.
 
-## One Run per repository is the Dispatcher's rule
+## Runs per repository are the Dispatcher's concern
 
-The eligibility core decides per issue. The one-Run-per-repository mutual exclusion from ADR 0003
-belongs to the Dispatcher, which composes eligibility with the Guards; it is not part of this
-decision.
+The eligibility core decides per issue. It does not restrict Runs per repository (ADR 0006
+removed the one-Run-per-repository rule of ADR 0003); the Dispatcher composes eligibility with the
+Guards and host placement.
