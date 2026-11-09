@@ -24,6 +24,8 @@ export async function runDispatchPass(
 	const failed = new Set(errors.map((error) => keyOf(error.issue)))
 	const report = passReport(plan, reading, failed)
 	adapters.print(formatDispatchReport(report, config.mode))
+	for (const error of errors)
+		adapters.print(`launch failed ${keyOf(error.issue)}: ${error.message}`)
 	return deepFreeze({
 		plan,
 		errors,

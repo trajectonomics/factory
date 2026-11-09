@@ -26,11 +26,15 @@ export function passReport(
 	const runs = plan.launches
 		.filter((launch) => !failedIssues?.has(keyOf(issueOfRun(launch.run))))
 		.map((launch) => runRecordOf(launch.run, launch.host))
+	const staleClaims = [
+		...plan.reconciliation.releasedClaims,
+		...plan.reconciliation.requeuedTickets,
+	].map((release) => release.issue)
 	return buildReport(
 		runs,
 		reading.ledger.pullRequests,
 		reading.ledger.exits,
-		plan.reconciliation.releasedClaims.map((release) => release.issue),
+		staleClaims,
 		plan.hostLoad,
 	)
 }

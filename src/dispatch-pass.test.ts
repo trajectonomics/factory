@@ -93,5 +93,6 @@ describe("a Dispatcher pass", () => {
 		expect(fake.writes.at(-1)).toEqual([
 			{ kind: "label", issue: key(4), label: "agent-working", present: false },
 		])
+		expect(fake.printed).toContain("launch failed trajectonomics/cli#4: T3 is unreachable")
 	})
 })
