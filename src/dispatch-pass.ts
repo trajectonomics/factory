@@ -4,9 +4,10 @@ import type {
 	DispatchLaunchError,
 	DispatchPassResult,
 } from "./dispatch-pass-contracts"
-import { planDispatch, releaseWrites } from "./dispatch-plan"
+import { planDispatch, releaseWrites, statusWrites } from "./dispatch-plan"
 import type { DispatchLaunch, DispatchPlan } from "./dispatch-plan-contracts"
 import { formatDispatchReport, formatLaunch, passReport } from "./dispatch-report"
+import { deepFreeze } from "./freeze"
 import { formatWrite } from "./github/format-write"
 import type { FactoryWrite } from "./github/writes"
 import { issueOfRun, keyOf } from "./keys"
@@ -23,15 +24,18 @@ export async function runDispatchPass(
 	const failed = new Set(errors.map((error) => keyOf(error.issue)))
 	const report = passReport(plan, reading, failed)
 	adapters.print(formatDispatchReport(report, config.mode))
-	return {
+	return deepFreeze({
 		plan,
 		errors,
 		report,
-	}
+	})
 }
 function printPlan(adapters: DispatchAdapters, plan: DispatchPlan): readonly DispatchLaunchError[] {
 	for (const write of [...plan.writes, ...plan.claims]) adapters.print(formatWrite(write))
-	for (const launch of plan.launches) adapters.print(formatLaunch(launch))
+	for (const launch of plan.launches) {
+		for (const write of statusWrites(launch.run)) adapters.print(formatWrite(write))
+		adapters.print(formatLaunch(launch))
+	}
 	for (const skip of plan.skipped) adapters.print(`skip ${keyOf(skip.issue)}: ${skip.reason.code}`)
 	for (const deferral of plan.deferrals) {
 		adapters.print(`defer ${keyOf(deferral.issue)}: ${deferral.reason}`)
@@ -48,7 +52,8 @@ async function applyPlan(
 	const errors: DispatchLaunchError[] = []
 	for (const launch of plan.launches) {
 		const error = await launchRun(adapters, launch)
-		if (error !== undefined) errors.push(error)
+		if (error === undefined) await applyBatch(adapters, statusWrites(launch.run))
+		else errors.push(error)
 	}
 	return errors
 }

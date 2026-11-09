@@ -1,27 +1,8 @@
 import { describe, expect, it } from "bun:test"
 import { planDispatch } from "./dispatch-plan"
-import type { DispatchReport } from "./dispatch-plan-contracts"
-import {
-	formatDispatchReport,
-	passReport,
-	THREE_DAY_REPORT_MS,
-	threeDayReport,
-} from "./dispatch-report"
+import { formatDispatchReport, passReport } from "./dispatch-report"
 import { approved, config, FACTORY, key, NOW_MS, reading, state } from "./fixtures/dispatch"
 
-const DAY_MS = 24 * 60 * 60 * 1000
-function reportAt(atMs: number, overrides: Partial<DispatchReport> = {}): DispatchReport {
-	return {
-		atMs,
-		runs: [],
-		pullRequests: [],
-		gateFailures: [],
-		exits: { "spec-gap": 0, "follow-up": 0, urgent: 0, "gate-failure": 0 },
-		staleClaims: [],
-		hostLoad: [],
-		...overrides,
-	}
-}
 function passReportText() {
 	const input = reading({
 		state: state([
@@ -64,52 +45,5 @@ describe("a pass report", () => {
 		expect(text).toContain("Stale Claims: 1")
 		expect(text).toContain("Host load: homeserver2")
 		expect(report.exits["gate-failure"]).toBe(1)
-	})
-})
-
-describe("the 3-day report", () => {
-	it("uses a three-day window and keeps only what is inside it", () => {
-		const history = [
-			reportAt(NOW_MS - 4 * DAY_MS, {
-				runs: [
-					{
-						issue: key(1),
-						kind: "ticket-run",
-						host: "homeserver2",
-						launchedAtMs: NOW_MS - 4 * DAY_MS,
-					},
-				],
-				staleClaims: [key(1)],
-			}),
-			reportAt(NOW_MS - DAY_MS, {
-				runs: [
-					{
-						issue: key(4),
-						kind: "ticket-run",
-						host: "homeserver1",
-						launchedAtMs: NOW_MS - DAY_MS,
-					},
-				],
-				staleClaims: [key(4)],
-			}),
-		]
-
-		const report = threeDayReport(
-			history,
-			{
-				pullRequests: [],
-				exits: [
-					{ issue: key(4), kind: "spec-gap", atMs: NOW_MS - 4 * DAY_MS },
-					{ issue: key(6), kind: "follow-up", atMs: NOW_MS - DAY_MS },
-				],
-			},
-			NOW_MS,
-		)
-
-		expect(THREE_DAY_REPORT_MS).toBe(3 * DAY_MS)
-		expect(report.runs.map((run) => run.issue)).toEqual([key(4)])
-		expect(report.staleClaims).toEqual([key(4)])
-		expect(report.exits["spec-gap"]).toBe(0)
-		expect(report.exits["follow-up"]).toBe(1)
 	})
 })

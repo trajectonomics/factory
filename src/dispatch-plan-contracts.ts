@@ -46,7 +46,6 @@ export type DispatchExitCounts = Readonly<Record<RunExitKind, number>>
 
 /** The report the Dispatcher prints, for one pass or for three days. */
 export type DispatchReport = {
-	readonly atMs: number
 	readonly runs: readonly DispatchRunRecord[]
 	readonly pullRequests: readonly FactoryPullRequest[]
 	readonly gateFailures: readonly RunExit[]

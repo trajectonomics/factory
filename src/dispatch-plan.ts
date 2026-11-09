@@ -15,7 +15,6 @@ import { deepFreeze } from "./freeze"
 import { claimWrite, type FactoryWrite, labelWrite, statusWrite } from "./github/writes"
 import { issueOfRun } from "./keys"
 import { reconcileWork } from "./reconciliation"
-import { startTicketRun } from "./ticket-run"
 
 /** The decisions one Dispatcher pass makes. */
 export function planDispatch(reading: DispatchReading, config: DispatchConfig): DispatchPlan {
@@ -70,15 +69,13 @@ function assertConfig(reading: DispatchReading, config: DispatchConfig): void {
 	}
 	assertUniqueHosts(reading.hosts)
 }
-/** The Claim and In progress writes that start one Run. */
+/** The Claim writes that hold one Run's issues before its launch. */
 export function claimWrites(run: EligibleRun, claimedAtMs: number): readonly FactoryWrite[] {
-	if (run.kind === "ticket-run") return startTicketRun(run.ticket, claimedAtMs)
-	return deepFreeze(
-		runIssues(run).flatMap((issue) => [
-			claimWrite(issue, claimedAtMs),
-			statusWrite(issue, "In progress"),
-		]),
-	)
+	return deepFreeze(runIssues(run).map((issue) => claimWrite(issue, claimedAtMs)))
+}
+/** The In progress writes that start one Run's issues on the board. */
+export function statusWrites(run: EligibleRun): readonly FactoryWrite[] {
+	return deepFreeze(runIssues(run).map((issue) => statusWrite(issue, "In progress")))
 }
 /** The Claim removals that undo a Run whose launch failed. */
 export function releaseWrites(run: EligibleRun): readonly FactoryWrite[] {

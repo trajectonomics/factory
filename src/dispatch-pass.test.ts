@@ -74,13 +74,10 @@ describe("a Dispatcher pass", () => {
 
 		const result = await runDispatchPass(fake.adapters, config({ mode: "live" }))
 
-		expect(fake.writes).toHaveLength(2)
-		expect(fake.writes[0]).toEqual([
-			{ kind: "label", issue: key(4), label: "agent-working", present: false },
-		])
-		expect(fake.writes[1]).toEqual([
-			{ kind: "claim", issue: key(4), claimedAtMs: NOW_MS },
-			{ kind: "status", issue: key(4), status: "In progress" },
+		expect(fake.writes).toEqual([
+			[{ kind: "label", issue: key(4), label: "agent-working", present: false }],
+			[{ kind: "claim", issue: key(4), claimedAtMs: NOW_MS }],
+			[{ kind: "status", issue: key(4), status: "In progress" }],
 		])
 		expect(fake.launches).toHaveLength(1)
 		expect(result.errors).toEqual([])

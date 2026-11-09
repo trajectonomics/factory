@@ -12,10 +12,7 @@ describe("a Dispatcher plan", () => {
 			host: "homeserver2",
 			request: { title: "traj/trajectonomics/cli#4", branch: "factory/4-ticket-4" },
 		})
-		expect(plan.claims).toEqual([
-			{ kind: "claim", issue: key(4), claimedAtMs: NOW_MS },
-			{ kind: "status", issue: key(4), status: "In progress" },
-		])
+		expect(plan.claims).toEqual([{ kind: "claim", issue: key(4), claimedAtMs: NOW_MS }])
 		expect(plan.deferrals).toEqual([])
 	})
 
