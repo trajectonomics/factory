@@ -106,4 +106,39 @@ describe("Spec Run cycles", () => {
 			{ issue: key(6), reason: { code: "open-blocker", blockers: [key(5)] } },
 		])
 	})
+
+	it("skips the Spec when every child is in a cycle", () => {
+		const plan = evaluateEligibility(
+			state([spec(), blocked(3, key(4)), blocked(4, key(3))]),
+			ALLOWLIST,
+			NOW_MS,
+		)
+
+		expect(plan.runs).toEqual([])
+		expect(plan.skipped).toEqual([
+			{ issue: SPEC, reason: { code: "no-eligible-children" } },
+			{ issue: key(3), reason: { code: "open-blocker", blockers: [key(4)] } },
+			{ issue: key(4), reason: { code: "open-blocker", blockers: [key(3)] } },
+		])
+	})
+
+	it("lists a blocker once when the same edge is read twice", () => {
+		const twice = child(5, {
+			blockers: [
+				{ key: key(6), status: "open" },
+				{ key: key(6), status: "open" },
+			],
+		})
+
+		const plan = evaluateEligibility(
+			state([spec(), child(3), twice, blocked(6, key(5))]),
+			ALLOWLIST,
+			NOW_MS,
+		)
+
+		expect(plan.skipped).toContainEqual({
+			issue: key(5),
+			reason: { code: "open-blocker", blockers: [key(6)] },
+		})
+	})
 })

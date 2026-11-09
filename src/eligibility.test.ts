@@ -120,6 +120,22 @@ describe("evaluateEligibility", () => {
 		])
 	})
 
+	it("names a blocker once when GitHub lists the same edge twice", () => {
+		const ticket = issue(key(4), {
+			labels: ["ready-for-agent"],
+			blockers: [
+				{ key: key(3), status: "open" },
+				{ key: key(3), status: "open" },
+			],
+		})
+
+		const plan = evaluateEligibility(state([ticket]), ALLOWLIST, NOW_MS)
+
+		expect(plan.skipped).toEqual([
+			{ issue: key(4), reason: { code: "open-blocker", blockers: [key(3)] } },
+		])
+	})
+
 	it("skips a Ticket with a live Claim inside its Lease", () => {
 		const ticket = issue(key(4), {
 			labels: ["ready-for-agent"],
