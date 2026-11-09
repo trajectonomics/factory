@@ -25,13 +25,13 @@ describe("reading JSON from gh", () => {
 
 	it("rejects output that is not JSON", async () => {
 		expect(await code(getJson(printing("not json"), ["project", "view"], isNamed))).toBe(
-			"malformed-gh-response",
+			"unparseable-gh-output",
 		)
 	})
 
 	it("rejects JSON of another shape", async () => {
 		expect(await code(getJson(printing('{"title":"x"}'), ["project", "view"], isNamed))).toBe(
-			"malformed-gh-response",
+			"unexpected-gh-shape",
 		)
 	})
 
@@ -43,13 +43,13 @@ describe("reading JSON from gh", () => {
 
 	it("rejects a paginated response that is not a list of pages", async () => {
 		expect(await code(getApi(printing('{"message":"Not Found"}'), "repos/x/y/z", isNamed))).toBe(
-			"malformed-gh-response",
+			"unexpected-gh-shape",
 		)
 	})
 
 	it("rejects a page item of another shape", async () => {
 		expect(await code(getApi(printing('[[{"number":"seven"}]]'), "repos/x/y/z", isIssueData))).toBe(
-			"malformed-gh-response",
+			"unexpected-gh-shape",
 		)
 	})
 })

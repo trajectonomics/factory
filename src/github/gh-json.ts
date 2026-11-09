@@ -14,7 +14,7 @@ export async function getJson<T>(
 	const value = parse(await run(args), field)
 	if (isShape(value)) return value
 	throw new GitHubAdapterError(
-		"malformed-gh-response",
+		"unexpected-gh-shape",
 		field,
 		`${field} returned an unexpected shape`,
 	)
@@ -30,7 +30,7 @@ export async function getApi<T>(
 	const items = pages.flat()
 	if (items.every(isItem)) return items
 	throw new GitHubAdapterError(
-		"malformed-gh-response",
+		"unexpected-gh-shape",
 		`gh api ${path}`,
 		`gh api ${path} returned an item of an unexpected shape`,
 	)
@@ -44,6 +44,6 @@ function parse(stdout: string, field: string): unknown {
 	try {
 		return JSON.parse(stdout)
 	} catch {
-		throw new GitHubAdapterError("malformed-gh-response", field, `${field} did not print JSON`)
+		throw new GitHubAdapterError("unparseable-gh-output", field, `${field} did not print JSON`)
 	}
 }

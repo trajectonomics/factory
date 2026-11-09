@@ -9,7 +9,7 @@ const MAX_BUFFER_BYTES = 20 * 1024 * 1024
 /** How long one `gh` invocation may run before the Dispatcher gives up on it. */
 export const GH_TIMEOUT_MS = 120_000
 
-/** Runs one command with stdin and a timeout; a closed stdin or a timeout rejects. */
+/** Runs one command with stdin and a timeout. */
 export function runCommand(
 	command: string,
 	args: readonly string[],
@@ -17,17 +17,22 @@ export function runCommand(
 	timeoutMs: number,
 ): Promise<string> {
 	return new Promise((resolve, reject) => {
+		// A closed stdin is reported after the command's own failure, which names the real cause.
+		let stdinError: Error | undefined
 		const child = execFile(
 			command,
 			[...args],
 			{ encoding: "utf8", maxBuffer: MAX_BUFFER_BYTES, timeout: timeoutMs, killSignal: "SIGKILL" },
 			(error, stdout) => {
-				if (error === null) return resolve(stdout)
-				if (error.killed === true) return reject(timedOut(command, args, timeoutMs))
-				reject(error)
+				if (error?.killed === true) return reject(timedOut(command, args, timeoutMs))
+				if (error !== null) return reject(error)
+				if (stdinError !== undefined) return reject(stdinError)
+				resolve(stdout)
 			},
 		)
-		child.stdin?.on("error", reject)
+		child.stdin?.on("error", (error) => {
+			stdinError = error
+		})
 		child.stdin?.end(input ?? "")
 	})
 }
