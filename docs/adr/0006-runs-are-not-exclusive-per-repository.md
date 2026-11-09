@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The owner asked for it on 2026-11-09. It amends ADR 0003 (the sentence that keeps one Run per repository) and replaces the runbook's pace of 3 Runs per pass.
+Accepted. The `root` workspace for drafts is replaced by [ADR 0008](./0008-every-thread-gets-its-own-worktree.md). Decision 4 and the rejected option on drafts counting toward approval are superseded by [ADR 0007](./0007-spec-drafter-can-approve.md). The owner asked for it on 2026-11-09. It amends ADR 0003 (the sentence that keeps one Run per repository) and replaces the runbook's pace of 3 Runs per pass.
 
 ## Context
 

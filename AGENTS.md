@@ -11,11 +11,11 @@ Instructions for AI coding agents in `trajectonomics/factory` (`@trajectonomics/
 5. Done means `bun run check` passes (Biome lint with zero warnings, strict typecheck, tests, build, publint + are-the-types-wrong). `bun run format` fixes formatting and import order. Do not loosen `tsconfig.base.json` or `biome.json` to make an error go away.
 6. Never edit `version` in `package.json`. This package is never published. PR titles are conventional commits (`feat:`, `fix:`, `feat!:` ...) because CI validates them.
 7. Pi (`pi.dev`) model restriction: When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
-
+8. Factory rules live in this repo (`docs/dispatcher-runbook.md`, `GLOSSARY.md`, `docs/adr/`), never in agent memory or in a scheduled task's prompt. To change a rule, change the repo.
 
 ## Scope
 
-The Factory reads GitHub issues and writes branches, pull requests, issues, comments, labels and board Status. It never changes a host or a cloud platform and never approves. Those stay with the owner; see `trajectonomics/infra` ADR 0005. A Run merges its own pull request only when it passes the Merge gate in `docs/dispatcher-runbook.md` (ADR 0005); otherwise the pull request waits for the owner.
+The Factory reads GitHub issues and writes branches, pull requests, issues, comments, labels and board Status. It never changes a host or a cloud platform. Those stay with the owner; see `trajectonomics/infra` ADR 0005. A Run merges its own pull request only when it passes the Merge gate in `docs/dispatcher-runbook.md` (ADR 0005); otherwise the pull request waits for the owner. Who may approve is defined in the Approval entry of `GLOSSARY.md` (ADR 0007).
 
 ## Agent skills
 

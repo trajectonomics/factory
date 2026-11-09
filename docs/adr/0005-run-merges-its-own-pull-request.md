@@ -8,7 +8,7 @@ Accepted. The owner asked for it on 2026-11-08. It supersedes the statements tha
 
 The goal is that the owner writes and approves Specs and Tickets and is pulled back only for decisions. Merging every pull request by hand keeps the owner in the loop for work that has already passed every check and two independent reviews, so queued pull requests wait and siblings drift into conflicts.
 
-Approval is unchanged: only the owner labels a Spec or Ticket `ready-for-agent`, and the Factory never approves. This ADR changes merging only.
+Approval is unchanged by this ADR: Runs and the Dispatcher never approve. This ADR changes merging only. (ADR 0007 later lets a finished Spec draft approve.)
 
 ## Decision
 

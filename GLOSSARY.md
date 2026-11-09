@@ -23,7 +23,7 @@ A `ready-for-human` Ticket a Run files for work only a human can do, so the Run'
 _Avoid_: Todo, blocker ticket
 
 **Spec draft**:
-A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is not Approval: only the owner moves the issue to `ready-for-agent`.
+A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is Approval only when the conditions in step 5 of its brief hold; otherwise the issue goes to `needs-spec-review` and the owner decides.
 _Avoid_: Proposal, generated ticket
 
 **Open Decisions**:
@@ -33,7 +33,7 @@ _Avoid_: Questions, TBDs
 ### Authority
 
 **Approval**:
-The human act of labelling a Spec or Ticket `ready-for-agent`. The Factory never approves.
+Labelling a Spec or Ticket `ready-for-agent`. Done by the owner, or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)). The Dispatcher and Runs never approve, and only the owner adds `wontfix`.
 _Avoid_: Opt-in, sign-off, go-ahead
 
 **Eligible**:
