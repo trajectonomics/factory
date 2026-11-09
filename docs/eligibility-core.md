@@ -17,6 +17,6 @@ always supply `claimedAtMs`.
 
 ## Runs per repository are the Dispatcher's concern
 
-The eligibility core decides per issue. It applies no limit on Runs per repository (ADR 0006
+The eligibility core decides per issue. It does not restrict Runs per repository (ADR 0006
 removed the one-Run-per-repository rule of ADR 0003); the Dispatcher composes eligibility with the
 Guards and host placement.
