@@ -22,7 +22,7 @@ export function passReport(
 	plan: DispatchPlan,
 	reading: DispatchReading,
 	failedIssues?: ReadonlySet<string>,
-	applied = true,
+	reconciliationApplied = true,
 ): DispatchReport {
 	const runs = plan.launches
 		.filter((launch) => !failedIssues?.has(keyOf(issueOfRun(launch.run))))
@@ -32,7 +32,7 @@ export function passReport(
 			.filter((issue) => issue.claim !== undefined || issue.labels.includes(CLAIM_LABEL))
 			.map((issue) => keyOf(issue.key)),
 	)
-	const staleClaims = applied
+	const staleClaims = reconciliationApplied
 		? [
 				...plan.reconciliation.releasedClaims.filter((release) =>
 					claimed.has(keyOf(release.issue)),

@@ -15,7 +15,7 @@ export async function runDispatchPass(
 	const plan = planDispatch(reading, config)
 	const outcome =
 		config.mode === "dry-run"
-			? { errors: printPlan(adapters, plan), applied: true }
+			? { errors: printPlan(adapters, plan), applied: true, reconciliationApplied: true }
 			: await applyPlan(adapters, plan)
 	const failed = new Set(
 		outcome.errors.filter((error) => !error.launched).map((error) => keyOf(error.issue)),
@@ -23,7 +23,7 @@ export async function runDispatchPass(
 	if (!outcome.applied) {
 		for (const launch of plan.launches) failed.add(keyOf(issueOfRun(launch.run)))
 	}
-	const report = passReport(plan, reading, failed, outcome.applied)
+	const report = passReport(plan, reading, failed, outcome.reconciliationApplied)
 	adapters.print(formatDispatchReport(report, config.mode))
 	for (const error of outcome.errors)
 		adapters.print(

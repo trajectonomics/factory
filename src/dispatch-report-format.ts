@@ -13,7 +13,7 @@ export function formatDispatchReport(report: DispatchReport, mode?: DispatchMode
 			report.gateFailures.map((failure) => failure.issue),
 		)}`,
 		`Exits: spec gap ${report.exits["spec-gap"]}, follow-up ${report.exits["follow-up"]}, urgent ${report.exits.urgent}, gate failure ${report.exits["gate-failure"]}`,
-		`Stale Claims: ${report.staleClaims.length}${issueSummary(report.staleClaims)}`,
+		`${mode === "dry-run" ? "Stale Claims (would release)" : "Stale Claims"}: ${report.staleClaims.length}${issueSummary(report.staleClaims)}`,
 		`Host load: ${hostSummary(report.hostLoad)}`,
 	].join("\n")
 }

@@ -7,19 +7,21 @@ import { issueOfRun } from "./keys"
 export type ApplyOutcome = {
 	readonly errors: readonly DispatchLaunchError[]
 	readonly applied: boolean
+	readonly reconciliationApplied: boolean
 	readonly writeError?: string
 }
-
 /** Applies one plan's writes and launches, keeping launch and Status failures. */
 export async function applyPlan(
 	adapters: DispatchAdapters,
 	plan: DispatchPlan,
 ): Promise<ApplyOutcome> {
+	let reconciliationApplied = false
 	try {
 		await applyBatch(adapters, plan.writes)
+		reconciliationApplied = true
 		await applyBatch(adapters, plan.claims)
 	} catch (error) {
-		return { errors: [], applied: false, writeError: messageOf(error) }
+		return { errors: [], applied: false, reconciliationApplied, writeError: messageOf(error) }
 	}
 	const errors: DispatchLaunchError[] = []
 	for (const launch of plan.launches) {
@@ -38,16 +40,14 @@ export async function applyPlan(
 			})
 		}
 	}
-	return { errors, applied: true }
+	return { errors, applied: true, reconciliationApplied: true }
 }
-
 async function applyBatch(
 	adapters: DispatchAdapters,
 	writes: readonly FactoryWrite[],
 ): Promise<void> {
 	if (writes.length > 0) await adapters.applyWrites(writes)
 }
-
 async function launchRun(
 	adapters: DispatchAdapters,
 	launch: DispatchLaunch,
@@ -69,7 +69,6 @@ async function launchRun(
 		return { issue, message: messageOf(error), launched: false }
 	}
 }
-
 function messageOf(error: unknown): string {
 	return error instanceof Error ? error.message : String(error)
 }

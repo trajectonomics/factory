@@ -116,12 +116,13 @@ describe("a Dispatcher pass", () => {
 	})
 
 	it("skips the launches and still reports when a Claim write fails", async () => {
-		const fake = recorder(reading({ state: state([approved(4)]) }), false, false, true)
+		const fake = recorder(staleAndApproved(), false, false, true)
 
 		const result = await runDispatchPass(fake.adapters, config({ mode: "live" }))
 
 		expect(fake.launches).toEqual([])
 		expect(result.report.runs).toEqual([])
+		expect(result.report.staleClaims).toEqual([key(4)])
 		expect(result.errors).toEqual([])
 		expect(result.writeError).toBe("claim write failed")
 		expect(fake.printed).toContain("write failed: claim write failed")
