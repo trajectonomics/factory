@@ -44,7 +44,6 @@ function printPlan(adapters: DispatchAdapters, plan: DispatchPlan): readonly Dis
 	}
 	return []
 }
-
 async function applyPlan(
 	adapters: DispatchAdapters,
 	plan: DispatchPlan,
@@ -54,19 +53,27 @@ async function applyPlan(
 	const errors: DispatchLaunchError[] = []
 	for (const launch of plan.launches) {
 		const error = await launchRun(adapters, launch)
-		if (error === undefined) await applyBatch(adapters, statusWrites(launch.run))
-		else errors.push(error)
+		if (error !== undefined) {
+			errors.push(error)
+			continue
+		}
+		try {
+			await applyBatch(adapters, statusWrites(launch.run))
+		} catch (statusError) {
+			errors.push({
+				issue: issueOfRun(launch.run),
+				message: `launch succeeded; In progress failed: ${messageOf(statusError)}`,
+			})
+		}
 	}
 	return errors
 }
-
 async function applyBatch(
 	adapters: DispatchAdapters,
 	writes: readonly FactoryWrite[],
 ): Promise<void> {
 	if (writes.length > 0) await adapters.applyWrites(writes)
 }
-
 async function launchRun(
 	adapters: DispatchAdapters,
 	launch: DispatchLaunch,

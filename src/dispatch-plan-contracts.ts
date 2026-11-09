@@ -4,7 +4,6 @@ import type { FactoryWrite } from "./github/writes"
 import type { GuardDecision } from "./guard-contracts"
 import type { ReconciliationPlan } from "./reconciliation-plan"
 import type { T3LaunchRequest } from "./t3"
-
 /** The Guard decisions one pass measured, for the report. */
 export type HostGuardReport = {
 	readonly host: string
@@ -28,7 +27,6 @@ export type DispatchDeferralReason =
 	| "host-pressure"
 	| "launch-too-soon"
 	| "provider-rate-limit"
-
 /** An eligible Run left for a later pass, with the rule that deferred it. */
 export type DispatchDeferral = {
 	readonly issue: IssueKey
@@ -42,7 +40,6 @@ export type DispatchRunRecord = {
 }
 /** The Exits the report counts, by type. */
 export type DispatchExitCounts = Readonly<Record<RunExitKind, number>>
-
 /** The report the Dispatcher prints for one pass. */
 export type DispatchReport = {
 	readonly runs: readonly DispatchRunRecord[]

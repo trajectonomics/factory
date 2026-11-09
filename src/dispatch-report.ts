@@ -1,3 +1,4 @@
+import { CLAIM_LABEL } from "./claim"
 import type { EligibleRun, IssueKey } from "./contracts"
 import type {
 	DispatchReading,
@@ -16,7 +17,6 @@ import { deepFreeze } from "./freeze"
 import { issueOfRun, keyOf } from "./keys"
 
 export { formatDispatchReport, formatLaunch } from "./dispatch-report-format"
-
 /** The report for one pass, from its planned Runs and the ledger it read. */
 export function passReport(
 	plan: DispatchPlan,
@@ -26,9 +26,14 @@ export function passReport(
 	const runs = plan.launches
 		.filter((launch) => !failedIssues?.has(keyOf(issueOfRun(launch.run))))
 		.map((launch) => runRecordOf(launch.run, launch.host))
+	const claimed = new Set(
+		reading.state.issues
+			.filter((issue) => issue.claim !== undefined || issue.labels.includes(CLAIM_LABEL))
+			.map((issue) => keyOf(issue.key)),
+	)
 	const staleClaims = [
 		...plan.reconciliation.releasedClaims,
-		...plan.reconciliation.requeuedTickets,
+		...plan.reconciliation.requeuedTickets.filter((requeue) => claimed.has(keyOf(requeue.issue))),
 	].map((release) => release.issue)
 	return buildReport(
 		runs,
