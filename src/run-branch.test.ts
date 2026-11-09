@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test"
-import { branchNameFor, slugify } from "./run-branch"
+import { branchNameFor, slugify, specBranchNameFor } from "./run-branch"
 
 describe("Run branch slugs", () => {
 	it("turns a title into a branch-name slug", () => {
@@ -51,5 +51,15 @@ describe("Run branch names", () => {
 
 	it("keeps the branch component within git's limit for a long title", () => {
 		expect(branchNameFor(8, "a".repeat(300))).toBe(`factory/8-${"a".repeat(50)}`)
+	})
+})
+
+describe("Spec Run branch names", () => {
+	it("names the integration branch after the Spec and its title", () => {
+		expect(specBranchNameFor(2, "Software Factory v0")).toBe("factory/spec-2-software-factory-v0")
+	})
+
+	it("names the branch from the Spec alone when the title has no slug", () => {
+		expect(specBranchNameFor(2, "!!!")).toBe("factory/spec-2")
 	})
 })

@@ -31,6 +31,7 @@ async function readIssue(client: GitHubClient, issue: GitHubIssueData): Promise<
 		kind: issueKindOf(issue, parentSpec),
 		status: issueStatusOf(issue.state, `issues[${keyOf(key)}].state`),
 		labels: issue.labels.map((label) => label.name),
+		...(issue.title === undefined ? {} : { title: issue.title }),
 		...(parentSpec === undefined ? {} : { parentSpec }),
 		blockers: (await client.listBlockers(key)).map((blocker) => blockerOf(blocker, key)),
 		...(claim === undefined ? {} : { claim }),

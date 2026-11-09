@@ -11,6 +11,7 @@ export type RunLaunchInput = {
 	readonly issueTitle: string
 	readonly model: T3Model
 	readonly roleBrief: string
+	readonly branch?: string
 }
 
 // Mirrors the repository part of the Run thread title grammar.
@@ -26,7 +27,7 @@ export function runLaunchRequest(input: RunLaunchInput): T3LaunchRequest {
 	}
 	const title = threadTitleOf(input.issue)
 	assertThreadTitle(input.issue, title)
-	const branch = branchNameFor(input.issue.number, input.issueTitle)
+	const branch = branchFor(input)
 	const ticket = `${input.issue.repository}#${input.issue.number}`
 	const prompt = [
 		roleBrief,
@@ -41,6 +42,14 @@ export function runLaunchRequest(input: RunLaunchInput): T3LaunchRequest {
 		prompt,
 		model: { provider: input.model.provider, model: input.model.model },
 	})
+}
+
+function branchFor(input: RunLaunchInput): string {
+	if (input.branch === undefined) return branchNameFor(input.issue.number, input.issueTitle)
+	if (input.branch.trim() === "") {
+		throw new T3Error("empty-branch", "branch", "A Run needs a branch")
+	}
+	return input.branch
 }
 
 function assertThreadTitle(issue: IssueKey, title: string): void {

@@ -42,6 +42,7 @@ describe("reading GitHub issues", () => {
 					kind: "ticket",
 					status: "open",
 					labels: ["enhancement", "ready-for-agent", "agent-working"],
+					title: "GitHub adapter",
 					parentSpec: key(2),
 					blockers: [{ key: key(4), status: "closed" }],
 					claim: { claimedAtMs: 1794136657000 },

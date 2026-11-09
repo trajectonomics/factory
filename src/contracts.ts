@@ -31,6 +31,7 @@ export type IssueState = {
 	readonly kind: IssueKind
 	readonly status: IssueStatus
 	readonly labels: readonly string[]
+	readonly title?: string
 	readonly parentSpec?: IssueKey
 	readonly blockers: readonly Blocker[]
 	readonly claim?: Claim

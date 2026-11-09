@@ -10,6 +10,7 @@ export type ProjectRef = {
 /** The parts of a GitHub issue response the adapter reads. */
 export type GitHubIssueData = {
 	readonly number: number
+	readonly title?: string
 	readonly state: string
 	readonly labels: readonly { readonly name: string }[]
 	readonly repository_url: string
