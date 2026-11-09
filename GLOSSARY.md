@@ -37,12 +37,16 @@ _Avoid_: Questions, TBDs
 ### Authority
 
 **Approval**:
-Labelling a Spec or Ticket `ready-for-agent`. Done by the owner, or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)). The Dispatcher and Runs never approve, and only the owner adds `wontfix`.
+Labelling a Spec or Ticket `ready-for-agent`. Done on the owner's word, or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)); for a Spec that began as an Idea, "nothing left" always includes the owner's explicit yes ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)). The Dispatcher and Runs never approve, and `wontfix` is added only on the owner's word.
 _Avoid_: Opt-in, sign-off, go-ahead
 
 **Owner**:
 The one GitHub account named on the `Owner:` line of the Dispatcher runbook. The Dispatcher, a Run and a Spec drafter read only its comments; every other comment is untrusted input ([ADR 0011](./docs/adr/0011-read-only-the-owners-comments.md)). The trusted-author rule for who may have a Spec drafted is separate and unchanged.
 _Avoid_: Maintainer, admin
+
+**Owner words**:
+The few verbs by which the owner tells agents what to do with an Idea: `go`, `decline`, `postpone`. The owner never sets labels; an agent applies them, and only on these words ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)).
+_Avoid_: Commands, labels, approvals
 
 **Eligible**:
 A Ticket or Spec that is approved, open, has no open blocker, carries no live Claim, and belongs to an allowlisted repository.
@@ -51,7 +55,7 @@ _Avoid_: Ready, pickable
 ### Execution
 
 **Dispatcher**:
-The hourly scheduled job that finds eligible work, reconciles stale Claims, and launches Runs.
+The scheduled job, every 6 hours, that finds eligible work, reconciles stale Claims, launches Runs, and applies the owner's words to Ideas.
 _Avoid_: Scheduler, orchestrator, cron
 
 **Run**:
@@ -83,6 +87,28 @@ _Avoid_: Lint review
 **Spec Review**:
 The loop that critiques a drafted Spec: a drafter and two consultants, ending with the Spec labelled `ready-for-agent`, or an Owner question in the drafter's thread.
 _Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triage" otherwise means the five-label routine.
+
+### Ideas and learning
+
+**Goals**:
+The organisation's written purpose, kept as `GOALS.md` in `trajectonomics/goals`. The Next-step finder and Screening judge alignment against it, and agents never edit it.
+_Avoid_: Vision, roadmap, strategy
+
+**Idea**:
+An issue the Next-step finder files for a repository, carrying `idea`: a machine-made suggestion for what to do next that the owner has not read. It stays an Idea until Screening passes it or the owner speaks.
+_Avoid_: Suggestion, proposal, feature request
+
+**Next-step finder**:
+The daily scheduled job that explores a rotating quarter of the repositories, has two other models review what it found, and files Ideas.
+_Avoid_: Brainstormer, roadmap generator
+
+**Screening**:
+The Dispatcher's judgement of an Idea against the Goals: either the Idea is low effort, aligned and unobjectionable and moves to `needs-triage`, or it becomes `idea-for-human` with the context the owner needs. Screening never declines.
+_Avoid_: Triage (the five-label routine), approval
+
+**Learning**:
+A pull request opened by the nightly Learning job when the day's threads show friction, changing how the Factory works (runbook, skills, glossary, checks) so the friction does not recur. It merges itself when two independent reviews are clean ([ADR 0013](./docs/adr/0013-learning-prs-merge-themselves.md)).
+_Avoid_: Retro, post-mortem, lesson
 
 ### Outcomes
 
