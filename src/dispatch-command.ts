@@ -6,6 +6,8 @@ import type {
 } from "./dispatch-contracts"
 import { runDispatchPass } from "./dispatch-pass"
 import type { DispatchAdapters, DispatchPassResult } from "./dispatch-pass-contracts"
+import type { DispatchReport } from "./dispatch-plan-contracts"
+import { formatDispatchReport, threeDayReport } from "./dispatch-report"
 import type { GitHubClient } from "./github/client"
 import { readRepositoryState } from "./github/read"
 import type { FactoryWrite } from "./github/writes"
@@ -25,9 +27,10 @@ export type DispatchCommandInput = {
 	readonly applyWrites: (writes: readonly FactoryWrite[]) => Promise<void>
 	readonly launch: (request: T3LaunchRequest) => Promise<T3Thread>
 	readonly print: (line: string) => void
+	readonly history?: readonly DispatchReport[]
 }
 
-/** The Dispatcher command: read GitHub and T3, then run one pass. */
+/** The scheduled task's one Dispatcher pass. */
 export async function dispatchCommand(
 	client: GitHubClient,
 	t3: T3Client,
@@ -49,5 +52,10 @@ export async function dispatchCommand(
 		launch: input.launch,
 		print: input.print,
 	}
-	return runDispatchPass(adapters, config)
+	const result = await runDispatchPass(adapters, config)
+	if (input.history !== undefined) {
+		const history = [...input.history, result.report]
+		input.print(formatDispatchReport(threeDayReport(history, input.ledger, input.nowMs)))
+	}
+	return result
 }

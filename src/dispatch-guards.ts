@@ -6,6 +6,7 @@ import {
 	type HostSnapshot,
 } from "./dispatch-contracts"
 import type { DispatchGuards, HostGuardReport } from "./dispatch-plan-contracts"
+import { deepFreeze } from "./freeze"
 import { launchAllowed, launchStopped } from "./guard-contracts"
 import { evaluateHostGuard } from "./host-guard"
 import { evaluateQueueGuard } from "./human-queue"
@@ -16,13 +17,13 @@ export function evaluateDispatchGuards(
 	reading: DispatchReading,
 	thresholds: DispatchThresholds,
 ): DispatchGuards {
-	return {
+	return deepFreeze({
 		schedule: reading.killSwitch.scheduleEnabled
 			? launchAllowed()
 			: launchStopped({ code: "schedule-disabled" }),
 		queue: evaluateQueueGuard(reading.humanQueue, thresholds.queueDepth),
 		hosts: reading.hosts.map((host) => hostGuardReport(host, reading.nowMs, thresholds)),
-	}
+	})
 }
 function hostGuardReport(
 	host: HostSnapshot,
@@ -41,12 +42,14 @@ function hostGuardReport(
 }
 /** The measured load of every host in the pass. */
 export function hostLoads(hosts: readonly HostSnapshot[]): readonly HostLoad[] {
-	return hosts.map((host) => ({
-		host: host.host,
-		loadAverage: host.health.loadAverage,
-		memoryUsedFraction: host.health.memoryUsedFraction,
-		diskUsedFraction: host.health.diskUsedFraction,
-	}))
+	return deepFreeze(
+		hosts.map((host) => ({
+			host: host.host,
+			loadAverage: host.health.loadAverage,
+			memoryUsedFraction: host.health.memoryUsedFraction,
+			diskUsedFraction: host.health.diskUsedFraction,
+		})),
+	)
 }
 /** Rejects a reading that names one host twice. */
 export function assertUniqueHosts(hosts: readonly HostSnapshot[]): void {

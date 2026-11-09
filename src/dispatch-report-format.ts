@@ -1,12 +1,13 @@
 import type { IssueKey } from "./contracts"
-import type { FactoryPullRequest, HostLoad } from "./dispatch-contracts"
+import type { DispatchMode, FactoryPullRequest, HostLoad } from "./dispatch-contracts"
 import type { DispatchLaunch, DispatchReport, DispatchRunRecord } from "./dispatch-plan-contracts"
 import { issueOfRun, keyOf } from "./keys"
 
 /** Renders the report as the six lines the Dispatcher prints. */
-export function formatDispatchReport(report: DispatchReport): string {
+export function formatDispatchReport(report: DispatchReport, mode?: DispatchMode): string {
+	const runs = mode === "dry-run" ? "Runs (would launch)" : "Runs"
 	return [
-		`Runs: ${report.runs.length}${runSummary(report.runs)}`,
+		`${runs}: ${report.runs.length}${runSummary(report.runs)}`,
 		`PRs: ${report.pullRequests.length}${pullRequestSummary(report.pullRequests)}`,
 		`Gate failures: ${report.gateFailures.length}${issueSummary(
 			report.gateFailures.map((failure) => failure.issue),

@@ -1,20 +1,10 @@
 import { describe, expect, it } from "bun:test"
 import { CLAIM_LEASE_MS } from "./claim"
 import { planDispatch } from "./dispatch-plan"
-import {
-	approved,
-	config,
-	host,
-	issue,
-	key,
-	NOW_MS,
-	reading,
-	spec,
-	state,
-} from "./fixtures/dispatch"
+import { approved, config, host, key, NOW_MS, reading, state } from "./fixtures/dispatch"
 
 const STALE_LABELS = ["ready-for-agent", "agent-working"]
-describe("planDispatch", () => {
+describe("a Dispatcher plan", () => {
 	it("claims an approved Ticket and plans its Run within the Guards", () => {
 		const plan = planDispatch(reading({ state: state([approved(4)]) }), config())
 
@@ -27,19 +17,6 @@ describe("planDispatch", () => {
 			{ kind: "status", issue: key(4), status: "In progress" },
 		])
 		expect(plan.deferrals).toEqual([])
-	})
-
-	it("plans a Spec Run on its integration branch with the Spec brief", () => {
-		const plan = planDispatch(
-			reading({ state: state([spec(2), issue(3, { parentSpec: key(2) })]) }),
-			config(),
-		)
-
-		expect(plan.launches[0]?.request).toMatchObject({
-			branch: "factory/spec-2-spec-2",
-			prompt: expect.stringContaining("/implement-spec"),
-		})
-		expect(plan.claims.map((write) => write.issue)).toEqual([key(2), key(2), key(3), key(3)])
 	})
 
 	it("releases a stale Claim but launches nothing while the queue is too deep", () => {

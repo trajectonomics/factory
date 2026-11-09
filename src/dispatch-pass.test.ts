@@ -55,7 +55,7 @@ function staleAndApproved(): DispatchReading {
 	})
 }
 
-describe("runDispatchPass", () => {
+describe("a Dispatcher pass", () => {
 	it("prints every decision in a dry run and writes or launches nothing", async () => {
 		const fake = recorder(staleAndApproved())
 
@@ -66,7 +66,7 @@ describe("runDispatchPass", () => {
 		expect(fake.printed).toContain(`remove label "agent-working" from ${key(4).repository}#4`)
 		expect(fake.printed).toContain("claim trajectonomics/cli#4 at 1000000000")
 		expect(fake.printed.some((line) => line.startsWith("launch trajectonomics/cli#4"))).toBe(true)
-		expect(fake.printed.some((line) => line.startsWith("Runs:"))).toBe(true)
+		expect(fake.printed.some((line) => line.startsWith("Runs"))).toBe(true)
 	})
 
 	it("applies reconciliation, then the Claim, then launches in live mode", async () => {

@@ -73,14 +73,16 @@ function assertConfig(reading: DispatchReading, config: DispatchConfig): void {
 /** The Claim and In progress writes that start one Run. */
 export function claimWrites(run: EligibleRun, claimedAtMs: number): readonly FactoryWrite[] {
 	if (run.kind === "ticket-run") return startTicketRun(run.ticket, claimedAtMs)
-	return runIssues(run).flatMap((issue) => [
-		claimWrite(issue, claimedAtMs),
-		statusWrite(issue, "In progress"),
-	])
+	return deepFreeze(
+		runIssues(run).flatMap((issue) => [
+			claimWrite(issue, claimedAtMs),
+			statusWrite(issue, "In progress"),
+		]),
+	)
 }
 /** The Claim removals that undo a Run whose launch failed. */
 export function releaseWrites(run: EligibleRun): readonly FactoryWrite[] {
-	return runIssues(run).map((issue) => labelWrite(issue, CLAIM_LABEL, false))
+	return deepFreeze(runIssues(run).map((issue) => labelWrite(issue, CLAIM_LABEL, false)))
 }
 function runIssues(run: EligibleRun): readonly IssueKey[] {
 	return run.kind === "spec-run" ? [run.spec, ...run.tickets] : [run.ticket]

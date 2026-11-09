@@ -8,7 +8,7 @@ import { evaluatePacingGuard } from "./pacing-guard"
 export type Placement =
 	| { readonly host: string; readonly fallback: boolean }
 	| { readonly reason: DispatchDeferralReason }
-/** Chooses the least-loaded ready host that has the Run's repository. */
+/** The host placement for a planned Run, or the reason it stays. */
 export function placeRun(
 	run: EligibleRun,
 	reading: DispatchReading,

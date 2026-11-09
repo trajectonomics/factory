@@ -22,7 +22,7 @@ export async function runDispatchPass(
 		config.mode === "dry-run" ? printPlan(adapters, plan) : await applyPlan(adapters, plan)
 	const failed = new Set(errors.map((error) => keyOf(error.issue)))
 	const report = passReport(plan, reading, failed)
-	adapters.print(formatDispatchReport(report))
+	adapters.print(formatDispatchReport(report, config.mode))
 	return {
 		plan,
 		errors,

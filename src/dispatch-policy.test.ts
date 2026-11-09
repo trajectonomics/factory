@@ -55,8 +55,6 @@ describe("per-pass launch pace", () => {
 		expect(error?.field).toBe("hosts[homeserver2]")
 	})
 })
-describe("launch pacing", () => {})
-
 describe("host balancing", () => {
 	it("places the Run on the host with fewer live Runs, keeping the first on a tie", () => {
 		const fewer = planDispatch(

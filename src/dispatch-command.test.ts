@@ -24,6 +24,7 @@ describe("the Dispatcher command", () => {
 	it("reads GitHub and T3 state and launches the eligible Run", async () => {
 		let launches = 0
 		const writes: FactoryWrite[][] = []
+		const printed: string[] = []
 		const client = testClient({ listIssues: async () => [ISSUE] })
 		const t3: T3Client = {
 			listThreads: async () => [],
@@ -44,11 +45,13 @@ describe("the Dispatcher command", () => {
 				launches += 1
 				return THREAD
 			},
-			print: () => {},
+			print: (line) => printed.push(line),
+			history: [],
 		})
 
 		expect(result.report.runs).toHaveLength(1)
 		expect(launches).toBe(1)
 		expect(writes).toHaveLength(1)
+		expect(printed.filter((line) => line.startsWith("Runs"))).toHaveLength(2)
 	})
 })

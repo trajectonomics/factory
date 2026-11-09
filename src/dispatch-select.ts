@@ -8,6 +8,7 @@ import type {
 	DispatchLaunch,
 } from "./dispatch-plan-contracts"
 import { dispatchRequest } from "./dispatch-request"
+import { deepFreeze } from "./freeze"
 import { issueOfRun } from "./keys"
 import { evaluateKillSwitch } from "./kill-switch"
 
@@ -55,7 +56,7 @@ export function selectLaunches(input: SelectionInput): Selection {
 		selectedRepositories.add(issueOfRun(due).repository)
 		plannedPerHost.set(placement.host, (plannedPerHost.get(placement.host) ?? 0) + 1)
 	}
-	return { launches, deferrals }
+	return deepFreeze({ launches, deferrals })
 }
 function deferralFor(
 	run: EligibleRun,
