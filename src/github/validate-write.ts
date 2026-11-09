@@ -18,6 +18,7 @@ export function validateWrite(write: FactoryWrite, index: number, board: Board):
 			assertClaimTime(write.claimedAtMs, `writes[${index}].claimedAtMs`)
 			return
 		case "label":
+			assertLabelName(write.label, `writes[${index}].label`)
 			return
 		case "status":
 			boardItemId(board, write.issue, `writes[${index}].issue`)
@@ -32,6 +33,15 @@ export function validateWrite(write: FactoryWrite, index: number, board: Board):
 			assertFollowUpFields(write, `writes[${index}]`)
 			return
 	}
+}
+
+function assertLabelName(label: string, field: string): void {
+	if (!label.includes(",")) return
+	throw new GitHubAdapterError(
+		"invalid-label-name",
+		field,
+		`gh splits --add-label on commas, so a label name cannot contain one: ${label}`,
+	)
 }
 
 function validateComment(write: CommentWrite, index: number): void {

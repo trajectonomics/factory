@@ -1,34 +1,43 @@
 import { execFile } from "node:child_process"
+import { GitHubAdapterError } from "./errors"
 
 /** Runs one `gh` invocation and returns its stdout. */
 export type GhRunner = (args: readonly string[], input?: string) => Promise<string>
 
 const MAX_BUFFER_BYTES = 20 * 1024 * 1024
 
-/** Runs the installed `gh` CLI, which supplies its own authentication. */
-export function runGh(args: readonly string[], input?: string): Promise<string> {
+/** How long one `gh` invocation may run before the Dispatcher gives up on it. */
+export const GH_TIMEOUT_MS = 120_000
+
+/** Runs one command with stdin and a timeout; a closed stdin or a timeout rejects. */
+export function runCommand(
+	command: string,
+	args: readonly string[],
+	input: string | undefined,
+	timeoutMs: number,
+): Promise<string> {
 	return new Promise((resolve, reject) => {
 		const child = execFile(
-			"gh",
+			command,
 			[...args],
-			{ encoding: "utf8", maxBuffer: MAX_BUFFER_BYTES },
+			{ encoding: "utf8", maxBuffer: MAX_BUFFER_BYTES, timeout: timeoutMs, killSignal: "SIGKILL" },
 			(error, stdout) => {
-				if (error !== null) reject(error)
-				else resolve(stdout)
+				if (error === null) return resolve(stdout)
+				if (error.killed === true) return reject(timedOut(command, args, timeoutMs))
+				reject(error)
 			},
 		)
+		child.stdin?.on("error", reject)
 		child.stdin?.end(input ?? "")
 	})
 }
 
-/** Parses the JSON that one `gh` invocation prints. */
-export function getJson<T>(run: GhRunner, args: readonly string[]): Promise<T> {
-	return run(args).then((stdout) => JSON.parse(stdout) as T)
+function timedOut(command: string, args: readonly string[], timeoutMs: number): GitHubAdapterError {
+	const field = `${command} ${args.slice(0, 2).join(" ")}`
+	return new GitHubAdapterError("gh-timed-out", field, `${field} ran longer than ${timeoutMs} ms`)
 }
 
-/** Parses a paginated REST response, whose pages `--slurp` wraps in one array. */
-export function getApi<T>(run: GhRunner, path: string): Promise<readonly T[]> {
-	return getJson<readonly (readonly T[])[]>(run, ["api", "--paginate", "--slurp", path]).then(
-		(pages) => pages.flat(),
-	)
+/** Runs the installed `gh` CLI, which supplies its own authentication. */
+export function runGh(args: readonly string[], input?: string): Promise<string> {
+	return runCommand("gh", args, input, GH_TIMEOUT_MS)
 }

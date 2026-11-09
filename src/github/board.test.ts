@@ -80,6 +80,21 @@ describe("reading the board", () => {
 		expect(board.itemIds["trajectonomics/factory#7"]).toBe("PVTI_lADOFOg3Is4Bpqr_zhG7-Ac")
 	})
 
+	it("leaves a Draft card out of the item lookup", async () => {
+		const draft: GitHubProjectItemData = { id: "PVTI_draft", content: {} }
+
+		const board = await readBoard(
+			client({
+				getProject: project,
+				listProjectFields: fields,
+				listProjectItems: async () => [draft, ...(await items())],
+			}),
+			PROJECT,
+		)
+
+		expect(Object.keys(board.itemIds)).toEqual(["trajectonomics/factory#7"])
+	})
+
 	it("rejects a project without a Status field", async () => {
 		const error = adapterError(
 			await readBoard(

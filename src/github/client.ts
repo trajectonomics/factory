@@ -31,6 +31,7 @@ export type GitHubTimelineEvent = {
 export type GitHubCommentData = {
 	readonly id: number | string
 	readonly body: string
+	readonly author_association?: string
 }
 
 /** A GitHub project response. */
@@ -50,9 +51,10 @@ export type GitHubProjectFieldData = {
 /** One card on a project board. */
 export type GitHubProjectItemData = {
 	readonly id: string
+	/** Absent on a Draft card, which has no issue behind it. */
 	readonly content?: {
-		readonly number: number
-		readonly repository: string
+		readonly number?: number
+		readonly repository?: string
 	}
 }
 
