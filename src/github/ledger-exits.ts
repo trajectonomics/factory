@@ -25,6 +25,7 @@ export function gateFailureExits(pullRequests: readonly FactoryPullRequest[]): r
 export function followUpExits(issues: readonly GitHubIssueData[]): readonly RunExit[] {
 	return issues.flatMap((data) => {
 		if (!data.labels.some((label) => label.name === READY_FOR_HUMAN_LABEL)) return []
+		if (!isTrustedAuthor(data.author_association)) return []
 		const origin = FOLLOW_UP_ORIGIN.exec(data.body ?? "")?.[1]
 		const atMs = instantOf(data.created_at)
 		if (origin === undefined || atMs === undefined) return []
@@ -59,7 +60,14 @@ function latestQuestionMs(comments: readonly GitHubCommentData[]): number | unde
 	return times.length === 0 ? undefined : Math.max(...times)
 }
 
+function isTrustedAuthor(association: string | undefined): boolean {
+	return evaluateIntakeGuard(authorAssociationOf(association)).allowed
+}
+
 function isTrustedQuestion(comment: GitHubCommentData): boolean {
-	const trusted = evaluateIntakeGuard(authorAssociationOf(comment.author_association)).allowed
-	return trusted && comment.body.startsWith(AI_DISCLAIMER) && comment.body.includes(SPEC_GAP_MARKER)
+	return (
+		isTrustedAuthor(comment.author_association) &&
+		comment.body.startsWith(AI_DISCLAIMER) &&
+		comment.body.includes(SPEC_GAP_MARKER)
+	)
 }

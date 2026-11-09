@@ -20,7 +20,7 @@ export async function readDispatchLedger(
 		...gateFailureExits(pullRequests),
 		...(await specGapExits(client, issues)),
 		...followUpExits(issues),
-		...urgentExits(await t3.listThreads(), nowMs),
+		...urgentExits(await t3.listThreads(), repositories, nowMs),
 	]
 	return deepFreeze({ pullRequests, exits })
 }

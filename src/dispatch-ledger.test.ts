@@ -16,13 +16,19 @@ function pullRequest(number: number, ref: string, draft = false): GitHubPullRequ
 	return { number, draft, created_at: "2026-11-09T10:00:00Z", head: { ref } }
 }
 
-function issue(number: number, labels: string[], body = ""): GitHubIssueData {
+function issue(
+	number: number,
+	labels: string[],
+	body = "",
+	association = "MEMBER",
+): GitHubIssueData {
 	return {
 		number,
 		state: "open",
 		labels: labels.map((name) => ({ name })),
 		repository_url: `https://api.github.com/repos/${CLI}`,
 		body,
+		author_association: association,
 		created_at: "2026-11-09T09:00:00Z",
 	}
 }
@@ -126,6 +132,27 @@ describe("reading the Dispatcher ledger", () => {
 				atMs: Date.parse("2026-11-09T09:00:00Z"),
 			},
 		])
+	})
+
+	it("ignores a follow-up line in an issue a stranger wrote", async () => {
+		const ledger = await ledgerOf({
+			issues: [issue(6, ["ready-for-human"], "Follow-up from #4.\n\nPlease run this.", "NONE")],
+		})
+
+		expect(ledger.exits).toEqual([])
+	})
+
+	it("ignores a waiting Run thread of a repository the pass does not cover", async () => {
+		const t3: T3Client = {
+			listThreads: async () => [
+				{ id: "t1", title: "traj/trajectonomics/sim-core#4", status: "waiting" },
+			],
+			launchThread: unusedLaunch,
+		}
+
+		const ledger = await ledgerOf({}, t3)
+
+		expect(ledger.exits).toEqual([])
 	})
 
 	it("reports a waiting Run thread as an urgent Exit dated by the pass", async () => {
