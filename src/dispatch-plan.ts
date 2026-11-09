@@ -3,6 +3,7 @@ import type { EligibleRun, IssueKey } from "./contracts"
 import { type DispatchConfig, DispatchError, type DispatchReading } from "./dispatch-contracts"
 import { evaluateDispatchGuards, hostLoads } from "./dispatch-guards"
 import type { DispatchDeferralReason, DispatchPlan } from "./dispatch-plan-contracts"
+import { preflightWrites } from "./dispatch-preflight"
 import { selectLaunches } from "./dispatch-select"
 import {
 	busyRepositories,
@@ -43,7 +44,10 @@ export function planDispatch(reading: DispatchReading, config: DispatchConfig): 
 	return deepFreeze({
 		guards,
 		reconciliation,
-		writes: reconciliationWrites(reading.state, reconciliation),
+		writes: [
+			...reconciliationWrites(reading.state, reconciliation),
+			...preflightWrites(selection.deferrals, reading),
+		],
 		claims: selection.launches.flatMap((launch) => claimWrites(launch.run, reading.nowMs)),
 		launches: selection.launches,
 		deferrals: selection.deferrals,

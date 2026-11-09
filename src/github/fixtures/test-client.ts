@@ -14,6 +14,7 @@ export function testClient(overrides: Partial<GitHubClient> = {}): GitHubClient 
 		listBlockers: async () => [],
 		listTimeline: async () => [],
 		listComments: async () => [],
+		listSkills: async () => [],
 		getProject: unusedRead,
 		listProjectFields: unusedRead,
 		listProjectItems: unusedRead,

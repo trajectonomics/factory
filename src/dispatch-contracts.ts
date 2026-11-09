@@ -67,6 +67,8 @@ export type DispatchReading = {
 	readonly humanQueue: HumanQueue
 	readonly killSwitch: KillSwitch
 	readonly ledger: DispatchLedger
+	/** The skills installed under `.agents/skills`, by repository; when given, skill preflight applies. */
+	readonly skills?: Readonly<Record<string, readonly string[]>>
 	readonly nowMs: number
 }
 /** What the Dispatcher may do, and the thresholds it applies. */

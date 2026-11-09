@@ -11,6 +11,7 @@ import { dispatchRequest } from "./dispatch-request"
 import { deepFreeze } from "./freeze"
 import { issueOfRun } from "./keys"
 import { evaluateKillSwitch } from "./kill-switch"
+import { lacksRequiredSkills } from "./skill-preflight"
 
 /** The eligibility results and pass state the selection reads. */
 export type SelectionInput = {
@@ -71,6 +72,8 @@ function deferralFor(
 			? "repository-paused"
 			: "schedule-disabled"
 	}
+	const skills = input.reading.skills
+	if (skills !== undefined && lacksRequiredSkills(skills, issue.repository)) return "skills-missing"
 	if (paceReached(input.config, launchCount)) return "launch-pace"
 	return repositoryReason(issue.repository, input, selectedRepositories)
 }
