@@ -10,7 +10,7 @@ A Spec draft thread already critiques its draft with two independent reviewers a
 
 ## Decision
 
-1. A Spec drafter adds `ready-for-agent` itself, and removes `needs-spec-review` and `needs-triage`, when all of these hold: no decision is waiting for the owner (ADR 0009 says which decisions reach the owner); every question it asked the owner in its thread is answered (or it had none); the consultation ended with no unanswered disagreement; no review is marked `FALLBACK (quota)`; the issue carries none of `needs-info`, `ready-for-human`, `wontfix`; the issue author is `OWNER`, `MEMBER` or `COLLABORATOR`. Otherwise it adds `needs-spec-review` and the owner decides, as before.
+1. A Spec drafter adds `ready-for-agent` itself, and removes `needs-spec-review` and `needs-triage`, when all of these hold: no decision is waiting for the owner (ADR 0009 says which decisions reach the owner); every question it asked the owner in its thread is answered (or it had none); the consultation ended with no unanswered disagreement; no review is marked `FALLBACK (quota)`; the issue carries none of `needs-info`, `ready-for-human`, `wontfix`; the issue author is `OWNER`, `MEMBER` or `COLLABORATOR`. Otherwise it asks the owner in its thread and the issue keeps its state ([ADR 0010](./0010-retire-needs-spec-review.md)).
 2. Only the drafter thread approves. The Dispatcher and Runs never add `ready-for-agent`, and nobody but the owner adds `wontfix`.
 3. The next pass treats the label like any Approval: the issue becomes Eligible and, with no sub-issues, gets a Ticket Run that follows the draft's Ticket order.
 4. Spec drafter threads run on `claudeAgent` `claude-sonnet-5-5` with `effort: high`. Implementer Runs stay on `pi` DeepSeek.
@@ -25,5 +25,5 @@ A Spec draft thread already critiques its draft with two independent reviewers a
 - Approval no longer always comes from a human act. The guard is the draft's conditions above, not the author's opinion; the owner can still remove the label before the next pass.
 - The Merge gate is unchanged, so an auto-approved Run still passes two independent reviews, checks and the limits before it merges.
 - The drafter and the `claudeAgent` critic now run the same model, so that critic is less independent than before. The `antigravity` critic is unchanged. Revisit if this shows up in the reports.
-- `needs-spec-review` now means the owner has something to decide. Its queue guard stays at 10.
+- The `needs-spec-review` label is retired by ADR 0010; the draft queue guard of 10 counts issues waiting for an owner answer.
 - The scheduled Dispatcher prompt still says it never adds `ready-for-agent`. That stays true: the drafter thread adds it, not the Dispatcher.

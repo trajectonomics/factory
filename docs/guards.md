@@ -6,7 +6,7 @@ thresholds arrive as arguments, and a `GuardDecision` comes back. The Dispatcher
 
 ## Units and comparisons
 
-- The human's queue is `openPullRequests + needsSpecReview + readyForHuman`. The queue Guard stops only when the
+- The human's queue is `openPullRequests + needsSpecReview + readyForHuman`. `needsSpecReview` counts issues waiting for an owner answer: draft threads ending in an `ASKING` line, and issues still carrying the retired `needs-spec-review` label ([ADR 0010](./adr/0010-retire-needs-spec-review.md)). The field keeps its name until the entrypoint is next changed. The queue Guard stops only when the
   depth is **greater than** its threshold.
 - Host health carries the load average and the memory and disk used fractions (`0..1`). The host Guard stops only
   when a measurement is **greater than** its threshold, names every measurement that crossed it, and treats a
