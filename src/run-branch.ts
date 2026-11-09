@@ -19,3 +19,9 @@ export function branchNameFor(issueNumber: number, title: string): string {
 	const slug = slugify(title)
 	return slug === "" ? `factory/${issueNumber}` : `factory/${issueNumber}-${slug}`
 }
+
+/** The integration branch a Spec Run works on: `factory/spec-<spec>-<slug>`. */
+export function specBranchNameFor(specNumber: number, title: string): string {
+	const slug = slugify(title)
+	return slug === "" ? `factory/spec-${specNumber}` : `factory/spec-${specNumber}-${slug}`
+}

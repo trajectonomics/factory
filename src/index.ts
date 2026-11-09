@@ -3,6 +3,18 @@ export const FACTORY_NAME = "@trajectonomics/factory"
 
 export { CLAIM_LEASE_MS } from "./claim"
 export * from "./contracts"
+export * from "./dispatch-contracts"
+export { runDispatchPass } from "./dispatch-pass"
+export * from "./dispatch-pass-contracts"
+export { planDispatch } from "./dispatch-plan"
+export * from "./dispatch-plan-contracts"
+export * from "./dispatch-plan-contracts"
+export {
+	formatDispatchReport,
+	passReport,
+	THREE_DAY_REPORT_MS,
+	threeDayReport,
+} from "./dispatch-report"
 export { evaluateEligibility } from "./eligibility"
 export * from "./errors"
 export type { FollowUpTicket } from "./follow-up"

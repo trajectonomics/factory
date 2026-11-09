@@ -74,6 +74,20 @@ describe("Run launch requests", () => {
 		expect(request.prompt).toContain("Branch: factory/8")
 	})
 
+	it("uses a supplied integration branch", () => {
+		const request = runLaunchRequest(input({ branch: "factory/spec-2-software-factory" }))
+
+		expect(request.branch).toBe("factory/spec-2-software-factory")
+		expect(request.prompt).toContain("Branch: factory/spec-2-software-factory")
+	})
+
+	it("rejects an empty supplied branch", () => {
+		const error = t3Error(() => runLaunchRequest(input({ branch: "  " })))
+
+		expect(error?.code).toBe("empty-branch")
+		expect(error?.field).toBe("branch")
+	})
+
 	it("rejects an unsafe issue number that cannot survive the title", () => {
 		const error = t3Error(() =>
 			runLaunchRequest(input({ issue: { repository: "a/b", number: 1e21 } })),
