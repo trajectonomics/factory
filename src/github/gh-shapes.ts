@@ -1,6 +1,7 @@
 import type {
 	GitHubCommentData,
 	GitHubIssueData,
+	GitHubPullRequestData,
 	GitHubProjectData,
 	GitHubProjectFieldData,
 	GitHubProjectItemData,
@@ -47,6 +48,17 @@ export function isNamedEntry(
 		isObject(value) &&
 		typeof value["name"] === "string" &&
 		(value["type"] === undefined || typeof value["type"] === "string")
+	)
+}
+
+/** Whether a value has the pull request fields the ledger reads. */
+export function isPullRequestData(value: unknown): value is GitHubPullRequestData {
+	return (
+		isObject(value) &&
+		typeof value["number"] === "number" &&
+		typeof value["created_at"] === "string" &&
+		isObject(value["head"]) &&
+		typeof value["head"]["ref"] === "string"
 	)
 }
 

@@ -54,4 +54,29 @@ describe("the Dispatcher command", () => {
 		expect(launches).toBe(1)
 		expect(writes).toHaveLength(2)
 	})
+
+	it("reads the ledger itself when the caller supplies none", async () => {
+		const draft = {
+			number: 9,
+			draft: true,
+			created_at: "2026-11-09T10:00:00Z",
+			head: { ref: "factory/4-dispatcher-entrypoint" },
+		}
+		const client = testClient({ listPullRequests: async () => [draft] })
+		const t3: T3Client = { listThreads: async () => [], launchThread: async () => THREAD }
+
+		const result = await dispatchCommand(client, t3, config(), {
+			repositories: ["trajectonomics/cli"],
+			hosts: [host()],
+			humanQueue: { openPullRequests: 0, needsSpecReview: 0, readyForHuman: 0 },
+			killSwitch: { scheduleEnabled: true, pausedRepositories: [] },
+			nowMs: NOW_MS,
+			applyWrites: async () => {},
+			launch: async () => THREAD,
+			print: () => {},
+		})
+
+		expect(result.report.pullRequests).toHaveLength(1)
+		expect(result.report.gateFailures).toHaveLength(1)
+	})
 })

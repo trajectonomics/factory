@@ -45,6 +45,11 @@ export function pullRequestWrite(
 	})
 }
 
+/** The first line of a Follow-up Ticket's body, naming the issue whose Run filed it. */
+export function followUpOrigin(issueNumber: number): string {
+	return `Follow-up from #${issueNumber}.`
+}
+
 /** Creates a Follow-up Ticket write, always labelled ready-for-human. */
 export function followUpWrite(issue: IssueKey, followUp: FollowUpTicket): FollowUpWrite {
 	assertFollowUpFields(followUp, "followUp")
@@ -52,7 +57,7 @@ export function followUpWrite(issue: IssueKey, followUp: FollowUpTicket): Follow
 		kind: "follow-up",
 		issue: copyIssueKey(issue),
 		title: followUp.title,
-		body: followUp.body,
+		body: `${followUpOrigin(issue.number)}\n\n${followUp.body}`,
 		labels: [READY_FOR_HUMAN_LABEL],
 	})
 }

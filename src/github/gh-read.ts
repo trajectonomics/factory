@@ -8,6 +8,7 @@ import {
 	isIssueData,
 	isItemList,
 	isProjectData,
+	isPullRequestData,
 	isTimelineEvent,
 } from "./gh-shapes"
 
@@ -23,6 +24,7 @@ export function createGhReadClient(
 	| "listBlockers"
 	| "listTimeline"
 	| "listComments"
+	| "listPullRequests"
 	| "getProject"
 	| "listProjectFields"
 	| "listProjectItems"
@@ -46,6 +48,8 @@ export function createGhReadClient(
 			getApi(run, `repos/${issue.repository}/issues/${issue.number}/timeline`, isTimelineEvent),
 		listComments: async (issue) =>
 			getApi(run, `repos/${issue.repository}/issues/${issue.number}/comments`, isCommentData),
+		listPullRequests: async (repository) =>
+			getApi(run, `repos/${repository}/pulls?state=open&per_page=${PAGE_SIZE}`, isPullRequestData),
 		getProject: async (project) =>
 			getJson(
 				run,

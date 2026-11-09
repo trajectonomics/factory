@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "../contracts"
 import type { CreatePullRequestRequest } from "./create"
 import { GitHubAdapterError } from "./errors"
-import { followUpWrite, pullRequestWrite } from "./run-writes"
+import { followUpOrigin, followUpWrite, pullRequestWrite } from "./run-writes"
 
 const ISSUE: IssueKey = { repository: "trajectonomics/factory", number: 9 }
 const REQUEST: CreatePullRequestRequest = {
@@ -44,6 +44,12 @@ describe("run writes", () => {
 
 		expect(write.labels).toEqual(["ready-for-human"])
 		expect(Object.isFrozen(write)).toBe(true)
+	})
+
+	it("opens a Follow-up Ticket with the issue whose Run filed it", () => {
+		const write = followUpWrite(ISSUE, { title: "Title", body: "Why." })
+
+		expect(write.body).toBe(`${followUpOrigin(ISSUE.number)}\n\nWhy.`)
 	})
 	it("rejects a pull request without a title", () => {
 		const error = errorOf(() => pullRequestWrite(ISSUE, { ...REQUEST, title: " " }))

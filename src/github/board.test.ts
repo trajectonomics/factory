@@ -25,6 +25,7 @@ function client(overrides: Partial<GitHubClient>): GitHubClient {
 		listTimeline: unusedRead,
 		listComments: unusedRead,
 		listSkills: unusedRead,
+		listPullRequests: unusedRead,
 		getProject: unusedRead,
 		listProjectFields: unusedRead,
 		listProjectItems: unusedRead,
