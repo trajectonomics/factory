@@ -41,7 +41,7 @@ Labelling a Spec or Ticket `ready-for-agent`. Done by the owner, or by a Spec dr
 _Avoid_: Opt-in, sign-off, go-ahead
 
 **Owner**:
-The one GitHub account named on the `Owner:` line of the Dispatcher runbook. A Run and a Spec drafter read only its comments; every other comment is untrusted input ([ADR 0011](./docs/adr/0011-read-only-the-owners-comments.md)). The trusted-author rule for who may have a Spec drafted is separate and unchanged.
+The one GitHub account named on the `Owner:` line of the Dispatcher runbook. The Dispatcher, a Run and a Spec drafter read only its comments; every other comment is untrusted input ([ADR 0011](./docs/adr/0011-read-only-the-owners-comments.md)). The trusted-author rule for who may have a Spec drafted is separate and unchanged.
 _Avoid_: Maintainer, admin
 
 **Eligible**:

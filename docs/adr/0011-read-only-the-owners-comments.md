@@ -13,8 +13,8 @@ A GitHub interaction limit (collaborators only, six months) was set on the two n
 ## Decision
 
 1. The runbook has one `Owner:` line naming one GitHub login. That account is the Owner.
-2. A Run and a Spec drafter read an issue with the filtered command under "Reading an issue" in the runbook, which keeps only comments whose author is the Owner. They never read, follow or quote any other comment.
-3. Lookups by marker (`factory:spec-draft`, `factory:comment:*`) count Owner comments only, so a stranger cannot plant a marker to suppress a draft or a comment.
+2. The Dispatcher, a Run and a Spec drafter read an issue with the filtered command under "Reading an issue" in the runbook, which keeps only comments whose author is the Owner. They never read, follow or quote any other comment.
+3. Lookups by marker (`factory:spec-draft`, `factory:comment:*`) count Owner comments only, so an account that is not the Owner cannot plant a marker for an agent's lookup to find.
 4. Information that exists only in another account's comment is a spec gap: the Run asks the Owner (Exit) instead of using it.
 5. The trusted-author rule for who may have a Spec drafted (`OWNER`, `MEMBER` or `COLLABORATOR`, runbook "Fill the pass") is unchanged. It decides whose issue is drafted; this ADR decides whose comments are read.
 
@@ -26,6 +26,7 @@ A GitHub interaction limit (collaborators only, six months) was set on the two n
 
 ## Consequences
 
+- Not filtered, on purpose: an issue's title and body. Only the issue's author or a collaborator can edit them, a Spec drafter checks the author's association before it approves, and an Approval is the owner's own decision after reading the issue. A Run's own Review audit and Merge gate read pull request bodies written by the Run, not comments.
 - A useful comment from another person is invisible to Runs until the owner repeats it in their own comment.
 - Bot comments are ignored. The Factory's own comments are read because they go out through the owner's `gh` login; if that login changes, the `Owner:` line changes with it.
 - The GitHub adapter's idempotency check (`prepareComments`) and the ledger's spec-gap check still trust comments by `author_association` when looking for a marker. They do not put comment text in front of an agent, so this ADR does not change them.
