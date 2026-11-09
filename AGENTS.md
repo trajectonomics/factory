@@ -15,7 +15,7 @@ Instructions for AI coding agents in `trajectonomics/factory` (`@trajectonomics/
 
 ## Scope
 
-The Factory reads GitHub issues and writes branches, pull requests, issues, comments, labels and board Status. It never changes a host or a cloud platform and never approves. Those stay with the owner; see `trajectonomics/infra` ADR 0005. A Run merges its own pull request only when it passes the Merge gate in `docs/dispatcher-runbook.md` (ADR 0005); otherwise the pull request waits for the owner.
+The Factory reads GitHub issues and writes branches, pull requests, issues, comments, labels and board Status. It never changes a host or a cloud platform. Those stay with the owner; see `trajectonomics/infra` ADR 0005. A Run merges its own pull request only when it passes the Merge gate in `docs/dispatcher-runbook.md` (ADR 0005); otherwise the pull request waits for the owner. Only the owner or a finished Spec draft approves (adds `ready-for-agent`, ADR 0007); the Dispatcher and Runs never do, and only the owner adds `wontfix`.
 
 ## Agent skills
 

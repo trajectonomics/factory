@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted. The sentence that the Factory never sets `ready-for-agent` is amended by [ADR 0007](./0007-spec-drafter-can-approve.md): a Spec drafter may.
 
 ## Context
 
