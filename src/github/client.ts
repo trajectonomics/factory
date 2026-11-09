@@ -64,6 +64,7 @@ export type GitHubClient = {
 	readonly listBlockers: (issue: IssueKey) => Promise<readonly GitHubIssueData[]>
 	readonly listTimeline: (issue: IssueKey) => Promise<readonly GitHubTimelineEvent[]>
 	readonly listComments: (issue: IssueKey) => Promise<readonly GitHubCommentData[]>
+	readonly listSkills: (repository: string) => Promise<readonly string[]>
 	readonly getProject: (project: ProjectRef) => Promise<GitHubProjectData>
 	readonly listProjectFields: (project: ProjectRef) => Promise<readonly GitHubProjectFieldData[]>
 	readonly listProjectItems: (project: ProjectRef) => Promise<readonly GitHubProjectItemData[]>

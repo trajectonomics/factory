@@ -39,6 +39,11 @@ export function isCommentData(value: unknown): value is GitHubCommentData {
 	)
 }
 
+/** Whether a value is a directory entry with a name. */
+export function isNamedEntry(value: unknown): value is { readonly name: string } {
+	return isObject(value) && typeof value["name"] === "string"
+}
+
 /** Whether a value is a project response. */
 export function isProjectData(value: unknown): value is GitHubProjectData {
 	return isObject(value) && typeof value["id"] === "string" && typeof value["title"] === "string"

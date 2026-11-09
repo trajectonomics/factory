@@ -24,7 +24,10 @@ describe("the Dispatcher command", () => {
 	it("reads GitHub and T3 state and launches the eligible Run", async () => {
 		let launches = 0
 		const writes: FactoryWrite[][] = []
-		const client = testClient({ listIssues: async () => [ISSUE] })
+		const client = testClient({
+			listIssues: async () => [ISSUE],
+			listSkills: async () => ["implement", "tdd", "code-review"],
+		})
 		const t3: T3Client = {
 			listThreads: async () => [],
 			launchThread: async () => THREAD,
