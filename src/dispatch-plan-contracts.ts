@@ -34,17 +34,16 @@ export type DispatchDeferral = {
 	readonly issue: IssueKey
 	readonly reason: DispatchDeferralReason
 }
-/** One Run in the report, for the 3-day aggregate. */
+/** One Run in the report. */
 export type DispatchRunRecord = {
 	readonly issue: IssueKey
 	readonly kind: EligibleRun["kind"]
 	readonly host: string
-	readonly launchedAtMs: number
 }
 /** The Exits the report counts, by type. */
 export type DispatchExitCounts = Readonly<Record<RunExitKind, number>>
 
-/** The report the Dispatcher prints, for one pass or for three days. */
+/** The report the Dispatcher prints for one pass. */
 export type DispatchReport = {
 	readonly runs: readonly DispatchRunRecord[]
 	readonly pullRequests: readonly FactoryPullRequest[]

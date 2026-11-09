@@ -25,7 +25,7 @@ export function passReport(
 ): DispatchReport {
 	const runs = plan.launches
 		.filter((launch) => !failedIssues?.has(keyOf(issueOfRun(launch.run))))
-		.map((launch) => runRecordOf(launch.run, launch.host, reading.nowMs))
+		.map((launch) => runRecordOf(launch.run, launch.host))
 	return buildReport(
 		runs,
 		reading.ledger.pullRequests,
@@ -34,13 +34,8 @@ export function passReport(
 		plan.hostLoad,
 	)
 }
-function runRecordOf(run: EligibleRun, host: string, nowMs: number): DispatchRunRecord {
-	return {
-		issue: issueOfRun(run),
-		kind: run.kind,
-		host,
-		launchedAtMs: nowMs,
-	}
+function runRecordOf(run: EligibleRun, host: string): DispatchRunRecord {
+	return { issue: issueOfRun(run), kind: run.kind, host }
 }
 function buildReport(
 	runs: readonly DispatchRunRecord[],

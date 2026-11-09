@@ -74,7 +74,14 @@ async function launchRun(
 		await adapters.launch(launch.request)
 		return undefined
 	} catch (error) {
-		await adapters.applyWrites(releaseWrites(launch.run))
+		try {
+			await adapters.applyWrites(releaseWrites(launch.run))
+		} catch (cleanupError) {
+			return {
+				issue,
+				message: `${messageOf(error)}; claim release failed: ${messageOf(cleanupError)}`,
+			}
+		}
 		return { issue, message: messageOf(error) }
 	}
 }
