@@ -27,14 +27,17 @@ export function passReport(
 	reading: DispatchReading,
 	failedIssues?: ReadonlySet<string>,
 ): DispatchReport {
+	const sinceMs = reading.nowMs - THREE_DAY_REPORT_MS
 	const runs = plan.launches
 		.filter((launch) => !failedIssues?.has(keyOf(issueOfRun(launch.run))))
 		.map((launch) => runRecordOf(launch.run, launch.host, reading.nowMs))
 	return buildReport(
 		reading.nowMs,
 		runs,
-		reading.ledger.pullRequests,
-		reading.ledger.exits,
+		reading.ledger.pullRequests.filter((pullRequest) =>
+			inWindow(pullRequest.openedAtMs, sinceMs, reading.nowMs),
+		),
+		reading.ledger.exits.filter((exit) => inWindow(exit.atMs, sinceMs, reading.nowMs)),
 		plan.reconciliation.releasedClaims.map((release) => release.issue),
 		plan.hostLoad,
 	)
