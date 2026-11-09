@@ -8,7 +8,6 @@ export { runDispatchPass } from "./dispatch-pass"
 export * from "./dispatch-pass-contracts"
 export { planDispatch } from "./dispatch-plan"
 export * from "./dispatch-plan-contracts"
-export * from "./dispatch-plan-contracts"
 export {
 	formatDispatchReport,
 	passReport,

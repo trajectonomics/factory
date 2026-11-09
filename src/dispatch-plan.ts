@@ -13,10 +13,11 @@ import {
 import { evaluateEligibility } from "./eligibility"
 import { deepFreeze } from "./freeze"
 import { claimWrite, type FactoryWrite, labelWrite, statusWrite } from "./github/writes"
+import { issueOfRun } from "./keys"
 import { reconcileWork } from "./reconciliation"
 import { startTicketRun } from "./ticket-run"
 
-/** Plans one Dispatcher pass: reconciliation, Guards, eligibility and selection. */
+/** The decisions one Dispatcher pass makes. */
 export function planDispatch(reading: DispatchReading, config: DispatchConfig): DispatchPlan {
 	assertConfig(reading, config)
 	const reconciliation = reconcileWork(reading.state, reading.nowMs)
@@ -36,12 +37,11 @@ export function planDispatch(reading: DispatchReading, config: DispatchConfig): 
 			: {
 					launches: [],
 					deferrals: eligibility.runs.map((run) => ({
-						issue: issueOf(run),
+						issue: issueOfRun(run),
 						reason: globalStop,
 					})),
 				}
 	return deepFreeze({
-		mode: config.mode,
 		guards,
 		reconciliation,
 		writes: reconciliationWrites(reading.state, reconciliation),
@@ -52,9 +52,6 @@ export function planDispatch(reading: DispatchReading, config: DispatchConfig): 
 		hostLoad: hostLoads(reading.hosts),
 	})
 }
-function issueOf(run: EligibleRun) {
-	return run.kind === "spec-run" ? run.spec : run.ticket
-}
 function globalStopReason(
 	guards: ReturnType<typeof evaluateDispatchGuards>,
 ): DispatchDeferralReason | undefined {
@@ -63,12 +60,12 @@ function globalStopReason(
 	return undefined
 }
 function assertConfig(reading: DispatchReading, config: DispatchConfig): void {
-	const cap = config.policy.maxLaunchesPerPass
-	if (cap !== undefined && (!Number.isSafeInteger(cap) || cap < 1)) {
+	const pace = config.policy.maxLaunchesPerPass
+	if (pace !== undefined && (!Number.isSafeInteger(pace) || pace < 1)) {
 		throw new DispatchError(
-			"invalid-launch-cap",
+			"invalid-launch-pace",
 			"policy.maxLaunchesPerPass",
-			"A launch cap must be a positive integer",
+			"A launch pace must be a positive integer",
 		)
 	}
 	assertUniqueHosts(reading.hosts)

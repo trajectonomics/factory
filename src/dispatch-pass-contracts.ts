@@ -1,5 +1,5 @@
 import type { IssueKey } from "./contracts"
-import type { DispatchConfig, DispatchReading } from "./dispatch-contracts"
+import type { DispatchReading } from "./dispatch-contracts"
 import type { DispatchPlan, DispatchReport } from "./dispatch-plan-contracts"
 import type { FactoryWrite } from "./github/writes"
 import type { T3LaunchRequest, T3Thread } from "./t3"
@@ -18,7 +18,6 @@ export type DispatchLaunchError = {
 }
 /** The result of one Dispatcher pass. */
 export type DispatchPassResult = {
-	readonly config: DispatchConfig
 	readonly plan: DispatchPlan
 	readonly errors: readonly DispatchLaunchError[]
 	readonly report: DispatchReport

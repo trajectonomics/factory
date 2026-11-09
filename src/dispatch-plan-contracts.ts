@@ -1,11 +1,5 @@
 import type { EligibleRun, IssueKey, SkippedWork } from "./contracts"
-import type {
-	DispatchMode,
-	FactoryPullRequest,
-	HostLoad,
-	RunExit,
-	RunExitKind,
-} from "./dispatch-contracts"
+import type { FactoryPullRequest, HostLoad, RunExit, RunExitKind } from "./dispatch-contracts"
 import type { FactoryWrite } from "./github/writes"
 import type { GuardDecision } from "./guard-contracts"
 import type { ReconciliationPlan } from "./reconciliation-plan"
@@ -29,7 +23,7 @@ export type DispatchDeferralReason =
 	| "schedule-disabled"
 	| "repository-paused"
 	| "repository-busy"
-	| "launch-cap"
+	| "launch-pace"
 	| "no-host"
 	| "host-pressure"
 	| "launch-too-soon"
@@ -52,8 +46,7 @@ export type DispatchExitCounts = Readonly<Record<RunExitKind, number>>
 
 /** The report the Dispatcher prints, for one pass or for three days. */
 export type DispatchReport = {
-	readonly sinceMs: number
-	readonly untilMs: number
+	readonly atMs: number
 	readonly runs: readonly DispatchRunRecord[]
 	readonly pullRequests: readonly FactoryPullRequest[]
 	readonly gateFailures: readonly RunExit[]
@@ -70,7 +63,6 @@ export type DispatchLaunch = {
 }
 /** The decisions one Dispatcher pass makes. */
 export type DispatchPlan = {
-	readonly mode: DispatchMode
 	readonly guards: DispatchGuards
 	readonly reconciliation: ReconciliationPlan
 	readonly writes: readonly FactoryWrite[]

@@ -1,6 +1,6 @@
 import type { EligibleRun, IssueState } from "./contracts"
-import type { DispatchReading } from "./dispatch-contracts"
-import { keyOf } from "./keys"
+import type { DispatchConfig, DispatchReading } from "./dispatch-contracts"
+import { issueOfRun, keyOf } from "./keys"
 import { specBranchNameFor } from "./run-branch"
 import { runLaunchRequest } from "./run-launch"
 import type { T3LaunchRequest } from "./t3"
@@ -9,11 +9,11 @@ import { ticketRunBrief } from "./ticket-run-brief"
 /** The parts of one pass the launch request needs. */
 export type RequestInput = {
 	readonly reading: DispatchReading
-	readonly config: import("./dispatch-contracts").DispatchConfig
+	readonly config: DispatchConfig
 }
 /** The T3 launch request for one selected Run. */
 export function dispatchRequest(run: EligibleRun, input: RequestInput): T3LaunchRequest {
-	const issue = run.kind === "spec-run" ? run.spec : run.ticket
+	const issue = issueOfRun(run)
 	const issueTitle = titleOf(input, issue)
 	const roleBrief =
 		run.kind === "ticket-run"

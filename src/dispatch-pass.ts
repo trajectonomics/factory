@@ -9,9 +9,9 @@ import type { DispatchLaunch, DispatchPlan } from "./dispatch-plan-contracts"
 import { formatDispatchReport, formatLaunch, passReport } from "./dispatch-report"
 import { formatWrite } from "./github/format-write"
 import type { FactoryWrite } from "./github/writes"
-import { keyOf } from "./keys"
+import { issueOfRun, keyOf } from "./keys"
 
-/** Runs one Dispatcher pass: read, decide, then print or apply. */
+/** The Dispatcher pass the scheduled task runs. */
 export async function runDispatchPass(
 	adapters: DispatchAdapters,
 	config: DispatchConfig,
@@ -20,10 +20,10 @@ export async function runDispatchPass(
 	const plan = planDispatch(reading, config)
 	const errors =
 		config.mode === "dry-run" ? printPlan(adapters, plan) : await applyPlan(adapters, plan)
-	const report = passReport(plan, reading)
+	const failed = new Set(errors.map((error) => keyOf(error.issue)))
+	const report = passReport(plan, reading, failed)
 	adapters.print(formatDispatchReport(report))
 	return {
-		config,
 		plan,
 		errors,
 		report,
@@ -64,7 +64,7 @@ async function launchRun(
 	adapters: DispatchAdapters,
 	launch: DispatchLaunch,
 ): Promise<DispatchLaunchError | undefined> {
-	const issue = launch.run.kind === "spec-run" ? launch.run.spec : launch.run.ticket
+	const issue = issueOfRun(launch.run)
 	try {
 		await adapters.launch(launch.request)
 		return undefined

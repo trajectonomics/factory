@@ -32,7 +32,7 @@ describe("per-repository exclusion", () => {
 		expect(plan.launches).toHaveLength(2)
 	})
 })
-describe("per-pass launch cap", () => {
+describe("per-pass launch pace", () => {
 	it("launches no more than the configured number of Runs per pass", () => {
 		const plan = planDispatch(
 			reading({ state: state([approved(4), approved(5)]) }),
@@ -40,10 +40,10 @@ describe("per-pass launch cap", () => {
 		)
 
 		expect(plan.launches).toHaveLength(1)
-		expect(plan.deferrals).toEqual([{ issue: key(5), reason: "launch-cap" }])
+		expect(plan.deferrals).toEqual([{ issue: key(5), reason: "launch-pace" }])
 	})
 
-	it("is unlimited when no cap is configured", () => {
+	it("is unlimited when no pace is configured", () => {
 		const plan = planDispatch(
 			reading({
 				state: state([
@@ -66,21 +66,25 @@ describe("per-pass launch cap", () => {
 		expect(plan.launches).toHaveLength(3)
 	})
 
-	it("rejects an invalid cap and a duplicate host", () => {
-		const badCap = dispatchError(() =>
+	it("rejects an invalid pace", () => {
+		const error = dispatchError(() =>
 			planDispatch(
 				reading({ state: state([approved(4)]) }),
 				config({ policy: { oneRunPerRepository: true, maxLaunchesPerPass: 0 } }),
 			),
 		)
-		const duplicateHost = dispatchError(() =>
+
+		expect(error?.code).toBe("invalid-launch-pace")
+		expect(error?.field).toBe("policy.maxLaunchesPerPass")
+	})
+
+	it("rejects a reading that names one host twice", () => {
+		const error = dispatchError(() =>
 			planDispatch(reading({ state: state([approved(4)]), hosts: [host(), host()] }), config()),
 		)
 
-		expect(badCap?.code).toBe("invalid-launch-cap")
-		expect(badCap?.field).toBe("policy.maxLaunchesPerPass")
-		expect(duplicateHost?.code).toBe("duplicate-host")
-		expect(duplicateHost?.field).toBe("hosts[homeserver2]")
+		expect(error?.code).toBe("duplicate-host")
+		expect(error?.field).toBe("hosts[homeserver2]")
 	})
 })
 describe("launch pacing", () => {
@@ -119,5 +123,3 @@ describe("host balancing", () => {
 		expect(tie.launches[0]?.host).toBe("homeserver2")
 	})
 })
-
-describe("rate-limit backoff", () => {})

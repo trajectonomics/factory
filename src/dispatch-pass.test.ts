@@ -59,7 +59,7 @@ describe("runDispatchPass", () => {
 	it("prints every decision in a dry run and writes or launches nothing", async () => {
 		const fake = recorder(staleAndApproved())
 
-		const result = await runDispatchPass(fake.adapters, config({ mode: "dry-run" }))
+		await runDispatchPass(fake.adapters, config({ mode: "dry-run" }))
 
 		expect(fake.writes).toEqual([])
 		expect(fake.launches).toEqual([])
@@ -92,6 +92,7 @@ describe("runDispatchPass", () => {
 		const result = await runDispatchPass(fake.adapters, config({ mode: "live" }))
 
 		expect(result.errors).toEqual([{ issue: key(4), message: "T3 is unreachable" }])
+		expect(result.report.runs).toEqual([])
 		expect(fake.writes.at(-1)).toEqual([
 			{ kind: "label", issue: key(4), label: "agent-working", present: false },
 		])

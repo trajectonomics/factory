@@ -1,7 +1,7 @@
 import type { IssueKey } from "./contracts"
 import type { FactoryPullRequest, HostLoad } from "./dispatch-contracts"
 import type { DispatchLaunch, DispatchReport, DispatchRunRecord } from "./dispatch-plan-contracts"
-import { keyOf } from "./keys"
+import { issueOfRun, keyOf } from "./keys"
 
 /** Renders the report as the six lines the Dispatcher prints. */
 export function formatDispatchReport(report: DispatchReport): string {
@@ -44,7 +44,7 @@ function percent(fraction: number): string {
 }
 /** Renders one planned launch for dry-run output. */
 export function formatLaunch(launch: DispatchLaunch): string {
-	const issue = keyOf(launch.run.kind === "spec-run" ? launch.run.spec : launch.run.ticket)
+	const issue = keyOf(issueOfRun(launch.run))
 	const fallback = launch.fallback ? ` (fallback from ${launch.run.host})` : ""
 	return `launch ${issue} on ${launch.host}${fallback}: ${launch.request.title} (${launch.request.branch})`
 }

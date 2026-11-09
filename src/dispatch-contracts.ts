@@ -7,7 +7,7 @@ import type { T3Model } from "./t3"
 /** Whether the Dispatcher applies its decisions or only prints them. */
 export type DispatchMode = "dry-run" | "live"
 
-/** The launch limits the owner tunes, rather than hard-coded caps. */
+/** The launch pace and thresholds the Dispatcher applies. */
 export type DispatchPolicy = {
 	readonly oneRunPerRepository: boolean
 	readonly maxLaunchesPerPass?: number
@@ -78,7 +78,7 @@ export type DispatchConfig = {
 	readonly model: T3Model
 }
 /** The inputs a Dispatcher pass rejects. */
-export type DispatchErrorCode = "invalid-launch-cap" | "duplicate-host"
+export type DispatchErrorCode = "invalid-launch-pace" | "duplicate-host"
 
 /** A malformed Dispatcher configuration or reading. */
 export class DispatchError extends Error {

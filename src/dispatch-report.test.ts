@@ -10,10 +10,9 @@ import {
 import { approved, config, FACTORY, key, NOW_MS, reading, state } from "./fixtures/dispatch"
 
 const DAY_MS = 24 * 60 * 60 * 1000
-function reportAt(untilMs: number, overrides: Partial<DispatchReport> = {}): DispatchReport {
+function reportAt(atMs: number, overrides: Partial<DispatchReport> = {}): DispatchReport {
 	return {
-		sinceMs: untilMs,
-		untilMs,
+		atMs,
 		runs: [],
 		pullRequests: [],
 		gateFailures: [],
