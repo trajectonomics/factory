@@ -26,6 +26,10 @@ _Avoid_: Todo, blocker ticket
 A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is Approval only when the conditions in step 5 of its brief hold; otherwise the issue goes to `needs-spec-review` and the owner decides.
 _Avoid_: Proposal, generated ticket
 
+**Owner question**:
+A question a Spec drafter puts to the owner in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Sonnet 5.5 high, Argon 4 medium) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted). It is written to be answered cold: context, why it matters, the consultants' views, a recommendation.
+_Avoid_: Clarification, blocker
+
 **Open Decisions**:
 The section of a drafted Spec listing each decision that is the human's to make, with a recommended answer.
 _Avoid_: Questions, TBDs
