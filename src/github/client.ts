@@ -12,6 +12,8 @@ export type GitHubIssueData = {
 	readonly number: number
 	readonly title?: string
 	readonly author_association?: string
+	readonly body?: string | null
+	readonly created_at?: string
 	readonly state: string
 	readonly labels: readonly { readonly name: string }[]
 	readonly repository_url: string
@@ -32,6 +34,15 @@ export type GitHubCommentData = {
 	readonly id: number | string
 	readonly body: string
 	readonly author_association?: string
+	readonly created_at?: string
+}
+
+/** One open pull request. */
+export type GitHubPullRequestData = {
+	readonly number: number
+	readonly draft?: boolean
+	readonly created_at: string
+	readonly head: { readonly ref: string }
 }
 
 /** A GitHub project response. */
@@ -65,6 +76,7 @@ export type GitHubClient = {
 	readonly listTimeline: (issue: IssueKey) => Promise<readonly GitHubTimelineEvent[]>
 	readonly listComments: (issue: IssueKey) => Promise<readonly GitHubCommentData[]>
 	readonly listSkills: (repository: string) => Promise<readonly string[]>
+	readonly listPullRequests: (repository: string) => Promise<readonly GitHubPullRequestData[]>
 	readonly getProject: (project: ProjectRef) => Promise<GitHubProjectData>
 	readonly listProjectFields: (project: ProjectRef) => Promise<readonly GitHubProjectFieldData[]>
 	readonly listProjectItems: (project: ProjectRef) => Promise<readonly GitHubProjectItemData[]>

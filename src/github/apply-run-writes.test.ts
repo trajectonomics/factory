@@ -4,7 +4,7 @@ import { applyWrites } from "./apply"
 import type { Board } from "./board"
 import type { CreateIssueRequest, CreatePullRequestRequest } from "./create"
 import { testClient } from "./fixtures/test-client"
-import { followUpWrite, pullRequestWrite } from "./run-writes"
+import { followUpOrigin, followUpWrite, pullRequestWrite } from "./run-writes"
 
 const FACTORY = "trajectonomics/factory"
 const ISSUE: IssueKey = { repository: FACTORY, number: 9 }
@@ -74,6 +74,8 @@ describe("applying run writes", () => {
 		await applyWrites(client, BOARD, writes(), { dryRun: false, print: () => {} })
 
 		expect(pullRequests).toEqual([PULL_REQUEST])
-		expect(issues).toEqual([FOLLOW_UP])
+		expect(issues).toEqual([
+			{ ...FOLLOW_UP, body: `${followUpOrigin(ISSUE.number)}\n\n${FOLLOW_UP.body}` },
+		])
 	})
 })

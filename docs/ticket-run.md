@@ -63,7 +63,8 @@ A failed Gate leaves the card where it is; the issue asks for the draft pull req
 is: there is no `needs-info` Status, and Status is write-only output (ADR 0001).
 
 A Follow-up Ticket is filed in the Run's repository with `ready-for-human` and the body the Run
-reported. Filing it is its own report, so the Run keeps going and a later ready Gate opens the pull
+reported, after a first line `Follow-up from #<issue>.` that names the Run's issue so the
+[dispatch ledger](./dispatch-ledger.md) can attribute the Exit. Filing it is its own report, so the Run keeps going and a later ready Gate opens the pull
 request.
 
 ## Writes and dry runs

@@ -2,6 +2,7 @@ import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "./contracts"
 import { GATE_REVIEWS } from "./fixtures/gate-reviews"
 import type { GateRound } from "./gate"
+import { followUpOrigin } from "./github/run-writes"
 import { planTicketRun, startTicketRun } from "./ticket-run"
 import type { TicketRunReport } from "./ticket-run-contracts"
 
@@ -183,7 +184,7 @@ describe("planning a Ticket Run", () => {
 			kind: "follow-up",
 			issue: TICKET,
 			title: "Provision the release token",
-			body: "Only the owner can create the release token.",
+			body: `${followUpOrigin(TICKET.number)}\n\nOnly the owner can create the release token.`,
 			labels: ["ready-for-human"],
 		})
 

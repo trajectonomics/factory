@@ -4,6 +4,7 @@ import type {
 	DispatchReading,
 	HostSnapshot,
 } from "./dispatch-contracts"
+import { readDispatchLedger } from "./dispatch-ledger"
 import { runDispatchPass } from "./dispatch-pass"
 import type { DispatchAdapters, DispatchPassResult } from "./dispatch-pass-contracts"
 import type { GitHubClient } from "./github/client"
@@ -21,7 +22,8 @@ export type DispatchCommandInput = {
 	readonly hosts: readonly HostSnapshot[]
 	readonly humanQueue: HumanQueue
 	readonly killSwitch: KillSwitch
-	readonly ledger: DispatchLedger
+	/** The pull requests and Exits to report; read from GitHub and T3 when the caller supplies none. */
+	readonly ledger?: DispatchLedger
 	/** The skills installed per repository; read from GitHub when the caller supplies none. */
 	readonly skills?: Readonly<Record<string, readonly string[]>>
 	readonly nowMs: number
@@ -43,7 +45,7 @@ export async function dispatchCommand(
 		hosts: input.hosts,
 		humanQueue: input.humanQueue,
 		killSwitch: input.killSwitch,
-		ledger: input.ledger,
+		ledger: input.ledger ?? (await readDispatchLedger(client, t3, input.repositories, input.nowMs)),
 		skills: input.skills ?? (await readRepositorySkills(client, input.repositories)),
 		nowMs: input.nowMs,
 	}
