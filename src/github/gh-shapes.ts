@@ -1,10 +1,10 @@
 import type {
 	GitHubCommentData,
 	GitHubIssueData,
-	GitHubPullRequestData,
 	GitHubProjectData,
 	GitHubProjectFieldData,
 	GitHubProjectItemData,
+	GitHubPullRequestData,
 	GitHubTimelineEvent,
 } from "./client"
 

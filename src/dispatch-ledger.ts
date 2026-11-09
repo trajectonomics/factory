@@ -1,10 +1,12 @@
 import type { DispatchLedger } from "./dispatch-contracts"
+import { deepFreeze } from "./freeze"
 import type { GitHubClient, GitHubIssueData } from "./github/client"
-import { followUpExits, gateFailureExits, specGapExits, urgentExits } from "./github/ledger-exits"
+import { followUpExits, gateFailureExits, specGapExits } from "./github/ledger-exits"
 import { readFactoryPullRequests } from "./github/ledger-pull-requests"
 import type { T3Client } from "./t3"
+import { urgentExits } from "./t3-exits"
 
-/** Reads the open Factory pull requests and the Run Exits waiting on the owner, from GitHub and T3. */
+/** The open Factory pull requests and the Run Exits waiting on the owner, read from GitHub and T3. */
 export async function readDispatchLedger(
 	client: GitHubClient,
 	t3: T3Client,
@@ -20,5 +22,5 @@ export async function readDispatchLedger(
 		...followUpExits(issues),
 		...urgentExits(await t3.listThreads(), nowMs),
 	]
-	return { pullRequests, exits }
+	return deepFreeze({ pullRequests, exits })
 }

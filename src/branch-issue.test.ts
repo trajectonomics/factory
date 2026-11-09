@@ -5,21 +5,21 @@ import { branchNameFor, specBranchNameFor } from "./run-branch"
 const REPOSITORY = "trajectonomics/cli"
 
 describe("the issue behind a Run branch", () => {
-	it("reads a Ticket Run branch", () => {
+	it("a Ticket Run branch identifies the issue it works", () => {
 		expect(issueOfRunBranch(REPOSITORY, branchNameFor(12, "Add the thing"))).toEqual({
 			repository: REPOSITORY,
 			number: 12,
 		})
 	})
 
-	it("reads a Spec Run branch", () => {
+	it("a Spec Run branch identifies its Spec", () => {
 		expect(issueOfRunBranch(REPOSITORY, specBranchNameFor(3, "A Spec"))).toEqual({
 			repository: REPOSITORY,
 			number: 3,
 		})
 	})
 
-	it("reads the plain branch used when a title leaves no slug", () => {
+	it("the plain branch used when a title leaves no slug still identifies its issue", () => {
 		expect(issueOfRunBranch(REPOSITORY, "factory/9")).toEqual({ repository: REPOSITORY, number: 9 })
 	})
 

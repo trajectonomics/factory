@@ -1,8 +1,6 @@
 import type { FactoryPullRequest, RunExit } from "../dispatch-contracts"
 import { evaluateIntakeGuard } from "../intake-guard"
 import { NEEDS_INFO_LABEL, READY_FOR_HUMAN_LABEL } from "../labels"
-import type { T3Thread } from "../t3"
-import { issueFromThreadTitle } from "../t3-threads"
 import { authorAssociationOf } from "./author-association"
 import type { GitHubClient, GitHubCommentData, GitHubIssueData } from "./client"
 import { instantOf } from "./ledger-time"
@@ -12,7 +10,7 @@ import { AI_DISCLAIMER } from "./writes"
 const SPEC_GAP_MARKER = "<!-- factory:comment:exit:spec-gap"
 const FOLLOW_UP_ORIGIN = /^Follow-up from #([1-9]\d*)\./
 
-/** A draft pull request is a Run that failed its Gate. */
+/** The gate-failure Exits among the open Factory pull requests: each draft one is a Run that failed its Gate. */
 export function gateFailureExits(pullRequests: readonly FactoryPullRequest[]): readonly RunExit[] {
 	return pullRequests
 		.filter((pullRequest) => pullRequest.draft)
@@ -23,15 +21,7 @@ export function gateFailureExits(pullRequests: readonly FactoryPullRequest[]): r
 		}))
 }
 
-/** A Run thread that waits for the owner is an urgent Exit, dated by the pass that saw it. */
-export function urgentExits(threads: readonly T3Thread[], nowMs: number): readonly RunExit[] {
-	return threads.flatMap((thread) => {
-		const issue = thread.status === "waiting" ? issueFromThreadTitle(thread.title) : undefined
-		return issue === undefined ? [] : [{ issue, kind: "urgent" as const, atMs: nowMs }]
-	})
-}
-
-/** An open `ready-for-human` issue that opens with `Follow-up from #<n>.` is that Run's follow-up Exit. */
+/** The follow-up Exits among the open issues: a `ready-for-human` issue that opens with `Follow-up from #<n>.`. */
 export function followUpExits(issues: readonly GitHubIssueData[]): readonly RunExit[] {
 	return issues.flatMap((data) => {
 		if (!data.labels.some((label) => label.name === READY_FOR_HUMAN_LABEL)) return []
@@ -46,7 +36,7 @@ export function followUpExits(issues: readonly GitHubIssueData[]): readonly RunE
 	})
 }
 
-/** An open `needs-info` issue with a Factory spec-gap question is that Run's spec-gap Exit. */
+/** The spec-gap Exits among the open issues: a `needs-info` issue with a Factory spec-gap question. */
 export async function specGapExits(
 	client: GitHubClient,
 	issues: readonly GitHubIssueData[],
