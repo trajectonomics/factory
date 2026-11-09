@@ -23,7 +23,7 @@ export type DispatchCommandInput = {
 	readonly ledger: DispatchLedger
 	readonly nowMs: number
 	readonly applyWrites: (writes: readonly FactoryWrite[]) => Promise<void>
-	readonly launch: (request: T3LaunchRequest) => Promise<T3Thread>
+	readonly launch: (request: T3LaunchRequest, host: string) => Promise<T3Thread>
 	readonly print: (line: string) => void
 }
 

@@ -18,23 +18,30 @@ type Recorder = {
 	readonly adapters: DispatchAdapters
 	readonly writes: FactoryWrite[][]
 	readonly launches: T3LaunchRequest[]
+	readonly launchHosts: string[]
 	readonly printed: string[]
 }
-function recorder(input: DispatchReading, failLaunch = false): Recorder {
+function recorder(input: DispatchReading, failLaunch = false, failStatus = false): Recorder {
 	const writes: FactoryWrite[][] = []
 	const launches: T3LaunchRequest[] = []
+	const launchHosts: string[] = []
 	const printed: string[] = []
 	return {
 		writes,
 		launches,
+		launchHosts,
 		printed,
 		adapters: {
 			read: async () => input,
 			applyWrites: async (batch) => {
+				if (failStatus && batch.some((write) => write.kind === "status")) {
+					throw new Error("board is down")
+				}
 				writes.push([...batch])
 			},
-			launch: async (request) => {
+			launch: async (request, host) => {
 				launches.push(request)
+				launchHosts.push(host)
 				if (failLaunch) throw new Error("T3 is unreachable")
 				return THREAD
 			},
@@ -67,6 +74,7 @@ describe("a Dispatcher pass", () => {
 		expect(fake.printed).toContain("claim trajectonomics/cli#4 at 1000000000")
 		expect(fake.printed.some((line) => line.startsWith("launch trajectonomics/cli#4"))).toBe(true)
 		expect(fake.printed.some((line) => line.startsWith("Runs"))).toBe(true)
+		expect(fake.printed).toContain("guard schedule: allowed")
 	})
 
 	it("applies reconciliation, then the Claim, then launches in live mode", async () => {
@@ -80,6 +88,7 @@ describe("a Dispatcher pass", () => {
 			[{ kind: "status", issue: key(4), status: "In progress" }],
 		])
 		expect(fake.launches).toHaveLength(1)
+		expect(fake.launchHosts).toEqual(["homeserver2"])
 		expect(result.errors).toEqual([])
 	})
 
@@ -88,11 +97,31 @@ describe("a Dispatcher pass", () => {
 
 		const result = await runDispatchPass(fake.adapters, config({ mode: "live" }))
 
-		expect(result.errors).toEqual([{ issue: key(4), message: "T3 is unreachable" }])
+		expect(result.errors).toEqual([
+			{ issue: key(4), message: "T3 is unreachable", launched: false },
+		])
 		expect(result.report.runs).toEqual([])
 		expect(fake.writes.at(-1)).toEqual([
 			{ kind: "label", issue: key(4), label: "agent-working", present: false },
 		])
 		expect(fake.printed).toContain("launch failed trajectonomics/cli#4: T3 is unreachable")
+	})
+
+	it("keeps a launched Run when only its Status write fails", async () => {
+		const fake = recorder(reading({ state: state([approved(4)]) }), false, true)
+
+		const result = await runDispatchPass(fake.adapters, config({ mode: "live" }))
+
+		expect(result.report.runs).toHaveLength(1)
+		expect(result.errors).toEqual([
+			{
+				issue: key(4),
+				message: "launch succeeded; In progress failed: board is down",
+				launched: true,
+			},
+		])
+		expect(fake.printed).toContain(
+			"status update failed trajectonomics/cli#4: launch succeeded; In progress failed: board is down",
+		)
 	})
 })
