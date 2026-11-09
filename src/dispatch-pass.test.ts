@@ -21,7 +21,12 @@ type Recorder = {
 	readonly launchHosts: string[]
 	readonly printed: string[]
 }
-function recorder(input: DispatchReading, failLaunch = false, failStatus = false): Recorder {
+function recorder(
+	input: DispatchReading,
+	failLaunch = false,
+	failStatus = false,
+	failClaim = false,
+): Recorder {
 	const writes: FactoryWrite[][] = []
 	const launches: T3LaunchRequest[] = []
 	const launchHosts: string[] = []
@@ -34,6 +39,9 @@ function recorder(input: DispatchReading, failLaunch = false, failStatus = false
 		adapters: {
 			read: async () => input,
 			applyWrites: async (batch) => {
+				if (failClaim && batch.some((write) => write.kind === "claim")) {
+					throw new Error("claim write failed")
+				}
 				if (failStatus && batch.some((write) => write.kind === "status")) {
 					throw new Error("board is down")
 				}
@@ -105,6 +113,23 @@ describe("a Dispatcher pass", () => {
 			{ kind: "label", issue: key(4), label: "agent-working", present: false },
 		])
 		expect(fake.printed).toContain("launch failed trajectonomics/cli#4: T3 is unreachable")
+	})
+
+	it("skips the launches and still reports when a Claim write fails", async () => {
+		const fake = recorder(reading({ state: state([approved(4)]) }), false, false, true)
+
+		const result = await runDispatchPass(fake.adapters, config({ mode: "live" }))
+
+		expect(fake.launches).toEqual([])
+		expect(result.report.runs).toEqual([])
+		expect(result.errors).toEqual([
+			{
+				issue: key(4),
+				message: "launch skipped: claim write failed",
+				launched: false,
+			},
+		])
+		expect(fake.printed.some((line) => line.startsWith("Runs"))).toBe(true)
 	})
 
 	it("keeps a launched Run when only its Status write fails", async () => {

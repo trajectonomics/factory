@@ -40,8 +40,16 @@ async function applyPlan(
 	adapters: DispatchAdapters,
 	plan: DispatchPlan,
 ): Promise<readonly DispatchLaunchError[]> {
-	await applyBatch(adapters, plan.writes)
-	await applyBatch(adapters, plan.claims)
+	try {
+		await applyBatch(adapters, plan.writes)
+		await applyBatch(adapters, plan.claims)
+	} catch (error) {
+		return plan.launches.map((launch) => ({
+			issue: issueOfRun(launch.run),
+			message: `launch skipped: ${messageOf(error)}`,
+			launched: false,
+		}))
+	}
 	const errors: DispatchLaunchError[] = []
 	for (const launch of plan.launches) {
 		const error = await launchRun(adapters, launch)
