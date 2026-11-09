@@ -3,7 +3,7 @@ import type { DispatchMode, FactoryPullRequest, HostLoad } from "./dispatch-cont
 import type { DispatchLaunch, DispatchReport, DispatchRunRecord } from "./dispatch-plan-contracts"
 import { issueOfRun, keyOf } from "./keys"
 
-/** Renders the report as the six lines the Dispatcher prints. */
+/** The six-line text summary the Dispatcher prints for a pass report. */
 export function formatDispatchReport(report: DispatchReport, mode?: DispatchMode): string {
 	const runs = mode === "dry-run" ? "Runs (would launch)" : "Runs"
 	return [
@@ -43,7 +43,7 @@ function hostSummary(hosts: readonly HostLoad[]): string {
 function percent(fraction: number): string {
 	return `${Math.round(fraction * 100)}%`
 }
-/** Renders one planned launch for dry-run output. */
+/** The dry-run line for one planned Run launch. */
 export function formatLaunch(launch: DispatchLaunch): string {
 	const issue = keyOf(issueOfRun(launch.run))
 	const fallback = launch.fallback ? ` (fallback from ${launch.run.host})` : ""

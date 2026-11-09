@@ -51,7 +51,7 @@ export function hostLoads(hosts: readonly HostSnapshot[]): readonly HostLoad[] {
 		})),
 	)
 }
-/** Rejects a reading that names one host twice. */
+/** The reading check that names each host once. */
 export function assertUniqueHosts(hosts: readonly HostSnapshot[]): void {
 	const names = new Set<string>()
 	for (const host of hosts) {

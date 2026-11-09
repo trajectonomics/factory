@@ -20,7 +20,7 @@ thresholds arrive as arguments, and a `GuardDecision` comes back. The Dispatcher
   mannequins and unassociated authors never enter the Spec pipeline.
 
 Thresholds and the pacing interval are inputs, not constants: the Dispatcher supplies the conservative values that
-the 3-day report tunes.
+the owner tunes.
 
 ## Dispatcher wiring
 

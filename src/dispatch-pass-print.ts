@@ -5,7 +5,7 @@ import { formatLaunch } from "./dispatch-report"
 import { formatWrite } from "./github/format-write"
 import { keyOf } from "./keys"
 
-/** Prints every decision a dry run would make. */
+/** The dry-run output for one Dispatcher plan. */
 export function printPlan(
 	adapters: DispatchAdapters,
 	plan: DispatchPlan,
