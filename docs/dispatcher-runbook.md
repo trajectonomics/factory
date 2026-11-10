@@ -25,7 +25,7 @@ A Run or a Spec drafter works in a checkout of the target repository, where `doc
 gh api repos/trajectonomics/factory/contents/<path> -H "Accept: application/vnd.github.raw"
 ```
 
-`<path>` is `docs/dispatcher-runbook.md`, `GLOSSARY.md` or `docs/adr/<file>`. `git show origin/main:<path>` is for the target repository's own files (`AGENTS.md`, its `GLOSSARY.md`, its `docs/adr/`, its code). A launch message in any runbook reads a Factory document with `gh api`, never `git show`, because the thread works in the target repository's checkout and `git show origin/main:docs/<file>` fails in every repository except `factory` ([ADR 0004](./adr/0004-balance-runs-across-homeservers.md) puts Runs in all of them); `src/launch-message-reading.test.ts` fails a blockquote that says `git show origin/main:docs/`.
+`<path>` is `docs/dispatcher-runbook.md`, `GLOSSARY.md` or `docs/adr/<file>`. `git show origin/main:<path>` is for the target repository's own files (`AGENTS.md`, its `GLOSSARY.md`, its `docs/adr/`, its code). A launch message in any runbook reads a Factory document with `gh api`, never `git show`: `gh api` reads `origin/main` from every checkout, while `git show origin/main:docs/<file>` fails in every repository except `factory` ([ADR 0004](./adr/0004-balance-runs-across-homeservers.md) puts Runs in all of them). `src/launch-message-reading.test.ts` fails a launch message that says `git show origin/main:`.
 
 ## Allowlist
 
