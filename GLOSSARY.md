@@ -58,6 +58,14 @@ _Avoid_: Ready, pickable
 The scheduled job, every 6 hours, that finds eligible work, reconciles stale Claims, launches Runs, and applies the owner's words to Ideas.
 _Avoid_: Scheduler, orchestrator, cron
 
+**Pass**:
+One run of the Dispatcher, from the previous-pass check to the report. A pass does work only when the pass before it settled or waits for the owner; it settles without work while that pass is still working, and it settles and sends that pass back to its root cause when it failed ([ADR 0014](./docs/adr/0014-one-pass-at-a-time.md)).
+_Avoid_: Round, cycle, tick
+
+**Settled**:
+A pass is settled when its run finished and its report names no unresolved failure. A pass that settles on the previous-pass check names the pass it waits on, so the next pass checks it again.
+_Avoid_: Done, finished, idle
+
 **Run**:
 One agent thread working a Ticket (a **Ticket Run**) or a whole Spec on one integration branch (a **Spec Run**), from Claim to Exit.
 _Avoid_: Job, session, worker
