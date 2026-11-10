@@ -25,7 +25,7 @@ A Run or a Spec drafter works in a checkout of the target repository, where `doc
 gh api repos/trajectonomics/factory/contents/<path> -H "Accept: application/vnd.github.raw"
 ```
 
-`<path>` is `docs/dispatcher-runbook.md`, `GLOSSARY.md` or `docs/adr/<file>`. `git show origin/main:<path>` is for the target repository's own files (`AGENTS.md`, its `GLOSSARY.md`, its `docs/adr/`, its code). A launch message in any runbook reads a Factory document with `gh api`, never `git show`: `gh api` reads `origin/main` from every checkout, while `git show origin/main:docs/<file>` fails in every repository except `factory` ([ADR 0004](./adr/0004-balance-runs-across-homeservers.md) puts Runs in all of them). `src/launch-message-reading.test.ts` fails a launch message that says `git show origin/main:`.
+`<path>` is `docs/dispatcher-runbook.md`, `GLOSSARY.md` or `docs/adr/<file>`. `git show origin/main:<path>` is for the target repository's own files (`AGENTS.md`, its `GLOSSARY.md`, its `docs/adr/`, its code). A launch message in any runbook reads a Factory document with `gh api`, never `git show`: `gh api` reads the file from GitHub in every checkout, while `git show origin/main:docs/<file>` fails in every repository except `factory` ([ADR 0004](./adr/0004-balance-runs-across-homeservers.md) puts Runs in all of them). `src/runbook-reading.test.ts` fails a blockquote that reads a Factory runbook with `git show origin/main:docs/`.
 
 ## Allowlist
 
@@ -118,7 +118,7 @@ Do not file new issues, except the Ticket sub-issues of a Spec the draft approve
 
 - `title`: `triage/trajectonomics/<repo>#<n>`; `clientRequestId`: `triage-<repo>-<n>-<yyyymmddhh>`;
 - `runtimeMode`: `full-access`; host as for a Run (step 7), in the repository's T3 project, `modelSelection` the Spec drafter's: provider `claudeAgent`, instance `claudeAgent`, model `claude-sonnet-5-5`, options `effort: high` (not the Run's DeepSeek model), with `workspaceStrategy` `worktree` from `origin/main` on branch `triage/<n>-<slug>` (slug as in step 8; the branch is never pushed), never `root`;
-- the message is the Spec draft launch message under the brief below, filled in. The thread reads the [Spec draft brief](#spec-draft-brief) from `origin/main` and follows it; if `.agents/skills/factory-triage/SKILL.md` exists it may read it, and where it and the brief differ the brief wins.
+- the message is the Spec draft launch message under the brief below, filled in. The thread reads the [Spec draft brief](#spec-draft-brief) from `trajectonomics/factory` on GitHub and follows it; if `.agents/skills/factory-triage/SKILL.md` exists it may read it, and where it and the brief differ the brief wins.
 
 Post only as many drafts as bring the pass to 9 items moving. Count a draft thread that is live as an item moving. Drafts are not Claims: do not add `agent-working` to the issue.
 
@@ -199,7 +199,7 @@ Each reviewer is a separate child thread on another provider. It is not the Pi s
 
 ## Launch brief
 
-This is the only instruction a Run gets. It covers the whole loop: build, independent review, fix, merge. The thread message is a short Launch message, and the Run reads this section from `origin/main`, so one edit here reaches every Run and no pasted copy drifts.
+This is the only instruction a Run gets. It covers the whole loop: build, independent review, fix, merge. The thread message is a short Launch message, and the Run reads this section from `trajectonomics/factory` on GitHub, so one edit here reaches every Run and no pasted copy drifts.
 
 Launch message (fill in and send):
 
