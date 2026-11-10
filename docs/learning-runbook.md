@@ -21,7 +21,7 @@ The scheduled thread is a launcher, like the Dispatcher: it checks the guards, p
 
 Launch message (fill in and send):
 
-> You are the Factory Learning thread for the window starting `<window start>`. Run `git fetch -q origin main`, then read the "Brief" section of `docs/learning-runbook.md` with `git show origin/main:docs/learning-runbook.md` and follow it from step 1 to the final line. It is your whole instruction; read it in full before you act.
+> You are the Factory Learning thread for the window starting `<window start>`. Run `git fetch -q origin main`, then read the "Brief" section of the Learning runbook, `docs/learning-runbook.md`, with `gh api repos/trajectonomics/factory/contents/docs/learning-runbook.md -H "Accept: application/vnd.github.raw"` and follow it from step 1 to the final line. It is your whole instruction; read it in full before you act.
 
 Brief:
 

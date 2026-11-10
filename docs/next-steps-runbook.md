@@ -60,7 +60,7 @@ The scheduled thread is a launcher, like the Dispatcher. It does one run, then s
 
 Launch message (fill in and send):
 
-> You are the Factory Next-step finder for trajectonomics/`<repo>`. Run `git fetch -q origin main`, then read the "Brief" section of `docs/next-steps-runbook.md` with `git show origin/main:docs/next-steps-runbook.md` and follow it from step 1 to the final line. It is your whole instruction; read it in full before you act.
+> You are the Factory Next-step finder for trajectonomics/`<repo>`. Run `git fetch -q origin main`, then read the "Brief" section of the Next steps runbook, `docs/next-steps-runbook.md`, with `gh api repos/trajectonomics/factory/contents/docs/next-steps-runbook.md -H "Accept: application/vnd.github.raw"` (the runbook is in `trajectonomics/factory`, not in this repository) and follow it from step 1 to the final line. It is your whole instruction; read it in full before you act.
 
 Brief:
 
@@ -117,7 +117,7 @@ The Dispatcher launches a screening thread for an Idea labelled `idea`, at most 
 
 Launch message: the thread reads the "Screening brief" below from `origin/main`.
 
-> You are a Factory Idea screener for trajectonomics/`<repo>`#`<n>` "`<title>`". Run `git fetch -q origin main`, then read the "Screening brief" section of `docs/next-steps-runbook.md` with `git show origin/main:docs/next-steps-runbook.md` and follow it from step 1 to the final line. It is your whole instruction; read it in full before you act.
+> You are a Factory Idea screener for trajectonomics/`<repo>`#`<n>` "`<title>`". Run `git fetch -q origin main`, then read the "Screening brief" section of the Next steps runbook with `gh api repos/trajectonomics/factory/contents/docs/next-steps-runbook.md -H "Accept: application/vnd.github.raw"` (the runbook is in `trajectonomics/factory`, not in this repository) and follow it from step 1 to the final line. It is your whole instruction; read it in full before you act.
 
 ### Screening brief
 
