@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The owner asked for it on 2026-11-08. It supersedes the statements that the Factory never merges (AGENTS.md Scope, the README, the v0 Spec's Out of Scope, and the first sentence of ADR 0002's Context).
+Accepted, and its Merge gate is superseded by [ADR 0015](./0015-no-merge-gate.md): a Run still merges its own pull request, but with no gate. The owner asked for it on 2026-11-08. It supersedes the statements that the Factory never merges (AGENTS.md Scope, the README, the v0 Spec's Out of Scope, and the first sentence of ADR 0002's Context).
 
 ## Context
 
