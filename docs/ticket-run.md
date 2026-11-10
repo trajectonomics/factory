@@ -56,7 +56,7 @@ contains `Closes #<ticket>` and a **Gate findings** section with those lines.
 A ready pull request is never a draft and always carries the `factory` label. A failed Gate opens a
 draft pull request with the same label and the findings. Both use `Closes #<ticket>` so the merge
 closes the Ticket, and both end with a `## Reviews` section built from the reported reviewer
-provider, model, thread, verdict and number of fixed findings, as the Merge gate requires.
+provider, model, thread, verdict and number of fixed findings, as the Reviews section records.
 
 A failed Gate leaves the card where it is; the issue asks for the draft pull request and
 `ready-for-human`, and the board has no draft-review Status. A spec gap also leaves the card where it

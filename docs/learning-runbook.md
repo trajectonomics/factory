@@ -41,7 +41,7 @@ Brief:
 >
 >    Tell each reviewer to read only and edit no files. Fix every finding that is correct and run `bun run check`; for a finding you reject, write why in the Reviews line. Then run the next round. The loop ends when a round returns no findings from both reviewers. Never end it on a round that had findings. If round 3 still has findings, leave the pull request open, add a comment with the findings, and stop; the owner decides.
 >    If a reviewer call fails, retry that reviewer once. If it still fails, for any reason including quota, leave the pull request open with a comment naming the provider and stop. **There is no fallback reviewer**: you wrote the change, and DeepSeek never reviews it.
-> 10. **Merge.** Read the "Learning merge gate" section of `docs/learning-runbook.md` and the "Merge gate" section of `docs/dispatcher-runbook.md` from `origin/main` and check every condition against the pull request's current head commit. Wait for the checks (`gh pr checks <pr> --watch`). If every condition holds and `Mode` is `live`, merge with `gh pr merge <pr> --squash --delete-branch`. Otherwise comment "Not auto-merged: <first failed condition>" and stop.
+> 10. **Merge.** Read the "Learning merge gate" section of `docs/learning-runbook.md` and the "Merging" section of `docs/dispatcher-runbook.md` from `origin/main` and check every condition of the Learning merge gate against the pull request's current head commit. Wait for the checks (`gh pr checks <pr> --watch`). If every condition holds and `Mode` is `live`, merge with `gh pr merge <pr> --squash --delete-branch`. Otherwise comment "Not auto-merged: <first failed condition>" and stop.
 >
 > Hard rules: never approve an issue, and never add `ready-for-agent` or `wontfix`. Never edit `version` in `package.json`. Never commit secrets, and never copy a thread transcript into a file, a pull request or an issue: cite thread links and quote at most one line. Bun only. Never touch a host or cloud platform.
 >
@@ -74,11 +74,11 @@ One line per reviewer per round: role, provider and model, thread link, verdict,
 
 ## Learning merge gate
 
-The [Merge gate](./dispatcher-runbook.md#merge-gate) of the dispatcher runbook applies unchanged, with these differences ([ADR 0013](./adr/0013-learning-prs-merge-themselves.md)):
+The dispatcher runbook has no merge gate any more ([ADR 0015](./adr/0015-no-merge-gate.md)), but a Learning pull request changes the Factory's own rules, so this gate stays until the owner removes it ([ADR 0013](./adr/0013-learning-prs-merge-themselves.md)). The pull request is a non-draft, `mergeable`, and:
 
 - The head branch starts `learn/`, not `factory/`, and the repository is `factory`.
 - The `## Reviews` section names a Conformance Review on `claudeAgent` and a Standards Review on `antigravity`, both clean in the latest round. There is no `FALLBACK` of any kind.
-- The pull request does not change any of these, which stay with the owner: a numeric value, a repository or a host in the Allowlist, Hosts, Merge gate or Guard text of `docs/dispatcher-runbook.md`, or any number in this file's gate; `skills-lock.json`; anything under `.claude/skills`; a skill that `skills-lock.json` lists; `docs/adr/**`; anything in the `goals` repository.
-- The `Mode` and `.factory-no-automerge` rules of the Merge gate apply.
+- The pull request does not change any of these, which stay with the owner: a numeric value, a repository or a host in the Allowlist, Hosts, Merging or Guard text of `docs/dispatcher-runbook.md`, or any number in this file's gate; `skills-lock.json`; anything under `.claude/skills`; a skill that `skills-lock.json` lists; `docs/adr/**`; anything in the `goals` repository.
+- The `Mode` line and `.factory-no-automerge` rule under "Merging" in the dispatcher runbook apply.
 
 Only the owner changes this section.
