@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test"
 import { dispatchCommand } from "./dispatch-command"
-import { config, host, NOW_MS } from "./fixtures/dispatch"
+import { config, host, matchingLock, NOW_MS } from "./fixtures/dispatch"
 import type { GitHubIssueData } from "./github/client"
 import { testClient } from "./github/fixtures/test-client"
 import type { FactoryWrite } from "./github/writes"
@@ -19,6 +19,7 @@ const THREAD: T3Thread = {
 	status: "queued",
 	branch: "factory/4-dispatcher-entrypoint",
 }
+const ALL = ["implement", "tdd", "code-review"]
 
 describe("the Dispatcher command", () => {
 	it("reads GitHub and T3 state and launches the eligible Run", async () => {
@@ -26,7 +27,8 @@ describe("the Dispatcher command", () => {
 		const writes: FactoryWrite[][] = []
 		const client = testClient({
 			listIssues: async () => [ISSUE],
-			listSkills: async () => ["implement", "tdd", "code-review"],
+			listSkills: async () => ALL,
+			readSkillLock: async () => matchingLock(),
 		})
 		const t3: T3Client = {
 			listThreads: async () => [],
@@ -62,7 +64,10 @@ describe("the Dispatcher command", () => {
 			created_at: "2026-11-09T10:00:00Z",
 			head: { ref: "factory/4-dispatcher-entrypoint" },
 		}
-		const client = testClient({ listPullRequests: async () => [draft] })
+		const client = testClient({
+			listPullRequests: async () => [draft],
+			readSkillLock: async () => matchingLock(),
+		})
 		const t3: T3Client = { listThreads: async () => [], launchThread: async () => THREAD }
 
 		const result = await dispatchCommand(client, t3, config(), {
@@ -78,5 +83,56 @@ describe("the Dispatcher command", () => {
 
 		expect(result.report.pullRequests).toHaveLength(1)
 		expect(result.report.gateFailures).toHaveLength(1)
+	})
+
+	it("reads every repository's lock when the caller supplies none", async () => {
+		const read: string[] = []
+		const client = testClient({
+			listIssues: async () => [ISSUE],
+			listSkills: async () => ALL,
+			readSkillLock: async (repository) => {
+				read.push(repository)
+				return matchingLock()
+			},
+		})
+		const t3: T3Client = { listThreads: async () => [], launchThread: async () => THREAD }
+
+		const result = await dispatchCommand(client, t3, config(), {
+			repositories: ["trajectonomics/cli"],
+			hosts: [host()],
+			humanQueue: { openPullRequests: 0, needsSpecReview: 0, readyForHuman: 0 },
+			killSwitch: { scheduleEnabled: true, pausedRepositories: [] },
+			ledger: { pullRequests: [], exits: [] },
+			nowMs: NOW_MS,
+			applyWrites: async () => {},
+			launch: async () => THREAD,
+			print: () => {},
+		})
+
+		expect(read).toEqual(["trajectonomics/cli"])
+		expect(result.report.runs).toHaveLength(1)
+	})
+
+	it("passes caller-supplied locks through without reading GitHub", async () => {
+		const client = testClient({
+			listIssues: async () => [ISSUE],
+			listSkills: async () => ALL,
+		})
+		const t3: T3Client = { listThreads: async () => [], launchThread: async () => THREAD }
+
+		const result = await dispatchCommand(client, t3, config(), {
+			repositories: ["trajectonomics/cli"],
+			hosts: [host()],
+			humanQueue: { openPullRequests: 0, needsSpecReview: 0, readyForHuman: 0 },
+			killSwitch: { scheduleEnabled: true, pausedRepositories: [] },
+			ledger: { pullRequests: [], exits: [] },
+			skillLocks: { "trajectonomics/cli": matchingLock() },
+			nowMs: NOW_MS,
+			applyWrites: async () => {},
+			launch: async () => THREAD,
+			print: () => {},
+		})
+
+		expect(result.report.runs).toHaveLength(1)
 	})
 })

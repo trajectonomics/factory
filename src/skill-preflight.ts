@@ -1,5 +1,12 @@
-/** The skills a repository must have under `.agents/skills` before a Run launches there. */
-export const REQUIRED_SKILLS: readonly string[] = Object.freeze(["implement", "tdd", "code-review"])
+/** One skill a repository must have under `.agents/skills`. */
+export type RequiredSkill = "implement" | "tdd" | "code-review"
+
+/** The skills a repository must have under `.agents/skills`, and whose lock entries the profile must match. */
+export const REQUIRED_SKILLS: readonly RequiredSkill[] = Object.freeze([
+	"implement",
+	"tdd",
+	"code-review",
+])
 
 /** The required skills that a repository's installed skills lack, in the required order. */
 export function missingSkills(installed: readonly string[]): readonly string[] {

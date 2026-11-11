@@ -2,6 +2,7 @@ import type { GitHubClient } from "./client"
 import { createGhCreateClient } from "./gh-create"
 import { createGhReadClient } from "./gh-read"
 import { type GhRunner, runGh } from "./gh-run"
+import { createGhSkillLockClient } from "./gh-skill-lock"
 import { createGhSkillsClient } from "./gh-skills"
 import { createGhWriteClient } from "./gh-write"
 
@@ -13,6 +14,7 @@ export function createGhCliClient(run: GhRunner = runGh): GitHubClient {
 	return {
 		...createGhReadClient(run),
 		...createGhSkillsClient(run),
+		...createGhSkillLockClient(run),
 		...createGhWriteClient(run),
 		...createGhCreateClient(run),
 	}

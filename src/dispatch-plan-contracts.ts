@@ -28,6 +28,7 @@ export type DispatchDeferralReason =
 	| "launch-too-soon"
 	| "provider-rate-limit"
 	| "skills-missing"
+	| "skills-lock-mismatch"
 /** An eligible Run left for a later pass, with the rule that deferred it. */
 export type DispatchDeferral = {
 	readonly issue: IssueKey

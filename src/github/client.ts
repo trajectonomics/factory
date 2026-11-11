@@ -1,4 +1,5 @@
 import type { IssueKey } from "../contracts"
+import type { SkillLock } from "../skill-lock"
 import type { CreateIssueRequest, CreatePullRequestRequest } from "./create"
 
 /** A GitHub project by owner and number. */
@@ -76,6 +77,8 @@ export type GitHubClient = {
 	readonly listTimeline: (issue: IssueKey) => Promise<readonly GitHubTimelineEvent[]>
 	readonly listComments: (issue: IssueKey) => Promise<readonly GitHubCommentData[]>
 	readonly listSkills: (repository: string) => Promise<readonly string[]>
+	/** The repository's `skills-lock.json`, said to be missing when it has none. */
+	readonly readSkillLock: (repository: string) => Promise<SkillLock>
 	readonly listPullRequests: (repository: string) => Promise<readonly GitHubPullRequestData[]>
 	readonly getProject: (project: ProjectRef) => Promise<GitHubProjectData>
 	readonly listProjectFields: (project: ProjectRef) => Promise<readonly GitHubProjectFieldData[]>
