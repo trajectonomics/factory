@@ -1,8 +1,8 @@
 import { deepFreeze } from "./freeze"
 import type { RequiredSkill } from "./skill-preflight"
 
-/** One skill as the curated profile pins it: its upstream source and the hash at the pinned ref. */
-export type ProfileSkill = {
+/** One skill as a source records it: its upstream source and the hash of its contents. */
+export type SkillEntry = {
 	readonly source: string
 	readonly computedHash: string
 }
@@ -12,7 +12,7 @@ export type SkillProfile = {
 	readonly version: string
 	readonly ref: string
 	readonly cli: string
-	readonly skills: Readonly<Record<RequiredSkill, ProfileSkill>>
+	readonly skills: Readonly<Record<RequiredSkill, SkillEntry>>
 }
 
 /** The command that installs the profile's pinned skills into a repository. */

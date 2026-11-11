@@ -37,10 +37,22 @@ describe("reading a skills lock", () => {
 		expect(parseSkillLock('{"version":1}')).toEqual(UNREADABLE_SKILL_LOCK)
 	})
 
-	it("says so when an entry has no hash", () => {
-		const content = lockText({ implement: { source: "mattpocock/skills" } })
+	it("leaves out an entry that is not a source and a hash", () => {
+		const content = lockText({
+			...profileSkills(),
+			"ask-matt": "not a skill entry",
+		})
 
-		expect(parseSkillLock(content)).toEqual(UNREADABLE_SKILL_LOCK)
+		expect(parseSkillLock(content)).toEqual({ kind: "locked", skills: SKILL_PROFILE.skills })
+	})
+
+	it("treats a required skill's entry that is not a source and a hash as no entry", () => {
+		const content = lockText({
+			...profileSkills(),
+			tdd: { source: "mattpocock/skills" },
+		})
+
+		expect(lockDifferences(parseSkillLock(content))).toEqual([{ kind: "no-entry", skill: "tdd" }])
 	})
 })
 

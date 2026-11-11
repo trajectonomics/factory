@@ -1,18 +1,12 @@
 import { deepFreeze } from "./freeze"
 import { REQUIRED_SKILLS, type RequiredSkill } from "./skill-preflight"
-import { SKILL_PROFILE } from "./skill-profile"
-
-/** One skill as a repository's `skills-lock.json` records it. */
-export type LockedSkill = {
-	readonly source: string
-	readonly computedHash: string
-}
+import { SKILL_PROFILE, type SkillEntry } from "./skill-profile"
 
 /** What reading a repository's `skills-lock.json` found. */
 export type SkillLock =
 	| { readonly kind: "missing" }
 	| { readonly kind: "unreadable" }
-	| { readonly kind: "locked"; readonly skills: Readonly<Record<string, LockedSkill>> }
+	| { readonly kind: "locked"; readonly skills: Readonly<Record<string, SkillEntry>> }
 
 /** A repository has no `skills-lock.json`. */
 export const NO_SKILL_LOCK: SkillLock = Object.freeze({ kind: "missing" })
@@ -32,16 +26,19 @@ export type SkillLockDifference =
 			readonly computedHash: string
 	  }
 
-/** Reads `skills-lock.json` text; content that is not a readable lock says so instead of throwing. */
+/**
+ * The skills lock read from a repository's `skills-lock.json` text, or the reason it cannot be read.
+ * Entries that are not a source and a hash are left out, so extra entries never block a matching lock.
+ */
 export function parseSkillLock(content: string): SkillLock {
 	const value = parseJson(content)
 	if (!isObject(value)) return UNREADABLE_SKILL_LOCK
 	const entries = value["skills"]
 	if (!isObject(entries)) return UNREADABLE_SKILL_LOCK
-	const skills: Record<string, LockedSkill> = {}
+	const skills: Record<string, SkillEntry> = {}
 	for (const [name, entry] of Object.entries(entries)) {
-		if (!isLockedSkill(entry)) return UNREADABLE_SKILL_LOCK
-		skills[name] = { source: entry.source, computedHash: entry.computedHash }
+		if (isSkillEntry(entry))
+			skills[name] = { source: entry.source, computedHash: entry.computedHash }
 	}
 	return deepFreeze({ kind: "locked", skills })
 }
@@ -63,7 +60,7 @@ export function repositoryLockDifferences(
 
 function skillDifference(
 	skill: RequiredSkill,
-	locked: LockedSkill | undefined,
+	locked: SkillEntry | undefined,
 ): readonly SkillLockDifference[] {
 	const expected = SKILL_PROFILE.skills[skill]
 	if (locked === undefined) return [{ kind: "no-entry", skill }]
@@ -87,7 +84,7 @@ function isObject(value: unknown): value is Readonly<Record<string, unknown>> {
 	return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 
-function isLockedSkill(value: unknown): value is LockedSkill {
+function isSkillEntry(value: unknown): value is SkillEntry {
 	return (
 		isObject(value) &&
 		typeof value["source"] === "string" &&
