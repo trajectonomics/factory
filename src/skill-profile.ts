@@ -19,10 +19,7 @@ export type SkillProfile = {
 export const PROFILE_INSTALL_COMMAND: string =
 	"npx -y --package=github:trajectonomics/internal-skills#main install-skills-profile"
 
-/**
- * The pin in `internal-skills/profiles/factory.json`, read by installing the three skills at its ref with
- * `skills@1.7.6 experimental_sync`. Bump it in one Factory pull request, as `docs/skill-preflight.md` describes.
- */
+/** The pin from `internal-skills/profiles/factory.json`, with the hash each required skill has at that ref. */
 export const SKILL_PROFILE: SkillProfile = deepFreeze({
 	version: "v1.3.2",
 	ref: "d1478fcb140db0b93c0c8df17bcfd311844749d0",

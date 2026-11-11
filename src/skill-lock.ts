@@ -26,11 +26,9 @@ export type SkillLockDifference =
 			readonly computedHash: string
 	  }
 
-/**
- * The skills lock read from a repository's `skills-lock.json` text, or the reason it cannot be read.
- * Entries that are not a source and a hash are left out, so extra entries never block a matching lock.
- */
+/** The skills lock read from a repository's `skills-lock.json` text, or the reason it cannot be read. */
 export function parseSkillLock(content: string): SkillLock {
+	// An entry that is not a source and a hash is left out, so an extra entry cannot block a matching lock.
 	const value = parseJson(content)
 	if (!isObject(value)) return UNREADABLE_SKILL_LOCK
 	const entries = value["skills"]
