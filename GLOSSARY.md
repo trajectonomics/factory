@@ -58,6 +58,10 @@ _Avoid_: Ready, pickable
 The scheduled job, every 6 hours, that finds eligible work, reconciles stale Claims, launches Runs, and applies the owner's words to Ideas.
 _Avoid_: Scheduler, orchestrator, cron
 
+**Owner assistant**:
+A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, asks the owner the key questions, and walks the owner through the steps only a human can do. It never approves and never touches a host or a cloud platform.
+_Avoid_: Reminder, notifier, bot
+
 **Pass**:
 One run of the Dispatcher, from the previous-pass check to the report. A pass does work only when the pass before it settled or waits for the owner; it settles without work while that pass is still working, and it settles and sends that pass back to its root cause when it failed ([ADR 0014](./docs/adr/0014-one-pass-at-a-time.md)).
 _Avoid_: Round, cycle, tick
