@@ -70,7 +70,7 @@ export type DispatchReading = {
 	readonly ledger: DispatchLedger
 	/** The skills installed under `.agents/skills`, by repository; when given, skill preflight applies. */
 	readonly skills?: Readonly<Record<string, readonly string[]>>
-	/** The skills lock of each repository; when given, the lock rule of skill preflight applies. */
+	/** The skills lock of each repository; when given with `skills`, the lock rule of skill preflight applies. */
 	readonly skillLocks?: Readonly<Record<string, SkillLock>>
 	readonly nowMs: number
 }
