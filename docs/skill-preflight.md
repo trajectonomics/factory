@@ -24,7 +24,8 @@ planDispatch(reading with skills and skillLocks)
                                        writes: a comment keyed preflight:skills-lock naming each skill and
                                                what differs, plus the fix command, and needs-info
   repository matches the profile    -> launches as before
-reading without skills or skillLocks -> that rule does not apply (library callers that do not supply them)
+reading without skills              -> no preflight (library callers that do not supply it)
+reading with skills, no skillLocks  -> the folder rule only (library callers that do not supply locks)
 ```
 
 The folder check decides first: a repository without the skill folders gets the install message and not two

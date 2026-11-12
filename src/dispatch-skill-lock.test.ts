@@ -118,6 +118,17 @@ describe("skill lock preflight", () => {
 		expect(plan.deferrals).toEqual([{ issue: key(4), reason: "skills-lock-mismatch" }])
 	})
 
+	it("does not apply the lock rule when the reading has no skill listing", () => {
+		const plan = planDispatch(
+			reading({ state: state([approved(4)]), skillLocks: { [CLI]: NO_SKILL_LOCK } }),
+			config(),
+		)
+
+		expect(plan.launches).toHaveLength(1)
+		expect(plan.deferrals).toEqual([])
+		expect(plan.writes).toEqual([])
+	})
+
 	it("does not apply the lock rule when the reading has no locks", () => {
 		const plan = planDispatch(
 			reading({ state: state([approved(4)]), skills: { [CLI]: ALL } }),

@@ -74,13 +74,15 @@ function deferralFor(
 			: "schedule-disabled"
 	}
 	const skills = input.reading.skills
-	if (skills !== undefined && lacksRequiredSkills(skills, issue.repository)) return "skills-missing"
-	const skillLocks = input.reading.skillLocks
-	if (
-		skillLocks !== undefined &&
-		repositoryLockDifferences(skillLocks, issue.repository).length > 0
-	) {
-		return "skills-lock-mismatch"
+	if (skills !== undefined) {
+		if (lacksRequiredSkills(skills, issue.repository)) return "skills-missing"
+		const skillLocks = input.reading.skillLocks
+		if (
+			skillLocks !== undefined &&
+			repositoryLockDifferences(skillLocks, issue.repository).length > 0
+		) {
+			return "skills-lock-mismatch"
+		}
 	}
 	if (paceReached(input.config, launchCount)) return "launch-pace"
 	return repositoryReason(issue.repository, input, selectedRepositories)
