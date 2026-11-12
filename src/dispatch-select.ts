@@ -11,6 +11,7 @@ import { dispatchRequest } from "./dispatch-request"
 import { deepFreeze } from "./freeze"
 import { issueOfRun } from "./keys"
 import { evaluateKillSwitch } from "./kill-switch"
+import { repositoryLockDifferences } from "./skill-lock"
 import { lacksRequiredSkills } from "./skill-preflight"
 
 /** The eligibility results and pass state the selection reads. */
@@ -73,7 +74,16 @@ function deferralFor(
 			: "schedule-disabled"
 	}
 	const skills = input.reading.skills
-	if (skills !== undefined && lacksRequiredSkills(skills, issue.repository)) return "skills-missing"
+	if (skills !== undefined) {
+		if (lacksRequiredSkills(skills, issue.repository)) return "skills-missing"
+		const skillLocks = input.reading.skillLocks
+		if (
+			skillLocks !== undefined &&
+			repositoryLockDifferences(skillLocks, issue.repository).length > 0
+		) {
+			return "skills-lock-mismatch"
+		}
+	}
 	if (paceReached(input.config, launchCount)) return "launch-pace"
 	return repositoryReason(issue.repository, input, selectedRepositories)
 }

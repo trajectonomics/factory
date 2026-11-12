@@ -1,5 +1,7 @@
 import type { IssueKey, IssueState, RepositoryState } from "../contracts"
 import type { DispatchConfig, DispatchReading, HostSnapshot } from "../dispatch-contracts"
+import type { SkillLock } from "../skill-lock"
+import { SKILL_PROFILE } from "../skill-profile"
 
 export const NOW_MS = 1_000_000_000
 export const CLI = "trajectonomics/cli"
@@ -58,6 +60,11 @@ export function reading(overrides: Partial<DispatchReading> = {}): DispatchReadi
 		...overrides,
 	}
 }
+/** A skills lock that matches the curated profile for every required skill. */
+export function matchingLock(): SkillLock {
+	return { kind: "locked", skills: { ...SKILL_PROFILE.skills } }
+}
+
 export function config(overrides: Partial<DispatchConfig> = {}): DispatchConfig {
 	return {
 		mode: "live",

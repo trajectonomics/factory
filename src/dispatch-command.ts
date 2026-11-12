@@ -9,10 +9,12 @@ import { runDispatchPass } from "./dispatch-pass"
 import type { DispatchAdapters, DispatchPassResult } from "./dispatch-pass-contracts"
 import type { GitHubClient } from "./github/client"
 import { readRepositoryState } from "./github/read"
+import { readRepositorySkillLocks } from "./github/read-skill-locks"
 import { readRepositorySkills } from "./github/read-skills"
 import type { FactoryWrite } from "./github/writes"
 import type { HumanQueue } from "./human-queue"
 import type { KillSwitch } from "./kill-switch"
+import type { SkillLock } from "./skill-lock"
 import type { T3Client, T3LaunchRequest, T3Thread } from "./t3"
 import { listLiveThreads } from "./t3-adapter"
 
@@ -26,6 +28,8 @@ export type DispatchCommandInput = {
 	readonly ledger?: DispatchLedger
 	/** The skills installed per repository; read from GitHub when the caller supplies none. */
 	readonly skills?: Readonly<Record<string, readonly string[]>>
+	/** The skills lock per repository; read from GitHub when the caller supplies none. */
+	readonly skillLocks?: Readonly<Record<string, SkillLock>>
 	readonly nowMs: number
 	readonly applyWrites: (writes: readonly FactoryWrite[]) => Promise<void>
 	readonly launch: (request: T3LaunchRequest, host: string) => Promise<T3Thread>
@@ -47,6 +51,7 @@ export async function dispatchCommand(
 		killSwitch: input.killSwitch,
 		ledger: input.ledger ?? (await readDispatchLedger(client, t3, input.repositories, input.nowMs)),
 		skills: input.skills ?? (await readRepositorySkills(client, input.repositories)),
+		skillLocks: input.skillLocks ?? (await readRepositorySkillLocks(client, input.repositories)),
 		nowMs: input.nowMs,
 	}
 	const adapters: DispatchAdapters = {

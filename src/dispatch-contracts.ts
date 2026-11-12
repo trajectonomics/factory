@@ -2,6 +2,7 @@ import type { Allowlist, IssueKey, RepositoryState } from "./contracts"
 import type { HostHealth, HostThresholds } from "./host-guard"
 import type { HumanQueue } from "./human-queue"
 import type { KillSwitch } from "./kill-switch"
+import type { SkillLock } from "./skill-lock"
 import type { T3Model } from "./t3"
 
 /** Whether the Dispatcher applies its decisions or only prints them. */
@@ -69,6 +70,8 @@ export type DispatchReading = {
 	readonly ledger: DispatchLedger
 	/** The skills installed under `.agents/skills`, by repository; when given, skill preflight applies. */
 	readonly skills?: Readonly<Record<string, readonly string[]>>
+	/** The skills lock of each repository; when given with `skills`, the lock rule of skill preflight applies. */
+	readonly skillLocks?: Readonly<Record<string, SkillLock>>
 	readonly nowMs: number
 }
 /** What the Dispatcher may do, and the thresholds it applies. */

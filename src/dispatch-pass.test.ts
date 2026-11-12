@@ -3,8 +3,9 @@ import { CLAIM_LEASE_MS } from "./claim"
 import type { DispatchReading } from "./dispatch-contracts"
 import { runDispatchPass } from "./dispatch-pass"
 import type { DispatchAdapters } from "./dispatch-pass-contracts"
-import { approved, config, key, NOW_MS, reading, state } from "./fixtures/dispatch"
+import { approved, CLI, config, key, NOW_MS, reading, state } from "./fixtures/dispatch"
 import type { FactoryWrite } from "./github/writes"
+import { NO_SKILL_LOCK } from "./skill-lock"
 import type { T3LaunchRequest, T3Thread } from "./t3"
 
 const THREAD: T3Thread = {
@@ -83,6 +84,21 @@ describe("a Dispatcher pass", () => {
 		expect(fake.printed.some((line) => line.startsWith("launch trajectonomics/cli#4"))).toBe(true)
 		expect(fake.printed.some((line) => line.startsWith("Runs"))).toBe(true)
 		expect(fake.printed).toContain("guard schedule: allowed")
+	})
+
+	it("prints the deferral reason when a repository's skills lock differs", async () => {
+		const fake = recorder(
+			reading({
+				state: state([approved(4)]),
+				skills: { [CLI]: ["implement", "tdd", "code-review"] },
+				skillLocks: { [CLI]: NO_SKILL_LOCK },
+			}),
+		)
+
+		await runDispatchPass(fake.adapters, config({ mode: "dry-run" }))
+
+		expect(fake.printed).toContain("defer trajectonomics/cli#4: skills-lock-mismatch")
+		expect(fake.printed.some((line) => line.includes('"preflight:skills-lock"'))).toBe(true)
 	})
 
 	it("applies reconciliation, then the Claim, then launches in live mode", async () => {
