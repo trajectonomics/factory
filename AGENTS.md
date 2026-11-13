@@ -16,6 +16,10 @@ Instructions for AI coding agents in `trajectonomics/factory` (`@trajectonomics/
 8. Factory rules live in this repo (`docs/dispatcher-runbook.md`, `GLOSSARY.md`, `docs/adr/`), never in agent memory or in a scheduled task's prompt. To change a rule, change the repo.
 9. Temporary files and clones: `/tmp` is a shared, nearly full tmpfs. Never use fixed `/tmp` filenames (`--body-file /tmp/pr-body.md` collides across concurrent Runs) or install `node_modules` under `/tmp`; use `mktemp` (cleaning up) or stdin (`--body-file -`) for `gh` bodies, and clone scratch repos into `~/.cache/<slug>`.
 
+## Organisation goals
+
+The organisation's goals are in https://github.com/trajectonomics/goals, `GOALS.md`. Read them before proposing a new direction. Only the owner edits that file; never edit it.
+
 ## Scope
 
 The Factory reads GitHub issues and the org Project's roadmap fields (milestones, Initiatives, dates; ADR 0016), and writes branches, pull requests, issues, comments, labels and board Status. It never reads Status. It never changes a host or a cloud platform. Those stay with the owner; see `trajectonomics/infra` ADR 0005. A Run merges its own pull request as the last step of its loop; there is no merge gate (ADR 0015), the owner's gate is the Spec question. Who may approve is defined in the Approval entry of `GLOSSARY.md` (ADR 0007).
