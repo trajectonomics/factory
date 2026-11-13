@@ -37,7 +37,7 @@ _Avoid_: Questions, TBDs
 ### Authority
 
 **Approval**:
-Labelling a Spec or Ticket `ready-for-agent`. Done on the owner's word, or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)); for a Spec that began as an Idea, "nothing left" always includes the owner's explicit yes ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)). The Dispatcher and Runs never approve, and `wontfix` is added only on the owner's word.
+Labelling a Spec or Ticket `ready-for-agent`. Done on the owner's word (a comment by the Owner account, or when the owner explicitly tells an agent in a thread to label it or says yes to marking it `ready-for-agent`), or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md), which limits autonomous approval without the owner's word to the drafter thread); for a Spec that began as an Idea, "nothing left" always includes the owner's explicit yes ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)). The Dispatcher and Runs never approve, and `wontfix` is added only on the owner's word.
 _Avoid_: Opt-in, sign-off, go-ahead
 
 **Owner**:
@@ -59,7 +59,7 @@ The scheduled job, every 6 hours, that finds eligible work, reconciles stale Cla
 _Avoid_: Scheduler, orchestrator, cron
 
 **Owner assistant**:
-A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, asks the owner the key questions, and walks the owner through the steps only a human can do. It never approves and never touches a host or a cloud platform.
+A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, asks the owner the key questions, and walks the owner through the steps only a human can do. It never approves on its own judgement (adding `ready-for-agent` only when the owner explicitly says yes to marking it `ready-for-agent` or tells the assistant to label it) and never touches a host or a cloud platform.
 _Avoid_: Reminder, notifier, bot
 
 **Pass**:

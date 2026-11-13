@@ -10,8 +10,11 @@ Instructions for AI coding agents in `trajectonomics/factory` (`@trajectonomics/
 4. Bun only: `bun install`, `bun test`, `bun run <script>`. Do not add npm/pnpm/yarn lockfiles.
 5. Done means `bun run check` passes (Biome lint with zero warnings, strict typecheck, tests, build, publint + are-the-types-wrong). `bun run format` fixes formatting and import order. Do not loosen `tsconfig.base.json` or `biome.json` to make an error go away.
 6. Never edit `version` in `package.json`. This package is never published. PR titles are conventional commits (`feat:`, `fix:`, `feat!:` ...) because CI validates them.
-7. Pi (`pi.dev`) model restriction: When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
+7. Model & Pi (`pi.dev`) rules:
+   - Never use `gemini-3.8-flash` anywhere; use `gemini-4-hydrogen` instead for Antigravity tasks and reviews (and `gemini-4-argon` where configured).
+   - When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
 8. Factory rules live in this repo (`docs/dispatcher-runbook.md`, `GLOSSARY.md`, `docs/adr/`), never in agent memory or in a scheduled task's prompt. To change a rule, change the repo.
+9. Temporary files and clones: `/tmp` is a shared, nearly full tmpfs. Never use fixed `/tmp` filenames (`--body-file /tmp/pr-body.md` collides across concurrent Runs) or install `node_modules` under `/tmp`; use `mktemp` (cleaning up) or stdin (`--body-file -`) for `gh` bodies, and clone scratch repos into `~/.cache/<slug>`.
 
 ## Scope
 
@@ -19,7 +22,7 @@ The Factory reads GitHub issues and the org Project's roadmap fields (milestones
 
 ## Owner
 
-Before a thread asks the owner a question, asks for a decision, or stops for them, read [`docs/owner-preferences.md`](docs/owner-preferences.md). When the owner gives you a lesson, write it in that file (or the runbook) in a pull request, not in agent memory. When your work is done and the owner has nothing left to do, merge, then settle your own thread.
+Read [`docs/owner-preferences.md`](docs/owner-preferences.md) before asking the owner a question, stopping for a decision, or reporting status. In short: finish end-to-end (including `gh pr merge` when green/told and settling your own thread when done), consult subagents on other models when unsure instead of asking the owner, verify live GitHub state and schemas first, keep messages short, and record every durable lesson in this repository rather than in agent memory.
 
 ## Agent skills
 
