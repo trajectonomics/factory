@@ -37,7 +37,7 @@ _Avoid_: Questions, TBDs
 ### Authority
 
 **Approval**:
-Labelling a Spec or Ticket `ready-for-agent`. Done on the owner's word, or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)); for a Spec that began as an Idea, "nothing left" always includes the owner's explicit yes ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)). The Dispatcher and Runs never approve, and `wontfix` is added only on the owner's word.
+Labelling a Spec or Ticket `ready-for-agent`. Done on the owner's word (a comment by the Owner account, or the owner's explicit yes in an owner-assistant thread), or by a Spec drafter whose finished draft leaves nothing for the owner to decide ([ADR 0007](./docs/adr/0007-spec-drafter-can-approve.md)); for a Spec that began as an Idea, "nothing left" always includes the owner's explicit yes ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)). The Dispatcher and Runs never approve, and `wontfix` is added only on the owner's word.
 _Avoid_: Opt-in, sign-off, go-ahead
 
 **Owner**:
