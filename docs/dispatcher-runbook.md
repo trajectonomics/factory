@@ -90,12 +90,12 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
 
 An unsettled thread tells the owner and the next pass that something there still needs attention. On 2026-11-10 the owner found about 250 unsettled threads: reviewer children of Runs that were long finished, five dead Runs that a relaunch had replaced, four launches that failed within seconds, and duplicates from two Dispatchers launching the same issue minutes apart. Nobody could tell which of them mattered. Settle what is finished and leave unsettled only what waits for someone.
 
-Settle a Run, draft, owner-assistant or rollout thread (`t3_thread_organize` with `action: settle`, and the `environmentId` of its host) when any of these holds:
+Settle a Run, draft, owner-assistant or rollout thread (`t3_thread_organize` with `action: settle`, and the `environmentId` of its host) when none of the leave-unsettled conditions below apply and any of these holds:
 
 - its status is `failed` or `interrupted`;
 - it is `completed` and its pull request is merged or closed;
 - it is `completed` with no pull request, and its issue is closed, or its Claim was released, or a relaunch replaced it (a dead Run, a duplicate);
-- it is a Spec draft that finished with `DRAFT` (unless its issue carries `needs-info` or `ready-for-human`), or a Spec draft that is `completed` or `idle` with no `DRAFT` line and no `ASKING` line;
+- it is a Spec draft that finished with `DRAFT`, or a Spec draft that is `completed` or `idle` with no `DRAFT` line and no `ASKING` line;
 - it is an owner-assistant thread whose last line is `ASSIST` with `0 waiting on owner`, or whose every issue has lost `ready-for-human` or is closed.
 
 Leave a thread unsettled when it is `running`, `waiting` or `queued`, when its pull request is open and waits for the owner (a draft or a gate failure), when it is a `completed` or `idle` draft thread whose last message ends with an `ASKING` line without a later `DRAFT` line, when it is an owner-assistant thread that still has an issue waiting on the owner, or when its issue carries `needs-info` or `ready-for-human`. Review and consult children of a thread are settled with their parent and need no call of their own.
