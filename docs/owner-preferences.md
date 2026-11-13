@@ -8,6 +8,7 @@ How the owner works with the Factory, taken from their own messages in Run, Spec
 - Use the `grill-with-docs` shape: numbered questions, each with its context, why it matters, and a recommended answer. The owner had to ask for it in factory#10 ("ask me with $grill-with-docs"), again in factory#50 and docs#31, then answered "yes to all".
 - Use plain words and define each term once. "Put it in more simple term" (cli#7, docs#31) and "tell me again what id trial balance" (cli#7) each cost a round.
 - Ask only the key directional questions. Settle the rest with the recommended answer and say so ("only ask me the key important question only", sim-core#6, ledger-core#14).
+- Keep messages short: tell the owner only what they must do, plus a short summary. Give detail only when they ask ("only tell me what I need to do", docs Workers Builds setup, 2026-11-13).
 
 ## Decide
 
