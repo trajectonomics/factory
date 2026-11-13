@@ -38,7 +38,7 @@
 		},
 		{
 			"content": {
-				"body": "A draft item body can be long.\nIt can run for many lines.\nThe Roadmap must never carry it.\nThis line exists only to make the body long enough to notice if it leaks.\nSTRANGER-BODY: draft body text.",
+				"body": "A draft item body can be long.\nIt can run for many lines.\nThe Roadmap must never carry it.\nThis line exists only to make the body long enough to notice if it leaks.\nIt also has a heading.\n\n## Notes\n\nA draft item holds the owner's sequencing notes, not roadmap fields.\nThe body can mention a milestone title and a date without those becoming roadmap fields.\nIt can quote a status such as In progress.\nIt can name a repository such as trajectonomics/cli.\nNone of that may reach the projection.\nThe row is kept because it is a DraftIssue, not because of its body.\nIts title is safe because only someone with write access to the Project can create a draft.\nSTRANGER-BODY: draft body text.",
 				"id": "PVTI_roadmap_draft_content",
 				"title": "G1 checkpoint (10 Dec 2026)",
 				"type": "DraftIssue"

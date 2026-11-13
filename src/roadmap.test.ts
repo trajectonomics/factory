@@ -93,6 +93,8 @@ describe("the Roadmap projection in the next steps runbook", () => {
 		const keys = [...new Set(rows.flatMap((row) => Object.keys(row)))].sort()
 		const text = JSON.stringify(rows)
 
+		expect(rows).toHaveLength(2)
+		expect(rows.map((row) => row["repository"])).not.toContain("trajectonomics/money")
 		expect(keys.filter((key) => ["body", "status", "title"].includes(key))).toEqual([])
 		expect(text).not.toContain("STRANGER-TITLE")
 		expect(text).not.toContain("STRANGER-BODY")
