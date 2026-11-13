@@ -19,7 +19,7 @@ The Factory reads GitHub issues and the org Project's roadmap fields (milestones
 
 ## Owner
 
-Before a thread asks the owner a question, asks for a decision, or stops for them, read [`docs/owner-preferences.md`](docs/owner-preferences.md).
+Before a thread asks the owner a question, asks for a decision, or stops for them, read [`docs/owner-preferences.md`](docs/owner-preferences.md). When the owner gives you a lesson, write it in that file (or the runbook) in a pull request, not in agent memory. When your work is done and the owner has nothing left to do, merge, then settle your own thread.
 
 ## Agent skills
 
