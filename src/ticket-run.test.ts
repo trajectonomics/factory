@@ -75,7 +75,7 @@ describe("planning a Ticket Run", () => {
 			"Conformance Review on claudeAgent/claude-sonnet-5-5: t3-thread://conformance-1 - no findings, 2 findings fixed",
 		)
 		expect(pullRequest.body).toContain(
-			"Standards Review on antigravity/gemini-3.8-flash: t3-thread://standards-1 - no findings, 1 findings fixed",
+			"Standards Review on antigravity/gemini-4-hydrogen: t3-thread://standards-1 - no findings, 1 findings fixed",
 		)
 		expect(pullRequest.labels).toEqual(["factory"])
 		expect(writeOf(plan, "label")).toEqual({

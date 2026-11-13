@@ -13,7 +13,7 @@ export const GATE_REVIEWS: readonly GateReviewEvidence[] = [
 	{
 		role: "Standards Review",
 		provider: "antigravity",
-		model: "gemini-3.8-flash",
+		model: "gemini-4-hydrogen",
 		thread: "t3-thread://standards-1",
 		verdict: "no findings",
 		findingsFixed: 1,
