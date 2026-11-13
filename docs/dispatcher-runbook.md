@@ -95,10 +95,10 @@ Settle a Run, draft, owner-assistant or rollout thread (`t3_thread_organize` wit
 - its status is `failed` or `interrupted`;
 - it is `completed` and its pull request is merged or closed;
 - it is `completed` with no pull request, and its issue is closed, or its Claim was released, or a relaunch replaced it (a dead Run, a duplicate);
-- it is a Spec draft that finished with `DRAFT` and the issue is `ready-for-agent`, or a Spec draft in any non-live status (`completed`, `idle`, `failed`, `interrupted`) with no `DRAFT` line and no `ASKING` line;
+- it is a Spec draft that finished with `DRAFT` (unless its issue carries `needs-info` or `ready-for-human`), or a Spec draft that is `completed` or `idle` with no `DRAFT` line and no `ASKING` line;
 - it is an owner-assistant thread whose last line is `ASSIST` with `0 waiting on owner`, or whose every issue has lost `ready-for-human` or is closed.
 
-Leave a thread unsettled when it is `running`, `waiting` or `queued`, when its pull request is open and waits for the owner (a draft or a gate failure), when it is a draft thread whose last message ends with an `ASKING` line without a later `DRAFT` line, when it is an owner-assistant thread that still has an issue waiting on the owner, or when its issue carries `needs-info` or `ready-for-human`. Review and consult children of a thread are settled with their parent and need no call of their own.
+Leave a thread unsettled when it is `running`, `waiting` or `queued`, when its pull request is open and waits for the owner (a draft or a gate failure), when it is a `completed` or `idle` draft thread whose last message ends with an `ASKING` line without a later `DRAFT` line, when it is an owner-assistant thread that still has an issue waiting on the owner, or when its issue carries `needs-info` or `ready-for-human`. Review and consult children of a thread are settled with their parent and need no call of their own.
 
 Settle in step 10, after the sweep; that includes the threads of Claims released in step 2. Never settle a live thread, and never interrupt one to settle it.
 
