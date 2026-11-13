@@ -42,7 +42,7 @@ Find each repository's T3 project on a host with `t3_project_list` (pass `enviro
 | homeserver2 | ready | the environment the Dispatcher runs on |
 | homeserver1 | ready | Verified (2026-11-08): gh auth logged in as fromsukong, bun 1.4.4, pi CLI with deepseek-v4.1-flash, claude, git status clean across all 8 clones, 178 GB free disk, smoke test passed. |
 
-Prerequisites for `ready`: `git` and SSH to GitHub as the owner, `gh` logged in, `bun` on `PATH`, the `pi` CLI with the Command Code route for `command-code/deepseek/deepseek-v4.1-flash`, `claude`, about 5 GB free disk for each worktree, and the T3 server reachable.
+Prerequisites for `ready`: `git` and SSH to GitHub as the owner, `gh` logged in with the `project` scope (or `read:project`) for the Roadmap read, `bun` on `PATH`, the `pi` CLI with the Command Code route for `command-code/deepseek/deepseek-v4.1-flash`, `claude`, about 5 GB free disk for each worktree, and the T3 server reachable.
 
 Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homeserver1**. Find their environment ids with `t3_environment_links` (match `label`) and `t3_environment_read`. See [ADR 0004](./adr/0004-balance-runs-across-homeservers.md).
 

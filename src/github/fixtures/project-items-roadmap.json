@@ -1,0 +1,55 @@
+{
+	"items": [
+		{
+			"content": {
+				"body": "STRANGER-BODY: written by someone outside the Factory; the Roadmap must never carry it.",
+				"number": 501,
+				"repository": "trajectonomics/cli",
+				"title": "STRANGER-TITLE: an issue title a stranger wrote",
+				"type": "Issue",
+				"url": "https://github.com/trajectonomics/cli/issues/501"
+			},
+			"id": "PVTI_roadmap_milestone",
+			"initiative": "CLI + skill",
+			"labels": ["enhancement"],
+			"milestone": {
+				"title": "Launch: traj + agent skill",
+				"description": "Ship the first CLI and skill release.",
+				"dueOn": "2026-11-23"
+			},
+			"repository": "https://github.com/trajectonomics/cli",
+			"status": "In progress",
+			"title": "STRANGER-TITLE: an issue title a stranger wrote"
+		},
+		{
+			"content": {
+				"body": "STRANGER-BODY: not part of the Roadmap.",
+				"number": 502,
+				"repository": "trajectonomics/money",
+				"title": "STRANGER-TITLE: an unrelated issue",
+				"type": "Issue",
+				"url": "https://github.com/trajectonomics/money/issues/502"
+			},
+			"id": "PVTI_roadmap_none",
+			"labels": [],
+			"repository": "https://github.com/trajectonomics/money",
+			"status": "Backlog",
+			"title": "STRANGER-TITLE: an unrelated issue"
+		},
+		{
+			"content": {
+				"body": "A draft item body can be long.\nIt can run for many lines.\nThe Roadmap must never carry it.\nThis line exists only to make the body long enough to notice if it leaks.\nIt also has a heading.\n\n## Notes\n\nA draft item holds the owner's sequencing notes, not roadmap fields.\nThe body can mention a milestone title and a date without those becoming roadmap fields.\nIt can quote a status such as In progress.\nIt can name a repository such as trajectonomics/cli.\nNone of that may reach the projection.\nThe row is kept because it is a DraftIssue, not because of its body.\nIts title is safe because only someone with write access to the Project can create a draft.\nSTRANGER-BODY: draft body text.",
+				"id": "PVTI_roadmap_draft_content",
+				"title": "G1 checkpoint (10 Dec 2026)",
+				"type": "DraftIssue"
+			},
+			"id": "PVTI_roadmap_draft",
+			"initiative": "Desktop + web app",
+			"start date": "2026-11-24",
+			"status": "Backlog",
+			"target date": "2026-12-10",
+			"title": "G1 checkpoint (10 Dec 2026)"
+		}
+	],
+	"totalCount": 3
+}
