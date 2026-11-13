@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The sentence that the Factory never sets `ready-for-agent` is amended by [ADR 0007](./0007-spec-drafter-can-approve.md): a Spec drafter may.
+Accepted. The sentence that the Factory never sets `ready-for-agent` is amended by [ADR 0007](./0007-spec-drafter-can-approve.md): a Spec drafter may. The sentence that the Factory never reads the board is amended by [ADR 0016](./0016-roadmap-is-read-from-the-org-project.md) for the roadmap fields only: `Status` is still never read.
 
 ## Context
 

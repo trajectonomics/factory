@@ -104,7 +104,11 @@ _Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triag
 
 **Goals**:
 The organisation's written purpose, kept as `GOALS.md` in `trajectonomics/goals`. The Next-step finder and Screening judge alignment against it, and agents never edit it.
-_Avoid_: Vision, roadmap, strategy
+_Avoid_: Vision, strategy. The schedule is the Roadmap, not the Goals.
+
+**Roadmap**:
+The milestones, Initiatives and dates the owner keeps in the org Project, read by the Next-step finder and Screening as direction next to the Goals. It never decides what is Eligible and never reads `Status` ([ADR 0016](./docs/adr/0016-roadmap-is-read-from-the-org-project.md)).
+_Avoid_: Plan, board, backlog
 
 **Idea**:
 An issue the Next-step finder files for a repository, carrying `idea`: a machine-made suggestion for what to do next that the owner has not read. It stays an Idea until Screening passes it or the owner speaks.
