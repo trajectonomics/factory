@@ -59,7 +59,7 @@ The scheduled job, every 6 hours, that finds eligible work, reconciles stale Cla
 _Avoid_: Scheduler, orchestrator, cron
 
 **Owner assistant**:
-A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, asks the owner the key questions, and walks the owner through the steps only a human can do. It never approves and never touches a host or a cloud platform.
+A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, asks the owner the key questions, and walks the owner through the steps only a human can do. It never approves on its own judgement (adding `ready-for-agent` only on the owner's explicit word) and never touches a host or a cloud platform.
 _Avoid_: Reminder, notifier, bot
 
 **Pass**:

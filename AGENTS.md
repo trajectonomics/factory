@@ -22,13 +22,7 @@ The Factory reads GitHub issues and the org Project's roadmap fields (milestones
 
 ## Owner
 
-Save the owner's attention:
-
-- Before a thread asks the owner a question, asks for a decision, or stops for them, read [`docs/owner-preferences.md`](docs/owner-preferences.md).
-- Handle everything agents can finish end-to-end (commit, push, PR, independent review, `gh pr merge` when green/told to proceed, follow-up steps). Never stop partway with a `## Not done yet` list or small permission questions, and never nag about out-of-scope owner tasks in other repos.
-- When unsure, consult subagents on other models (`claude-sonnet-5-5`, `gemini-4-hydrogen`, `gemini-4-argon`, `deepseek-v4.1-flash`) instead of asking the owner. Escalate to the owner only for genuinely important, hard-to-reverse, product/policy, or human-only (accounts, credentials, browser/UI) decisions.
-- Check live GitHub state (`gh issue view`, `gh pr view`) and CLI/API schemas before claiming something is blocked or unsupported. Keep owner replies short: lead with what only the owner must do.
-- When the owner gives you a lesson, write it in [`docs/owner-preferences.md`](docs/owner-preferences.md) (or the runbook / `AGENTS.md`) in a pull request, never in agent local memory. When your work is done and the owner has nothing left to do, merge, then settle your own thread (`t3_thread_organize`, `action: "settle"`).
+Read [`docs/owner-preferences.md`](docs/owner-preferences.md) before asking the owner a question, stopping for a decision, or reporting status. In short: finish end-to-end (including `gh pr merge` when green/told and settling your own thread when done), consult subagents on other models when unsure instead of asking the owner, verify live GitHub state and schemas first, keep messages short, and record every durable lesson in this repository rather than in agent memory.
 
 ## Agent skills
 

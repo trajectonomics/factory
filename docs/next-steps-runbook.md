@@ -65,7 +65,7 @@ The scheduled thread is a launcher, like the Dispatcher. It does one run, then s
 4. **Launch one thread per repository of the quarter**, on the host chosen as in the dispatcher runbook, step 7, in that repository's T3 project:
    - `title`: `idea/trajectonomics/<repo>`; `clientRequestId`: `idea-<repo>-<yyyymmdd>`;
    - `runtimeMode`: `full-access`;
-   - `modelSelection`: provider `antigravity`, instance `antigravity`, model `gemini-4-hydrogen`, option `thinking_level: high` (never use `gemini-3.8-flash`);
+   - `modelSelection`: provider `antigravity`, instance `antigravity`, model `gemini-4-hydrogen`, option `thinking_level: high`;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `idea/<yyyymmdd>-<repo>` (the branch is never pushed).
    - The message is the Launch message below.
 5. **Report** in under 10 lines: guards, the quarter, threads launched (repository, host, thread link), postponed Ideas returned, and the idea count against 12 and 24. Do not wait for the threads.
