@@ -14,6 +14,7 @@ How the owner works with the Factory, taken from their own messages in Run, Spec
 - Take the recommended answer when it is safe and reversible, and report it. Every owner reply from 2026-11-10 to 2026-11-12 accepted the recommendation.
 - Apply the owner's stated rules without asking again: "we do not have any client for now" means a breaking change is fine (sim-core#14).
 - Quote your reading of a broad answer in one line, so the owner can correct it ("make it all eligible" in cicd#14 became three named repositories).
+- Keep the company and the owner apart. Anything the Factory sets up or names for Trajectonomics must carry the company name, never the owner's personal login or name: the `workers.dev` subdomain showed `fromsukong`, and the owner said "this is not ok" (docs Workers Builds setup, 2026-11-13). When a setup step would use a personal name or account, say so and ask for the company one.
 
 ## Finish
 
