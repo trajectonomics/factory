@@ -1,6 +1,6 @@
 # Factory
 
-The system that turns a human's approved Specs and Tickets into green, reviewed pull requests without a human watching, and brings the human back only for decisions. It reads GitHub issues and writes branches, pull requests, issues and comments. It never changes a host or a cloud platform.
+The system that turns a human's approved Specs and Tickets into green, reviewed pull requests without a human watching, and brings the human back only for an Owner call. It reads GitHub issues and writes branches, pull requests, issues and comments. It never changes a host or a cloud platform.
 
 ## Language
 
@@ -23,11 +23,15 @@ A `ready-for-human` Ticket a Run files for work only a human can do, so the Run'
 _Avoid_: Todo, blocker ticket
 
 **Spec draft**:
-A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter first asks the owner its questions in its own thread, grill style, and never on the issue. It is Approval when the conditions in step 5 of its brief hold, and the drafter then labels the issue `ready-for-agent`. Otherwise the issue keeps its state and the drafter asks the owner in its thread. There is no review label ([ADR 0010](./docs/adr/0010-retire-needs-spec-review.md)).
+A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter makes its Owner calls in its own thread, never on the issue. It is Approval when the conditions in step 5 of its brief hold, and the drafter then labels the issue `ready-for-agent`. Otherwise the issue keeps its state and the drafter asks in its thread. There is no review label ([ADR 0010](./docs/adr/0010-retire-needs-spec-review.md)).
 _Avoid_: Proposal, generated ticket
 
+**Owner call**:
+One message to the owner that asks only what the owner alone can decide or do, written so a yes accepts the recommendation.
+_Avoid_: Status update, survey, permission question, clarification
+
 **Owner question**:
-A question a Spec drafter puts to the owner in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Sonnet 5.5 high, Argon 4 medium) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted). It is written to be answered cold: context, why it matters, the consultants' views, a recommendation.
+An Owner call a Spec drafter makes in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Sonnet 5.5 high, Argon 4 medium) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted).
 _Avoid_: Clarification, blocker
 
 **Open Decisions**:
@@ -59,7 +63,7 @@ The scheduled job, every 6 hours, that finds eligible work, reconciles stale Cla
 _Avoid_: Scheduler, orchestrator, cron
 
 **Owner assistant**:
-A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, asks the owner the key questions, and walks the owner through the steps only a human can do. It never approves on its own judgement (adding `ready-for-agent` only when the owner explicitly says yes to marking it `ready-for-agent` or tells the assistant to label it) and never touches a host or a cloud platform.
+A `claudeAgent` thread (`assist/<group>`) the Dispatcher starts when it runs out of work that waits on anything but the owner. It explains a group of `ready-for-human` issues in plain words, makes the Owner calls for that group, and walks the owner through the steps only a human can do. It never approves on its own judgement (adding `ready-for-agent` only when the owner explicitly says yes to marking it `ready-for-agent` or tells the assistant to label it) and never touches a host or a cloud platform.
 _Avoid_: Reminder, notifier, bot
 
 **Pass**:

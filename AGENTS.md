@@ -13,7 +13,7 @@ Instructions for AI coding agents in `trajectonomics/factory` (`@trajectonomics/
 7. Model & Pi (`pi.dev`) rules:
    - Never use `gemini-3.8-flash` anywhere; use `gemini-4-hydrogen` instead for Antigravity tasks and reviews (and `gemini-4-argon` where configured).
    - When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
-8. Factory rules live in this repo (`docs/dispatcher-runbook.md`, `GLOSSARY.md`, `docs/adr/`), never in agent memory or in a scheduled task's prompt. To change a rule, change the repo.
+8. Factory rules live in this repo (`docs/dispatcher-runbook.md`, `docs/owner-preferences.md`, `GLOSSARY.md`, `docs/adr/`), never in agent memory or in a scheduled task's prompt. To change a rule, change the repo.
 9. Temporary files and clones: `/tmp` is a shared, nearly full tmpfs. Never use fixed `/tmp` filenames (`--body-file /tmp/pr-body.md` collides across concurrent Runs) or install `node_modules` under `/tmp`; use `mktemp` (cleaning up) or stdin (`--body-file -`) for `gh` bodies, and clone scratch repos into `~/.cache/<slug>`.
 
 ## Organisation goals
@@ -26,7 +26,7 @@ The Factory reads GitHub issues and the org Project's roadmap fields (milestones
 
 ## Owner
 
-Read [`docs/owner-preferences.md`](docs/owner-preferences.md) before asking the owner a question, stopping for a decision, or reporting status. In short: finish end-to-end (including `gh pr merge` when green/told and settling your own thread when done), consult subagents on other models when unsure instead of asking the owner, verify live GitHub state and schemas first, keep messages short, and record every durable lesson in this repository rather than in agent memory.
+The owner is a tool call. Read [`docs/owner-preferences.md`](docs/owner-preferences.md) before you ask, stop, or report status. One message, only for a decision or an action you cannot take, then finish the loop and settle the thread. A durable lesson goes in this repository.
 
 ## Agent skills
 
