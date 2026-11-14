@@ -59,9 +59,9 @@ function ledgerOf(
 }
 
 describe("reading the Dispatcher ledger", () => {
-	it("lists open Factory pull requests with the issue their branch names", async () => {
+	it("lists every open pull request, with the issue only when its branch names one", async () => {
 		const ledger = await ledgerOf({
-			pulls: [pullRequest(8, "factory/4-add-thing"), pullRequest(9, "feat/other")],
+			pulls: [pullRequest(8, "factory/4-add-thing"), pullRequest(9, "docs/agent-rules-20261113")],
 		})
 
 		expect(ledger.pullRequests).toEqual([
@@ -72,7 +72,21 @@ describe("reading the Dispatcher ledger", () => {
 				draft: false,
 				openedAtMs: Date.parse("2026-11-09T10:00:00Z"),
 			},
+			{
+				issue: undefined,
+				number: 9,
+				head: "docs/agent-rules-20261113",
+				draft: false,
+				openedAtMs: Date.parse("2026-11-09T10:00:00Z"),
+			},
 		])
+	})
+
+	it("reports no gate-failure Exit for a draft pull request whose head names no issue", async () => {
+		const ledger = await ledgerOf({ pulls: [pullRequest(9, "docs/agent-rules-20261113", true)] })
+
+		expect(ledger.pullRequests).toHaveLength(1)
+		expect(ledger.exits).toEqual([])
 	})
 
 	it("reports a draft Factory pull request as a gate-failure Exit", async () => {

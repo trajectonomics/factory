@@ -24,7 +24,13 @@ function runSummary(runs: readonly DispatchRunRecord[]): string {
 function pullRequestSummary(pullRequests: readonly FactoryPullRequest[]): string {
 	if (pullRequests.length === 0) return ""
 	return ` (${pullRequests
-		.map((pullRequest) => `${keyOf(pullRequest.issue)} ${pullRequest.draft ? "draft" : "ready"}`)
+		.map((pullRequest) => {
+			const name =
+				pullRequest.issue === undefined
+					? `#${pullRequest.number} (${pullRequest.head})`
+					: keyOf(pullRequest.issue)
+			return `${name} ${pullRequest.draft ? "draft" : "ready"}`
+		})
 		.join(", ")})`
 }
 function issueSummary(issues: readonly IssueKey[]): string {

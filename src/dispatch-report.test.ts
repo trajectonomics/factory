@@ -46,4 +46,26 @@ describe("a pass report", () => {
 		expect(text).toContain("Host load: homeserver2")
 		expect(report.exits["gate-failure"]).toBe(1)
 	})
+
+	it("lists a pull request whose head names no issue by number and head", () => {
+		const input = reading({
+			state: state([]),
+			ledger: {
+				pullRequests: [
+					{
+						issue: undefined,
+						number: 13,
+						head: "docs/agent-rules-20261113",
+						draft: false,
+						openedAtMs: NOW_MS - 1_000,
+					},
+				],
+				exits: [],
+			},
+		})
+		const plan = planDispatch(input, config())
+		const text = formatDispatchReport(passReport(plan, input))
+		expect(text).toContain("PRs: 1")
+		expect(text).toContain("#13 (docs/agent-rules-20261113) ready")
+	})
 })
