@@ -224,6 +224,13 @@ Stops that are not gates: `Mode: dry-run` makes the Runs and the sweep report "w
 
 Each role runs on a different model, so the model that wrote the code never marks its own work (v0 Spec, story 8). Never use `gemini-3.8-flash`; use `gemini-4-hydrogen` instead. Use Grok 4.7 at normal speed. Every `grok-4.7` target sets `fastMode: false`. Cursor defaults that option to on, so leaving it unset runs High Fast.
 
+### Model tiers (owner rule, 2026-11-14)
+
+Every model is in exactly one of two tiers by input price:
+
+- **Worker tier** — under $1 per million input tokens: `mistral-large-4`, `command-code/deepseek/deepseek-v4.1-flash` (and its `-fast` variant). The main thread (the owner's top-level thread) runs a worker-tier model only, never an intellect-tier one.
+- **Intellect tier** — $1 or more per million input tokens: `claude-sonnet-5-5`, `grok-4.7`, `gemini-4-hydrogen`, `gemini-4-argon`. Review and consult only — the `delegate_task` reviewers and consultants in the table below — never the main thread. The owner set this split on 2026-11-14 because intellect-tier quota is exhausted.
+
 | Role | Provider instance | Model | Option | Quota fallback (in order) |
 | --- | --- | --- | --- | --- |
 | Implementer (the Run thread) | `pi` | `command-code/deepseek/deepseek-v4.1-flash` | none | `cursor` / `grok-4.7` (`reasoning_effort: high`, `contextWindow: 500k`, `fastMode: false`), else skip (`no-quota`) |
