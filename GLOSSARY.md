@@ -89,7 +89,7 @@ _Avoid_: Timeout, TTL
 ### Quality
 
 **Gate**:
-The checks a Run must pass before opening a ready pull request: `bun run check` green, a clean Conformance Review, and a clean Standards Review.
+The checks a Run must pass before opening a ready pull request: `bun run check` green, a clean Conformance Review, and a clean Standards Review — plus, on a Surface ticket, a clean Surface & Design Review and the owner's design approval before merge ([ADR 0017](./docs/adr/0017-surface-design-gate.md)).
 _Avoid_: Quality bar, checks
 
 **Conformance Review**:
@@ -99,6 +99,14 @@ _Avoid_: Spec review (for a diff)
 **Standards Review**:
 The review of a diff against the repository's `CODING_STANDARDS.md`.
 _Avoid_: Lint review
+
+**Surface ticket**:
+A Ticket or Spec in a surface repository (`site`, `web-router`) or whose Spec names a visual reference. It carries the design gate of [ADR 0017](./docs/adr/0017-surface-design-gate.md): visual Open Decisions are Owner questions, the pull request carries rendered screenshots and a Surface & Design Review, and it merges only on the owner's approval.
+_Avoid_: UI ticket, frontend ticket
+
+**Surface & Design Review**:
+The review of a Surface ticket's rendered screenshots against its Spec's named visual reference and surface section — the third review axis next to Conformance and Standards.
+_Avoid_: Design review (for a diff), visual check
 
 **Spec Review**:
 The loop that critiques a drafted Spec: a drafter and two consultants, ending with the Spec labelled `ready-for-agent`, or an Owner question in the drafter's thread.
