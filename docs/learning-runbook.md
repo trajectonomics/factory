@@ -12,7 +12,7 @@ The scheduled thread is a launcher, like the Dispatcher: it checks the guards, p
 4. **Launch the Learning thread** with `t3_thread_launch` on the host chosen as in the dispatcher runbook, step 7, in the `factory` project:
    - `title`: `learn/trajectonomics/factory`; `clientRequestId`: `learn-<yyyymmdd>` (the date in Asia/Bangkok);
    - `runtimeMode`: `full-access`;
-   - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`, or its quota fallback `cursor` / `grok-4.7` (options `reasoning_effort: high`, `contextWindow: 500k`) when step 1 marked `pi` exhausted;
+   - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`, or its quota fallback `cursor` / `grok-4.7` (options `reasoning_effort: high`, `contextWindow: 500k`, `fastMode: false`) when step 1 marked `pi` exhausted;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `learn/<yyyymmdd>`.
    - The message is the Launch message below, with the window start filled in.
 5. **Report** in under 8 lines: guards, the window, the host, the thread link, any earlier Learning pull request and its first failed condition. Do not wait for the thread to finish.
