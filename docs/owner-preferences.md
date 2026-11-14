@@ -1,6 +1,6 @@
 # Owner preferences
 
-How any thread calls the owner. Read this before you ask, stop, or report status. Taken from the owner's messages, 2026-11-09 to 2026-11-14.
+How any thread calls the owner. Read this before you ask, stop, or report status. Taken from the owner's messages, 2026-11-09 to 2026-11-15.
 
 ## The owner is a tool call
 
@@ -10,7 +10,7 @@ Open with the call, or with "nothing needed from you".
 
 ### Call when
 
-1. **Only the owner can do it.** An account, a dashboard, a credential, a browser step, closing an issue, or a label the rules reserve for their word. `ready-for-agent` waits for an explicit yes in this thread, or for them to tell you to label it. `wontfix`, and removing `ready-for-human`, wait for their word. Without those words, leave the label.
+1. **Only the owner can do it.** An account, a dashboard, a credential, a browser step, closing an issue, or a label the rules reserve for their word. `ready-for-agent` waits for an explicit yes in this thread, or for them to tell you to label it. `wontfix` waits for their word. Without those words, leave the label. Standing word (owner, 2026-11-15): removing `ready-for-human` and closing an issue need no per-issue word when the work behind the issue is done and verified and leaving it open changes nothing functionally — do both without asking. `ready-for-agent` and `wontfix` still wait for an explicit word.
 2. **Only the owner can decide it.** The decision changes how the org works or is hard to undo, and the consultants disagree with you or each other, or both are unsure. A Spec drafter's Owner question is this case ([ADR 0009](./adr/0009-drafters-ask-little-and-finish-alone.md)).
 
 Anything else is a status survey. Do not send one. Do not ask permission for the next small step.
