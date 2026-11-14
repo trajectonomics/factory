@@ -132,7 +132,7 @@ The Dispatcher launches a screening thread for an Idea labelled `idea`, at most 
 - `title`: `screen/trajectonomics/<repo>#<n>`; `clientRequestId`: `screen-<repo>-<n>-<yyyymmddhh>`;
 - `runtimeMode`: `full-access`; host as in the dispatcher runbook, step 7, in the repository's T3 project;
 - `modelSelection`: primary provider `mistral-vibe`, instance `mistral-vibe`, model `mistral-large-4`, options `thinking: high`, or its Worker-tier quota fallback `pi` / `command-code/deepseek/deepseek-v4.1-flash` when step 1 of the dispatcher runbook marked `mistral-vibe` exhausted (skip with `no-quota` if neither Worker-tier provider has quota);
-- `workspaceStrategy`: `worktree` from `origin/main` on branch `screen/<n>-<slug>` (never pushed).
+- `workspaceStrategy`: `worktree` from `origin/main` on branch `screen/<n>-<slug>` (never pushed); a launch that fails with `branch_already_exists` retries once with `-r2` on the branch, as step 8 of the dispatcher runbook says.
 
 Launch message: the thread reads the "Screening brief" below from `trajectonomics/factory` on GitHub.
 
