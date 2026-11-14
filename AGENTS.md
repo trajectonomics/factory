@@ -35,6 +35,10 @@ The owner is a tool call. Read [`docs/owner-preferences.md`](docs/owner-preferen
 - **Matt Pocock Skills (`mattpocock/skills`)**: Complete engineering workflow including `/ask-matt`, `/tdd`, `/implement`, `/code-review`, `/wayfinder`, `/diagnosing-bugs`, `/codebase-design`, `/grill-with-docs`, etc.
 - **Trajectonomics Internal Skills (`trajectonomics/internal-skills`)**: Organization-specific workflow including `/pick-the-issue` to discover unblocked GitHub issues not currently handled by active T3 Code sessions and route them into the `ask-matt` framework.
 
+### Running a skill
+
+Before following any skill, run `bun run skill:plan <skill>` from the repo root (`bun run skill:audit` lists every skill, `--json` for machines). It prints the skill's lock source, the exact command for a bundled script, the files to read, and the ordered next steps when the skill has them — follow that plan instead of exploring with tool calls. To change what a skill does, change the script or runbook in this repo, or propose the change upstream (see `.agents/skills/optimize-workflow/SKILL.md`); the pinned skills are never edited by hand (see below).
+
 ### Reviewing a diff
 
 `CODING_STANDARDS.md`: the conventions `bun run check` cannot enforce. Read it when reviewing, not when implementing.
