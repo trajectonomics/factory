@@ -29,9 +29,17 @@ gh api repos/trajectonomics/factory/contents/<path> -H "Accept: application/vnd.
 
 ## Allowlist
 
-Org `trajectonomics`. Repositories: every repository of the org that is not archived, listed so a new one joins only when it is added here: `factory`, `sim-core`, `tax-core`, `cli`, `ledger-core`, `money`, `design-system`, `cicd`, `docs`, `technical-template`, `infra`, `growth`, `external-comm`, `copy-engine`, `agentic-inbox`, `mcp-auth-gateway`, `skills`, `internal-skills`, `goals`. Any other repository is out of scope. `goals` holds the organisation's Goals and is read-only for agents: no Run, draft or Idea targets it, and it is listed so its `ready-for-human` issues are visible to the owner's reports. A repository takes Runs only where it exists as a T3 project on a ready host (step 7) and has `implement`, `tdd` and `code-review` under `.agents/skills` with a `skills-lock.json` that matches the curated profile (step 8).
+Org `trajectonomics`. Repositories: every repository of the org that is not archived, listed so a new one joins only when it is added here: `factory`, `sim-core`, `tax-core`, `cli`, `ledger-core`, `money`, `design-system`, `cicd`, `docs`, `technical-template`, `infra`, `growth`, `external-comm`, `copy-engine`, `agentic-inbox`, `skills`, `internal-skills`, `goals`. Any other repository is out of scope. `goals` holds the organisation's Goals and is read-only for agents: no Run, draft or Idea targets it, and it is listed so its `ready-for-human` issues are visible to the owner's reports. A repository takes Runs only where it exists as a T3 project on a ready host (step 7) and has `implement`, `tdd` and `code-review` under `.agents/skills` with a `skills-lock.json` that matches the curated profile (step 8).
 
 Find each repository's T3 project on a host with `t3_project_list` (pass `environmentId` for the other host) and match `repositoryIdentity.canonicalKey` to `github.com/trajectonomics/<repo>`. Project ids differ per host and must not be hard-coded.
+
+### Paused work
+
+The owner has paused the MCP Auth Gateway (2026-11-14): "ignore the mcp gateway, I don't want to prioritize this for now". It is not a goal of the Factory until the owner reverses this in a pull request that edits this section.
+
+- The repository `mcp-auth-gateway` is not on the allowlist above, so it is out of scope: no Run, draft, Idea or sweep touches it.
+- In `infra`, which stays on the allowlist, skip `infra#3` ("Setup headless-friendly MCP gateway for Mobbin UI design tools") and `infra#27` ("deploy mcp-auth-gateway on oracle (owner steps for #3)"), and any issue the owner or a Factory comment ties to the gateway. Step 3 does not make them Eligible even though `infra#3` carries `ready-for-agent`; step 2 and the sweep leave them alone; the Nudge does not count them as owner bottlenecks and starts no assistant for them; an assistant that is already running for them stops and says so.
+- Pausing changes no label and closes nothing. The Compose file and runbook already merged in `infra` (`deploy/mcp-auth-gateway/`, `docs/runbooks/deploy-mcp-auth-gateway.md`) stay as they are, and the host stays untouched (host changes stay with the owner, `infra` ADR 0002).
 
 ## Hosts
 
@@ -63,6 +71,7 @@ Two hosts: **homeserver2** (the environment the Dispatcher runs on) and **homese
    A live thread can be stalled: its last item (`t3_thread_read`, `limit` 1, `view` `activity`) is a command still `running` and `updatedAt` is more than 60 minutes old. A command that hangs (a test that never ends) keeps the thread `running` for hours, so the Lease never starts and the Claim is held for nothing. Interrupt a stalled thread once with `t3_thread_interrupt`, then send it: "Your last command hung and was interrupted. A command that never ends is a bug in your change or a wrong command: find out which, fix it, and continue the brief." If the thread is stalled again on a later pass, treat it as dead: no live thread, so the Lease rule above applies. Name stalled threads in the report.
 3. **Find Eligible work.** For each repository list open issues labelled `ready-for-agent` (`gh api "repos/trajectonomics/<repo>/issues?state=open&labels=ready-for-agent"`, skipping pull requests). Keep an issue only if all hold:
    - none of `agent-working`, `needs-info`, `ready-for-human`, `wontfix`;
+   - not Paused work (see Allowlist);
    - no open blocker (`issue_dependencies_summary.blocked_by` is 0; blockers in other repositories count);
    - no live thread on either host and no open `factory/<n>-*` pull request;
    - it has not failed twice since its last approval (two draft pull requests or two Lease releases): add `ready-for-human` and launch nothing.
@@ -167,7 +176,7 @@ When the Dispatcher runs out of work it can do, it does not idle: the work that 
 
 Run it when, after steps 6 to 11, the pass has fewer than 8 items moving and at least one allowlisted issue is open with `ready-for-human` (or `needs-info` waiting on an owner answer). Do it at the end of the pass, so a pass that found real work still launches that first.
 
-1. List the open `ready-for-human` issues across the allowlist (include `goals`: the owner's decisions there are the bottleneck even though no agent edits that repository). Skip an issue that a live `assist/` thread already covers. A live assist thread is `preparing`, `queued`, `starting`, `running` or `waiting`, or `idle` or `completed` with a last message that still has issues waiting on the owner.
+1. List the open `ready-for-human` issues across the allowlist (include `goals`: the owner's decisions there are the bottleneck even though no agent edits that repository). Skip Paused work (see Allowlist), and skip an issue that a live `assist/` thread already covers. A live assist thread is `preparing`, `queued`, `starting`, `running` or `waiting`, or `idle` or `completed` with a last message that still has issues waiting on the owner.
 2. Group the rest by the kind of work, so the owner can clear one group in one sitting: for example npm publishing and Trusted Publishers, a release or a deprecation, cloud or repository setup, decisions, and material the owner must supply. A group has 1 to 6 issues. Start at most 5 assistants per pass and never more than 5 live at once; if more groups remain, the next pass starts them.
 3. Launch one thread per group: `title` `assist/<group-slug>`, `clientRequestId` `assist-<group-slug>-<yyyymmddhh>`, `runtimeMode` `full-access`, host as for a Run (step 7) in the `factory` T3 project, `modelSelection` provider `claudeAgent`, instance `claudeAgent`, model `claude-sonnet-5-5`, options `effort: high`, `workspaceStrategy` `worktree` from `origin/main` on branch `assist/<group-slug>` (never pushed), and the Launch message below, filled in with the group name and its issues. An assistant needs no Claim and is not an item moving.
 4. Say in the report which assistants started and which issues they cover, so the owner knows where to answer; keep the report line concise and never re-list issues already covered by a live `assist/` thread or dump a multi-item status survey.
