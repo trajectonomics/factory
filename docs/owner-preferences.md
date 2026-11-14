@@ -32,7 +32,7 @@ Quote a broad answer in one line, so they can correct the reading. Then finish. 
 ## Decide without a call
 
 - Look the fact up (`gh issue view`, `gh pr view`, the schema, the code, the ADR) before you say something is blocked or impossible.
-- When unsure, consult another model (`gemini-4-hydrogen`, `claude-sonnet-5-5`, `gemini-4-argon`, `deepseek-v4.1-flash`) and take the answer you share. When the owner tells you to consult a model, consult it.
+- When unsure, consult another model (`gemini-4-hydrogen`, `claude-sonnet-5-5`, `gemini-4-argon`, `grok-4.7`, `deepseek-v4.1-flash`) and take the answer you share. When the owner tells you to consult a model, consult it.
 - A decision that is safe and reversible, or local to one repository, you take. Record it, including which recommendation you took.
 - A rule the owner already stated, you apply. "We do not have any client" means a breaking change is fine.
 - Stay on this thread's job. Owner-only work in another repository is not yours to raise.

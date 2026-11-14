@@ -6,13 +6,13 @@ The scheduled thread is a launcher, like the Dispatcher: it checks the guards, p
 
 ## One run
 
-1. **Guards.** Launch nothing and report if either holds: the kill switch file `/home/prame_assistant/.factory-stop` exists; or no host is a candidate (the Readiness table and host rules of the dispatcher runbook, step 7). The Queue guard does not apply.
+1. **Guards.** Launch nothing and report if any holds: the kill switch file `/home/prame_assistant/.factory-stop` exists; no host is a candidate (the Readiness table and host rules of the dispatcher runbook, step 7); or the pre-dispatch model quota check (`timeout 15 pi -p --no-session --no-tools "Reply with OK only."` and, if `pi` is exhausted, `timeout 15 cursor-agent --trust --print --output-format text --model grok-4.7-medium "Reply with OK only."`) shows neither has quota (`no-quota`). The Queue guard does not apply.
 2. **An earlier Learning is still open.** If a pull request with a head branch starting `learn/` is open, open no second one. Check the [Learning merge gate](#learning-merge-gate) against its current head and merge it if it holds; otherwise name the first failed condition in the report. Stop.
 3. **Window.** The window starts at the `covered-until` timestamp in the body of the latest merged `learn/` pull request (`gh pr list -R trajectonomics/factory --state merged --search "head:learn/" --limit 1 --json body`), and at most 3 days before now; with no earlier pull request it starts 3 days back. A run with no friction opens no pull request, so the next run's window simply reaches further back.
 4. **Launch the Learning thread** with `t3_thread_launch` on the host chosen as in the dispatcher runbook, step 7, in the `factory` project:
    - `title`: `learn/trajectonomics/factory`; `clientRequestId`: `learn-<yyyymmdd>` (the date in Asia/Bangkok);
    - `runtimeMode`: `full-access`;
-   - `modelSelection`: provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`;
+   - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`, or its quota fallback `cursor` / `grok-4.7` (options `reasoning_effort: high`, `contextWindow: 500k`) when step 1 marked `pi` exhausted;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `learn/<yyyymmdd>`.
    - The message is the Launch message below, with the window start filled in.
 5. **Report** in under 8 lines: guards, the window, the host, the thread link, any earlier Learning pull request and its first failed condition. Do not wait for the thread to finish.
