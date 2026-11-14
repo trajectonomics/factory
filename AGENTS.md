@@ -37,7 +37,7 @@ The owner is a tool call. Read [`docs/owner-preferences.md`](docs/owner-preferen
 
 ### Running a skill
 
-Before following any skill, run `bun run skill:plan <skill>` from the repo root (`bun run skill:audit` lists every skill, `--json` for machines). It prints the skill's lock source, the exact command for a bundled script, the files to read, and the ordered next steps — follow that plan instead of exploring with tool calls. The pinned skills under `.agents/skills/` are never edited by hand; to change what a skill does, change the script or runbook in this repo, or propose the change upstream (see `.agents/skills/optimize-workflow/SKILL.md`).
+Before following any skill, run `bun run skill:plan <skill>` from the repo root (`bun run skill:audit` lists every skill, `--json` for machines). It prints the skill's lock source, the exact command for a bundled script, the files to read, and the ordered next steps when the skill has them — follow that plan instead of exploring with tool calls. To change what a skill does, change the script or runbook in this repo, or propose the change upstream (see `.agents/skills/optimize-workflow/SKILL.md`); the pinned skills are never edited by hand (see below).
 
 ### Reviewing a diff
 
