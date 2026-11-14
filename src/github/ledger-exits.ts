@@ -10,15 +10,18 @@ import { AI_DISCLAIMER } from "./writes"
 const SPEC_GAP_MARKER = "<!-- factory:comment:exit:spec-gap"
 const FOLLOW_UP_ORIGIN = /^Follow-up from #([1-9]\d*)\./
 
-/** The gate-failure Exits among the open Factory pull requests: each draft one is a Run that failed its Gate. */
+/** The gate-failure Exits among the open Factory pull requests: each draft one whose head names an issue is a Run that failed its Gate. */
 export function gateFailureExits(pullRequests: readonly FactoryPullRequest[]): readonly RunExit[] {
-	return pullRequests
-		.filter((pullRequest) => pullRequest.draft)
-		.map((pullRequest) => ({
-			issue: pullRequest.issue,
-			kind: "gate-failure",
-			atMs: pullRequest.openedAtMs,
-		}))
+	return pullRequests.flatMap((pullRequest) => {
+		if (!pullRequest.draft || pullRequest.issue === undefined) return []
+		return [
+			{
+				issue: pullRequest.issue,
+				kind: "gate-failure" as const,
+				atMs: pullRequest.openedAtMs,
+			},
+		]
+	})
 }
 
 /** The follow-up Exits among the open issues: a `ready-for-human` issue that opens with `Follow-up from #<n>.`. */

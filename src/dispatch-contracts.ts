@@ -41,7 +41,8 @@ export type HostLoad = {
 }
 /** A Factory pull request as the report reads it. */
 export type FactoryPullRequest = {
-	readonly issue: IssueKey
+	/** The issue a `factory/*` head names; `undefined` when the head branch names no issue (`docs/*`, `chore/*`, ...). */
+	readonly issue: IssueKey | undefined
 	readonly number: number
 	readonly head: string
 	readonly draft: boolean

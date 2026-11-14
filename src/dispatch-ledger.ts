@@ -2,7 +2,7 @@ import type { DispatchLedger } from "./dispatch-contracts"
 import { deepFreeze } from "./freeze"
 import type { GitHubClient, GitHubIssueData } from "./github/client"
 import { followUpExits, gateFailureExits, specGapExits } from "./github/ledger-exits"
-import { readFactoryPullRequests } from "./github/ledger-pull-requests"
+import { readOpenPullRequests } from "./github/ledger-pull-requests"
 import type { T3Client } from "./t3"
 import { urgentExits } from "./t3-exits"
 
@@ -13,7 +13,7 @@ export async function readDispatchLedger(
 	repositories: readonly string[],
 	nowMs: number,
 ): Promise<DispatchLedger> {
-	const pullRequests = await readFactoryPullRequests(client, repositories)
+	const pullRequests = await readOpenPullRequests(client, repositories)
 	const issues: GitHubIssueData[] = []
 	for (const repository of repositories) issues.push(...(await client.listIssues(repository)))
 	const exits = [
