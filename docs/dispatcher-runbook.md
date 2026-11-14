@@ -222,7 +222,7 @@ Stops that are not gates: `Mode: dry-run` makes the Runs and the sweep report "w
 
 ## Models
 
-Each role runs on a different model, so the model that wrote the code never marks its own work (v0 Spec, story 8). Never use `gemini-3.8-flash`; use `gemini-4-hydrogen` instead. Use Grok 4.7 at normal speed. Every `grok-4.7` target sets `fastMode: false`. Cursor defaults that option to on, so leaving it unset runs High Fast.
+Each role runs on a different model, so the model that wrote the code never marks its own work (v0 Spec, story 8). `gemini-3.8-flash` is retired: never use it, use `gemini-4-hydrogen` instead. No model runs in fast mode (owner rule, 2026-11-14): every target sets `fastMode: false`. Cursor defaults that option to on, so leaving it unset runs High Fast — never leave it unset.
 
 ### Model tiers (owner rule, 2026-11-14)
 
