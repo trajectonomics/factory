@@ -33,29 +33,15 @@ describe("the deploy declaration", () => {
 		expect(new Set(branches).size).toBe(branches.length)
 	})
 
-	it("builds staging from main and production from the production branch", () => {
+	it("declares one branch per repository, so a commit cannot carry two of its deploys", () => {
 		for (const repository of new Set(DEPLOY_TARGETS.map((target) => target.repository))) {
-			const staging = targetsOf(repository).find((target) => target.environment === "staging")
-			const production = targetsOf(repository).find((target) => target.environment === "production")
-			if (staging === undefined || production === undefined) continue
-			expect(staging.branch).toBe("main")
-			expect(production.branch).toBe("production")
+			const branches = new Set(targetsOf(repository).map((target) => target.branch))
+			expect(branches.size).toBe(1)
 		}
 	})
 
-	it("declares the docs staging Worker from main and production from the production branch", () => {
-		expect(targetsOf("docs")).toContainEqual({
-			repository: "docs",
-			branch: "main",
-			worker: "docs-staging",
-			environment: "staging",
-		})
-		expect(targetsOf("docs")).toContainEqual({
-			repository: "docs",
-			branch: "production",
-			worker: "docs",
-			environment: "production",
-		})
+	it("declares the docs production Worker from main and no retired staging Worker", () => {
+		expect(targetsOf("docs")).toEqual([{ repository: "docs", branch: "main", worker: "docs" }])
 	})
 
 	it("only declares repositories on the Dispatcher allowlist", () => {

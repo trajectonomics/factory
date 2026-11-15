@@ -5,7 +5,6 @@ export type DeployTarget = {
 	readonly repository: string
 	readonly branch: string
 	readonly worker: string
-	readonly environment: "staging" | "production"
 }
 
 /** The check run name GitHub reports for a Workers Builds deploy of one Worker. */
@@ -19,13 +18,7 @@ export function buildCheckName(worker: string): string {
  * repository that deploys and is missing here is not checked; add it in a pull request.
  */
 export const DEPLOY_TARGETS: readonly DeployTarget[] = deepFreeze([
-	{ repository: "docs", branch: "main", worker: "docs-staging", environment: "staging" },
-	{ repository: "docs", branch: "production", worker: "docs", environment: "production" },
-	{ repository: "site", branch: "main", worker: "site", environment: "production" },
-	{
-		repository: "web-router",
-		branch: "main",
-		worker: "trajectonomics-web-router",
-		environment: "production",
-	},
+	{ repository: "docs", branch: "main", worker: "docs" },
+	{ repository: "site", branch: "main", worker: "site" },
+	{ repository: "web-router", branch: "main", worker: "trajectonomics-web-router" },
 ])

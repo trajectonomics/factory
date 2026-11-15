@@ -79,7 +79,7 @@ describe("the Dispatcher's deploy verification", () => {
 		expect(body).toContain("/check-runs")
 		expect(body).toContain("/check-suites")
 		expect(body).toContain("Workers Builds: <worker>")
-		expect(body).toContain("head_branch")
+		expect(body).toContain("docs ADR 0007")
 		expect(body).toContain("cloudflare-workers-and-pages")
 		expect(body).toContain(`${DEPLOY_CHECK_WAIT_MS / 1000} seconds`)
 		expect(body).toContain("build.json")

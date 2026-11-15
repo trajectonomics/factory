@@ -1,34 +1,28 @@
 import { describe, expect, it } from "bun:test"
-import { DEPLOY_TARGETS } from "./deploy-targets"
+import { DEPLOY_TARGETS, type DeployTarget } from "./deploy-targets"
 import {
 	DEPLOY_CHECK_WAIT_MS,
 	type DeployCheckRun,
-	type DeployCheckSuite,
 	type DeployObservation,
 	verifyDeploy,
-	WORKERS_BUILDS_APP,
 } from "./deploy-verify"
-
-function run(name: string, status: string, conclusion?: string): DeployCheckRun {
-	return conclusion === undefined ? { name, status } : { name, status, conclusion }
-}
-
-function suite(branch: string, checkRuns: readonly DeployCheckRun[]): DeployCheckSuite {
-	return { app: WORKERS_BUILDS_APP, branch, checkRuns }
-}
 
 function observation(overrides: Partial<DeployObservation> = {}): DeployObservation {
 	return {
 		repository: "docs",
 		branch: "main",
 		commit: "a47bddd",
-		suites: [],
+		checkRuns: [],
 		...overrides,
 	}
 }
 
-const STAGING = "Workers Builds: docs-staging"
-const PRODUCTION = "Workers Builds: docs"
+function run(name: string, status: string, conclusion?: string): DeployCheckRun {
+	return conclusion === undefined ? { name, status } : { name, status, conclusion }
+}
+
+const DOCS = "Workers Builds: docs"
+const RETIRED_STAGING = "Workers Builds: docs-staging"
 
 describe("a deploy check", () => {
 	it("waits at most ninety seconds for the runs it checks", () => {
@@ -37,10 +31,7 @@ describe("a deploy check", () => {
 
 	it("does not check a repository that declares no deploy", () => {
 		const verification = verifyDeploy(
-			observation({
-				repository: "factory",
-				suites: [suite("main", [run(STAGING, "completed", "success")])],
-			}),
+			observation({ repository: "factory", checkRuns: [run(DOCS, "completed", "success")] }),
 			DEPLOY_TARGETS,
 		)
 
@@ -48,37 +39,41 @@ describe("a deploy check", () => {
 		expect(verification.expected).toEqual([])
 	})
 
-	it("confirms a main merge whose staging Worker completed successfully and whose production Worker did not run", () => {
+	it("confirms a main merge whose production Worker completed successfully", () => {
 		const verification = verifyDeploy(
-			observation({ suites: [suite("main", [run(STAGING, "completed", "success")])] }),
+			observation({ checkRuns: [run(DOCS, "completed", "success")] }),
 			DEPLOY_TARGETS,
 		)
 
 		expect(verification.verdict).toBe("confirmed")
-		expect(verification.expected).toContainEqual({
-			environment: "staging",
-			worker: "docs-staging",
-			checkName: STAGING,
-			state: { kind: "built" },
-		})
-		expect(verification.unexpected).toContainEqual({
-			environment: "production",
-			worker: "docs",
-			checkName: PRODUCTION,
-			state: { kind: "missing" },
-		})
+		expect(verification.expected).toEqual([
+			{ worker: "docs", checkName: DOCS, state: { kind: "built" } },
+		])
 	})
 
-	it("reports drift when the staging run is absent, which is what 2026-11-15 showed", () => {
-		const verification = verifyDeploy(observation({ suites: [suite("main", [])] }), DEPLOY_TARGETS)
+	it("reports drift when the docs run is absent, which is what 2026-11-15 showed", () => {
+		const verification = verifyDeploy(
+			observation({ checkRuns: [run("Lint, Typecheck, Test & Build", "completed", "success")] }),
+			DEPLOY_TARGETS,
+		)
 
 		expect(verification.verdict).toBe("drift")
 		expect(verification.expected[0]?.state).toEqual({ kind: "missing" })
 	})
 
-	it("reports drift when the staging build failed", () => {
+	it("does not accept the retired staging Worker as the docs deploy", () => {
 		const verification = verifyDeploy(
-			observation({ suites: [suite("main", [run(STAGING, "completed", "failure")])] }),
+			observation({ checkRuns: [run(RETIRED_STAGING, "completed", "success")] }),
+			DEPLOY_TARGETS,
+		)
+
+		expect(verification.verdict).toBe("drift")
+		expect(verification.expected[0]?.state).toEqual({ kind: "missing" })
+	})
+
+	it("reports drift when the docs build failed", () => {
+		const verification = verifyDeploy(
+			observation({ checkRuns: [run(DOCS, "completed", "failure")] }),
 			DEPLOY_TARGETS,
 		)
 
@@ -86,9 +81,9 @@ describe("a deploy check", () => {
 		expect(verification.expected[0]?.state).toEqual({ kind: "failed", conclusion: "failure" })
 	})
 
-	it("reports unconfirmed while the staging build is still queued after the wait", () => {
+	it("reports unconfirmed while the docs build is still queued after the wait", () => {
 		const verification = verifyDeploy(
-			observation({ suites: [suite("main", [run(STAGING, "queued")])] }),
+			observation({ checkRuns: [run(DOCS, "queued")] }),
 			DEPLOY_TARGETS,
 		)
 
@@ -96,56 +91,10 @@ describe("a deploy check", () => {
 		expect(verification.expected[0]?.state).toEqual({ kind: "pending", status: "queued" })
 	})
 
-	it("reports drift when the production Worker built from main", () => {
+	it("reads the newest run when the check name appears more than once", () => {
 		const verification = verifyDeploy(
 			observation({
-				suites: [
-					suite("main", [
-						run(STAGING, "completed", "success"),
-						run(PRODUCTION, "completed", "success"),
-					]),
-				],
-			}),
-			DEPLOY_TARGETS,
-		)
-
-		expect(verification.verdict).toBe("drift")
-		expect(verification.unexpected[0]?.state).toEqual({ kind: "built" })
-	})
-
-	it("reports unconfirmed while the production Worker is queued from main", () => {
-		const verification = verifyDeploy(
-			observation({
-				suites: [suite("main", [run(STAGING, "completed", "success"), run(PRODUCTION, "queued")])],
-			}),
-			DEPLOY_TARGETS,
-		)
-
-		expect(verification.verdict).toBe("unconfirmed")
-	})
-
-	it("ignores a build a suite says another branch triggered on the same commit", () => {
-		const verification = verifyDeploy(
-			observation({
-				suites: [
-					suite("main", [run(STAGING, "completed", "success")]),
-					suite("production", [run(PRODUCTION, "completed", "success")]),
-				],
-			}),
-			DEPLOY_TARGETS,
-		)
-
-		expect(verification.verdict).toBe("confirmed")
-		expect(verification.unexpected[0]?.state).toEqual({ kind: "missing" })
-	})
-
-	it("reads the newest run when a check name appears more than once", () => {
-		const verification = verifyDeploy(
-			observation({
-				suites: [
-					suite("main", [run(STAGING, "completed", "failure")]),
-					suite("main", [run(STAGING, "completed", "success")]),
-				],
+				checkRuns: [run(DOCS, "completed", "failure"), run(DOCS, "completed", "success")],
 			}),
 			DEPLOY_TARGETS,
 		)
@@ -153,35 +102,36 @@ describe("a deploy check", () => {
 		expect(verification.verdict).toBe("confirmed")
 	})
 
-	it("confirms a production merge against the production branch", () => {
-		const verification = verifyDeploy(
-			observation({
-				branch: "production",
-				suites: [suite("production", [run(PRODUCTION, "completed", "success")])],
-			}),
-			DEPLOY_TARGETS,
-		)
+	it("checks a declared Worker by the branch it builds from", () => {
+		const targets: readonly DeployTarget[] = [
+			{ repository: "docs", branch: "main", worker: "docs" },
+			{ repository: "other", branch: "main", worker: "other" },
+		]
 
-		expect(verification.verdict).toBe("confirmed")
-		expect(verification.unexpected[0]?.state).toEqual({ kind: "missing" })
+		expect(
+			verifyDeploy(
+				observation({ checkRuns: [run("Workers Builds: other", "completed", "success")] }),
+				targets,
+			).verdict,
+		).toBe("drift")
+		expect(
+			verifyDeploy(
+				observation({
+					repository: "other",
+					checkRuns: [run("Workers Builds: other", "completed", "success")],
+				}),
+				targets,
+			).verdict,
+		).toBe("confirmed")
 	})
 
-	it("ignores a suite from another App even when it uses a Workers Builds name", () => {
+	it("does not check the retired production branch", () => {
 		const verification = verifyDeploy(
-			observation({
-				suites: [
-					{
-						app: "github-actions",
-						branch: "main",
-						checkRuns: [run(STAGING, "completed", "success")],
-					},
-				],
-			}),
+			observation({ branch: "production", checkRuns: [run(DOCS, "completed", "success")] }),
 			DEPLOY_TARGETS,
 		)
 
-		expect(verification.verdict).toBe("drift")
-		expect(verification.expected[0]?.state).toEqual({ kind: "missing" })
+		expect(verification.verdict).toBe("not-deploying")
 	})
 
 	it("returns a frozen verification", () => {
