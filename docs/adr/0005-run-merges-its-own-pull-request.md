@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted, and its Merge gate is superseded by [ADR 0015](./0015-no-merge-gate.md): a Run still merges its own pull request, but with no gate. The owner asked for it on 2026-11-08. It supersedes the statements that the Factory never merges (AGENTS.md Scope, the README, the v0 Spec's Out of Scope, and the first sentence of ADR 0002's Context).
+Accepted, and its Merge gate is superseded by [ADR 0015](./0015-no-merge-gate.md): a Run still merges its own pull request, but with no gate. The owner asked for it on 2026-11-08. It supersedes the statements that the Factory never merges (AGENTS.md Scope, the README, the v0 Spec's Out of Scope, and the first sentence of ADR 0002's Context). The reviewer models in decision 2 follow [ADR 0018](./0018-deepseek-top-level-hydrogen-mistral-reviews.md) (2026-11-15).
 
 ## Context
 
@@ -17,7 +17,7 @@ One prompt carries a Run through the whole loop: build test-first, run `bun run 
 The Run merges its own pull request (squash, delete the branch) only when the **Merge gate** in the runbook holds against the current head commit. The gate is mechanical:
 
 1. The pull request is not a draft, is mergeable, is on a `factory/*` branch of an allowlisted repository that is not paused, and every check on the head commit passed.
-2. The `## Reviews` section shows a Conformance Review on `claudeAgent` and a Standards Review on `antigravity`, both with no findings in the latest round. No review is marked `FALLBACK (quota)`, "accepted by the owner" or "not re-reviewed", and no commit is newer than the last review.
+2. The `## Reviews` section shows a Conformance Review on `mistral-vibe` and a Standards Review on `antigravity`, both with no findings in the latest round. No review is marked `FALLBACK (quota)`, "accepted by the owner" or "not re-reviewed", and no commit is newer than the last review.
 3. The linked issue and its Spec carry neither `needs-info` nor `ready-for-human`.
 4. The diff stays within the limits in the runbook (starting at 1500 changed lines and 40 files).
 5. The diff touches no workflow, no lint or type configuration, no `AGENTS.md`, `CODING_STANDARDS.md` or ADR, no secrets file, no release or publish configuration, and changes no `version`.

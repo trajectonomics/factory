@@ -11,7 +11,7 @@ Instructions for AI coding agents in `trajectonomics/factory` (`@trajectonomics/
 5. Done means `bun run check` passes (Biome lint with zero warnings, strict typecheck, tests, build, publint + are-the-types-wrong). `bun run format` fixes formatting and import order. Do not loosen `tsconfig.base.json` or `biome.json` to make an error go away.
 6. Never edit `version` in `package.json`. This package is never published. PR titles are conventional commits (`feat:`, `fix:`, `feat!:` ...) because CI validates them.
 7. Model & Pi (`pi.dev`) rules:
-   - Never use `gemini-3.8-flash` anywhere; use `gemini-4-hydrogen` instead for Antigravity tasks and reviews (and `gemini-4-argon` where configured).
+   - Never use `gemini-3.8-flash` anywhere; use `gemini-4-hydrogen` instead for Antigravity tasks and reviews.
    - When running the Pi coding agent (`pi.dev`), strictly use **DeepSeek 4.1 Flash** only (e.g., `deepseek/deepseek-v4.1-flash`, `deepseek/deepseek-v4.1-flash-fast`), whether routed via Command Code GOAT (`command-code`) or OpenCode Go (`opencode`). Do not switch to or run any other models (Claude, GPT, Gemini, etc.) in Pi sessions for this repository. This rule is mechanically enforced via `.pi/settings.json`.
 8. Factory rules live in this repo (`docs/dispatcher-runbook.md`, `docs/owner-preferences.md`, `GLOSSARY.md`, `docs/adr/`), never in agent memory or in a scheduled task's prompt. To change a rule, change the repo.
 9. Temporary files and clones: `/tmp` is a shared, nearly full tmpfs. Never use fixed `/tmp` filenames (`--body-file /tmp/pr-body.md` collides across concurrent Runs) or install `node_modules` under `/tmp`; use `mktemp` (cleaning up) or stdin (`--body-file -`) for `gh` bodies, and clone scratch repos into `~/.cache/<slug>`.
