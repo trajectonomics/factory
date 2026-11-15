@@ -140,6 +140,10 @@ _Avoid_: Retro, post-mortem, lesson
 
 ### Outcomes
 
+**Deploy drift**:
+A merge in a repository that deploys whose declared branch does not carry the completed, successful `Workers Builds: <worker>` check run for its Worker, or carries a failed one. A pass checks every merge it made and every declared branch tip, reports drift on every pass until it is confirmed, and never blocks a merge on it ([ADR 0019](./docs/adr/0019-deploy-claims-are-check-runs-and-build-identifiers.md)). It files one `ready-for-human` issue in `trajectonomics/infra` per drift, refreshes that issue on later passes, and closes it when a later pass confirms the deploy; it never files in the deploying repository. A deploy claim is verified by that check run on the named commit and by the deployed URL serving that commit's build identifier, never by a dashboard screenshot, a deployment timestamp, a deployment list entry or the owner's word.
+_Avoid_: Deploy failure, stale deploy, Cloudflare status
+
 **Exit**:
 How a Run stops short of a ready pull request. Exactly four: **spec gap** (question comment, `needs-info`), **follow-up** (a Follow-up Ticket is filed and the Run continues), **urgent** (the Run waits in its thread and notifies the human), **gate failure** (a draft pull request with the findings, `ready-for-human`).
 _Avoid_: Failure, escalation
