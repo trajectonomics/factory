@@ -27,4 +27,4 @@ In the first draft threads the owner answered "yes to all" to most rounds, asked
 - Fewer owner messages; the risk moves to the consultants. Two models agreeing is not proof, which is why irreversible and org-wide decisions still reach the owner when they disagree or are unsure.
 - A drafter may merge a docs pull request that touches an ADR, GLOSSARY or AGENTS.md. This is narrower than the Merge gate (ADR 0005), which keeps those files with the owner for Runs: it applies only to a draft thread's own docs pull request, only for decisions the owner answered or the consultants unanimously backed, and never to workflows or lint, type or release configuration.
 - Sub-issues are created before any Run starts, so the next pass sees a Spec with children and launches one Spec Run (ADR 0002). A Spec with a single Ticket still runs as a Ticket Run.
-- The consultant model name `gemini-4-argon` is in the Models table; if the provider renames it, the brief and the table change together.
+- The consultant model names `gemini-4-hydrogen` and `mistral-large-4` are in the Models table; if the provider renames them, the brief and the table change together.

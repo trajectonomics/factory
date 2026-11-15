@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The owner asked for it on 2026-11-09. It amends [ADR 0007](./0007-spec-drafter-can-approve.md) for Specs that began as an Idea, and the Approval entry of `GLOSSARY.md`, which said only the owner adds `wontfix`. It builds on [ADR 0011](./0011-read-only-the-owners-comments.md): an owner word is a comment by the Owner account, and no other account's comment is read.
+Accepted. The owner asked for it on 2026-11-09. It amends [ADR 0007](./0007-spec-drafter-can-approve.md) for Specs that began as an Idea, and the Approval entry of `GLOSSARY.md`, which said only the owner adds `wontfix`. It builds on [ADR 0011](./0011-read-only-the-owners-comments.md): an owner word is a comment by the Owner account, and no other account's comment is read. The screening models in decision 3 follow [ADR 0018](./0018-deepseek-top-level-hydrogen-mistral-reviews.md) (2026-11-15).
 
 ## Context
 

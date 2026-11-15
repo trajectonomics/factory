@@ -72,7 +72,7 @@ describe("planning a Ticket Run", () => {
 		expect(pullRequest.body).toContain("Closes #9")
 		expect(pullRequest.body).toContain("## Reviews")
 		expect(pullRequest.body).toContain(
-			"Conformance Review on claudeAgent/claude-sonnet-5-5: t3-thread://conformance-1 - no findings, 2 findings fixed",
+			"Conformance Review on mistral-vibe/mistral-large-4: t3-thread://conformance-1 - no findings, 2 findings fixed",
 		)
 		expect(pullRequest.body).toContain(
 			"Standards Review on antigravity/gemini-4-hydrogen: t3-thread://standards-1 - no findings, 1 findings fixed",

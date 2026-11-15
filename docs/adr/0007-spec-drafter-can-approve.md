@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The owner asked for it on 2026-11-09. It supersedes decision 4 of [ADR 0006](./0006-runs-are-not-exclusive-per-repository.md) and its rejected option "Let drafts count toward approval", and amends [ADR 0001](./0001-labels-and-blocking-edges-are-input-board-is-output.md) and [ADR 0005](./0005-run-merges-its-own-pull-request.md) where they say the Factory never sets `ready-for-agent`.
+Accepted. The owner asked for it on 2026-11-09. It supersedes decision 4 of [ADR 0006](./0006-runs-are-not-exclusive-per-repository.md) and its rejected option "Let drafts count toward approval", and amends [ADR 0001](./0001-labels-and-blocking-edges-are-input-board-is-output.md) and [ADR 0005](./0005-run-merges-its-own-pull-request.md) where they say the Factory never sets `ready-for-agent`. Decision 4's model routing is superseded by [ADR 0018](./0018-deepseek-top-level-hydrogen-mistral-reviews.md): drafter threads run on `pi` DeepSeek like every top-level thread.
 
 ## Context
 
