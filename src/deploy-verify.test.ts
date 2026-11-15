@@ -91,6 +91,49 @@ describe("a deploy check", () => {
 		expect(verification.expected[0]?.state).toEqual({ kind: "pending", status: "queued" })
 	})
 
+	it("reports unconfirmed while the docs build is still running after the wait", () => {
+		const verification = verifyDeploy(
+			observation({ checkRuns: [run(DOCS, "in_progress")] }),
+			DEPLOY_TARGETS,
+		)
+
+		expect(verification.verdict).toBe("unconfirmed")
+		expect(verification.expected[0]?.state).toEqual({ kind: "pending", status: "in_progress" })
+	})
+
+	it("reports drift when a completed run names no conclusion", () => {
+		const verification = verifyDeploy(
+			observation({ checkRuns: [run(DOCS, "completed")] }),
+			DEPLOY_TARGETS,
+		)
+
+		expect(verification.verdict).toBe("drift")
+		expect(verification.expected[0]?.state).toEqual({ kind: "failed", conclusion: "unknown" })
+	})
+
+	it("checks every Worker a commit expects, not just the first", () => {
+		const targets: readonly DeployTarget[] = [
+			{ repository: "docs", branch: "main", worker: "docs" },
+			{ repository: "docs", branch: "main", worker: "docs-preview" },
+		]
+
+		expect(
+			verifyDeploy(observation({ checkRuns: [run(DOCS, "completed", "success")] }), targets)
+				.verdict,
+		).toBe("drift")
+		expect(
+			verifyDeploy(
+				observation({
+					checkRuns: [
+						run(DOCS, "completed", "success"),
+						run("Workers Builds: docs-preview", "completed", "success"),
+					],
+				}),
+				targets,
+			).verdict,
+		).toBe("confirmed")
+	})
+
 	it("reads the newest run when the check name appears more than once", () => {
 		const verification = verifyDeploy(
 			observation({
@@ -134,10 +177,11 @@ describe("a deploy check", () => {
 		expect(verification.verdict).toBe("not-deploying")
 	})
 
-	it("returns a frozen verification", () => {
+	it("returns a frozen verification, down to the per-Worker checks", () => {
 		const verification = verifyDeploy(observation(), DEPLOY_TARGETS)
 
 		expect(Object.isFrozen(verification)).toBe(true)
 		expect(Object.isFrozen(verification.expected)).toBe(true)
+		expect(Object.isFrozen(verification.expected[0])).toBe(true)
 	})
 })

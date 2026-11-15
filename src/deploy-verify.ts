@@ -14,6 +14,7 @@ export type DeployObservation = {
 	readonly repository: string
 	readonly branch: string
 	readonly commit: string
+	/** As GitHub lists them for the commit, oldest first, so a re-run is the last match. */
 	readonly checkRuns: readonly DeployCheckRun[]
 }
 
