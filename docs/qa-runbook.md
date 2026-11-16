@@ -73,12 +73,12 @@ A **Persona** is a fixed description of a customer an agent plays: one file each
 The scheduled thread is a launcher, like the Dispatcher: it checks the guards, places one QA thread, reports, and stops.
 
 1. **Guards.** Launch nothing and report if any holds: the kill switch file `/home/prame_assistant/.factory-stop` exists; the Surface's repository has an open issue carrying `factory:pause`; or the quota probe (`timeout 15 pi -p --no-session --no-tools "Reply with OK only."`) shows `pi` has no quota, in which case report `no-quota` and skip the day. A top-level QA thread runs DeepSeek only and has no fallback model.
-2. **Launch one thread** with `t3_thread_launch`, in the `factory` project on a ready host (dispatcher runbook, step 7), choosing the host with fewer live `qa/` threads:
+2. **Launch one thread** with `t3_thread_launch`, in the `factory` project on a ready host (dispatcher runbook, step 7), choosing the host with fewer live threads of any kind (`traj/`, `triage/`, `screen/`, `qa/`, `idea/`, `learn/`, `assist/`), counted as step 7 counts them:
    - `title`: `qa/trajectonomics/<surface>`; `clientRequestId`: `qa-<surface>-<yyyymmdd>`;
    - `runtimeMode`: `full-access`;
    - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `qa/<yyyymmdd>-<surface>`.
-   Before launching, list the live `qa/` threads on **both** hosts (`titleContains: "qa/"`, the live states, that host's `environmentId` and project `projectId`, as dispatcher runbook step 2 says). A live `qa/trajectonomics/<surface>` thread means today's pass for that Surface is still running: do not launch a second one. A thread whose last item is a command still running and older than 60 minutes is stalled: interrupt it once with `t3_thread_interrupt` and launch, because a hung command is a finding in itself and the Surface must not lose its day.
+   Before launching, list the live `qa/` threads on **both** hosts (`titleContains: "qa/"`, the live states, that host's `environmentId` and project `projectId`, as dispatcher runbook step 2 says). A live `qa/trajectonomics/<surface>` thread means today's pass for that Surface is still running: do not launch a second one. A thread whose last item is a command still running and older than 60 minutes is stalled: interrupt it once with `t3_thread_interrupt` and launch, because a command that never ends is the finding that day would have produced.
    The message is the launch message below. A launch that fails with `branch_already_exists` retries once with `-r2`, as dispatcher runbook step 8 says.
 3. **Report** in under 6 lines: guards, the Surface, the host, the thread link. Do not wait for the thread.
 
@@ -152,7 +152,7 @@ Reader: a stranger with a real ledger, at a terminal, alone. Target: install to 
 
 - `npx -y @trajectonomics/cli@latest --version`, `--help`, `schema --json` — record the command count.
 - The first-run flow in `mktemp -d`, with `TRAJ_HOME` inside it, timed: `init`, four `account add`, two `tx add`, `balance --as-of`, `report networth`, `report pnl --until`. Record the wall time to first correct result.
-- Exit codes and error text: a group command with no subcommand, an unknown flag, an unsupported currency, a missing value. Wrong exit code, a hint that names no flag, or a validator sentence shown to a customer is a finding.
+- Exit codes and error text: a group command with no subcommand, an unknown flag, an unsupported currency, a missing value. Wrong exit code, a hint that names no flag, or a validator sentence shown to a customer is a `major` finding.
 - Every command and flag in the README of the release exists in the binary; no README command prints `unknown_command`.
 - `TRAJ_HOME` contains no surprise: a first `init` says what it downloads, how large, and where.
 - Personas: `beginner-mac`, `ci-automator`, `accountant-reconciler`.

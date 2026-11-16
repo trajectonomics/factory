@@ -30,6 +30,18 @@ describe("the persona roster", () => {
 		expect(rosterIds().sort()).toEqual(personaFiles().sort())
 	})
 
+	it("agrees with the roster about which Surfaces a persona covers", () => {
+		const rows = [
+			...read("docs/personas/README.md").matchAll(/^\| \[`([a-z-]+)`\]\(.*?\) \| ([^|]+) \|/gm),
+		]
+		expect(rows.length).toBe(personaFiles().length)
+		for (const row of rows) {
+			const id = row[1] ?? ""
+			const surfaces = (row[2] ?? "").trim()
+			expect(read(`docs/personas/${id}.md`)).toContain(`**Surfaces:** ${surfaces}`)
+		}
+	})
+
 	it("gives every persona a Surface and a reason to quit", () => {
 		for (const id of personaFiles()) {
 			const text = read(`docs/personas/${id}.md`)
