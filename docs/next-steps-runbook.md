@@ -132,7 +132,7 @@ The Dispatcher launches a screening thread for an Idea labelled `idea`, at most 
 - `title`: `screen/trajectonomics/<repo>#<n>`; `clientRequestId`: `screen-<repo>-<n>-<yyyymmddhh>`;
 - `runtimeMode`: `full-access`; host as in the dispatcher runbook, step 7, in the repository's T3 project;
 - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash` (skip with `no-quota` when step 1 of the dispatcher runbook marked `pi` exhausted);
-- `workspaceStrategy`: `worktree` from `origin/main` on branch `screen/<n>-<slug>` (never pushed); a launch that fails with `branch_already_exists` retries once with `-r2` on the branch, as step 8 of the dispatcher runbook says.
+- `workspaceStrategy`: `worktree` from `origin/main` on branch `screen/<n>-<slug>` (never pushed); a launch that fails with `branch_already_exists` follows the retry rule in step 8 of the dispatcher runbook.
 
 Launch message: the thread reads the "Screening brief" below from `trajectonomics/factory` on GitHub.
 
