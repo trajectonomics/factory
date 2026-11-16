@@ -113,7 +113,7 @@ The loop that critiques a drafted Spec: a drafter and two consultants, ending wi
 _Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triage" otherwise means the five-label routine.
 
 **Surface**:
-One published thing a customer meets: `docs`, `site`, `cli`, `skills`, or `core`. It is not a repository — `core` is four of them, and `web-router` is none.
+One published thing a customer meets: `docs`, `site`, `cli`, `skills`, or `core`. It is not a repository — `core` is four of them, and `web-router` is none of the five, though [ADR 0017](./docs/adr/0017-surface-design-gate.md) calls `site` and `web-router` surface repositories.
 _Avoid_: Product area, repo, channel
 
 **Published truth**:

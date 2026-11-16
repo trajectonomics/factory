@@ -28,6 +28,8 @@ const topLevelRoles = [
 	"Next-step finder",
 	"Idea screener",
 	"Owner assistant",
+	"QA pass",
+	"QA personas",
 ] as const
 
 const reviewRoles = [
@@ -38,6 +40,7 @@ const reviewRoles = [
 	"Learning Standards Review",
 	"Finder reviewers",
 	"Screener second view",
+	"Launch check second view",
 ] as const
 
 const runbookPaths = [

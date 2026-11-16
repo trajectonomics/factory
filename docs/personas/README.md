@@ -8,7 +8,7 @@ The roster the QA pass plays. One file per Persona, named `<id>.md`, versioned l
 - Every command and every output is pasted, in order. A claim without a paste is not evidence.
 - A Persona run ends with three lines: where it stopped, what it misunderstood, and what it would tell a friend.
 - A Persona never files, labels, closes or edits anything. It reports.
-- One persona runs on the cheapest model that follows instructions (`command-code/deepseek/deepseek-v4.1-flash`); the synthesis that ranks findings runs on a stronger one, per the QA runbook.
+- A Persona runs on the same DeepSeek model as the pass that runs it ([ADR 0018](../adr/0018-deepseek-top-level-hydrogen-mistral-reviews.md)).
 
 ## The roster
 
@@ -27,6 +27,6 @@ The roster the QA pass plays. One file per Persona, named `<id>.md`, versioned l
 
 ## Rotation
 
-- A daily pass runs the Personas whose Surfaces include the Surface it tests: 3 of them, oldest-test-first, so every Persona on a Surface runs at least once a week.
+- A daily pass runs the Personas its Surface's playbook names in [`docs/qa-runbook.md`](../qa-runbook.md#the-five-playbooks), at most 3.
 - The launch check runs the whole roster.
 - A new Persona is added here, with a file, in one pull request that names the customer evidence for it: a thread, an issue, or a Persona run that found something the roster could not express.
