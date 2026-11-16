@@ -57,8 +57,12 @@ describe("the question and task sets", () => {
 
 describe("the paths a thread is told to follow", () => {
 	it("sends a QA thread to the section that tells it what to do", () => {
-		const launchMessage = runbook.slice(runbook.indexOf("> You are the Factory QA thread"))
-		expect(launchMessage.slice(0, 600)).toContain('"The QA thread"')
+		const threadSection = runbook.indexOf("## The QA thread")
+		expect(threadSection).toBeGreaterThan(-1)
+		const launchMessage = runbook.indexOf("> You are the Factory QA thread")
+		expect(launchMessage).toBeGreaterThan(-1)
+		expect(launchMessage).toBeLessThan(threadSection)
+		expect(runbook.slice(launchMessage, threadSection)).toContain('"The QA thread"')
 		expect(read(".agents/skills/factory-qa/SKILL.md")).toContain('"The QA thread"')
 	})
 
@@ -66,6 +70,14 @@ describe("the paths a thread is told to follow", () => {
 		expect(read(".agents/skills/factory-launch-check/SKILL.md")).toContain('"The launch check"')
 		expect(runbook).toContain("## The launch check")
 		expect(runbook).toContain("### The launch report")
+	})
+})
+
+describe("the trigger queries", () => {
+	it("fixes twenty expectations, ten of each, before a pass runs them", () => {
+		expect(countedLines("docs/qa-trigger-queries.md", "- q:")).toBe(20)
+		expect(countedLines("docs/qa-trigger-queries.md", "  expect: trigger")).toBe(10)
+		expect(countedLines("docs/qa-trigger-queries.md", "  expect: silent")).toBe(10)
 	})
 })
 
@@ -77,7 +89,8 @@ describe("the finding labels", () => {
 	})
 
 	it("never lets a QA pass approve or close", () => {
-		expect(runbook).toContain("never close an issue")
-		expect(runbook).toContain("`ready-for-agent`")
+		expect(runbook).toContain(
+			"`ready-for-agent`, `ready-for-human` or `wontfix`, never close an issue",
+		)
 	})
 })

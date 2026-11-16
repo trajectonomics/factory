@@ -143,7 +143,7 @@ Reader: a developer deciding in ten seconds. Target: a stranger can say what the
 - `<title>` and the `h1` name what the product is, as a noun phrase. A rotating slogan with no noun phrase is a **major** finding for the copy.
 - **Every promise has a destination.** Each capability claim is quoted, then checked against `npm view @trajectonomics/cli dist-tags` and against a docs page that teaches it. A claim the release cannot back, or that no docs page covers, is a **major** finding on the Surface that promises it.
 - The install command on the page is run verbatim in a `mktemp -d` scratch directory, and its stated prerequisites are enough to make it work.
-- **Copy rate** (copies ÷ page views) is read from the number the Surface brief's `Copy rate:` line records. With no such line the check reports `not instrumented` and files nothing: an unmeasured target is not a finding.
+- **Copy rate** (copies ÷ page views) is read from the `Copy rate:` line of the `site` Surface brief in [`docs/next-steps-runbook.md`](./next-steps-runbook.md), once that brief exists. Until then the check reports `not instrumented` and files nothing: an unmeasured target is not a finding.
 - Personas: `thai-marketer`, `skeptical-senior-dev`.
 
 ### `cli`
@@ -164,7 +164,7 @@ Reader: an agent mid-task, installed by a customer. Target: pass^3 on a 20-task 
 - Install in `mktemp -d`: `npx -y skills@1.7.6 add trajectonomics/skills --skill traj-onboarding -y`, then confirm what was installed and from where (`skills list --json`). An unpinned or unverifiable download is a finding.
 - The skill's claims against the release: every command it names is in `schema --json`, every file or flag it names exists. One command outside that list is a **blocker**.
 - Every task in [`qa-tasks.md`](./qa-tasks.md), run 3 times; all three must pass (pass^3), and a task that passes 2 of 3 is a finding, not a pass.
-- 20 labelled queries: 10 that should trigger the skill, 10 that should not, three of them near-misses. The pass writes the query, its expected verdict and the result into the report before it judges anything, so the rate cannot be fitted afterwards; 3 runs each. A skill that fires on a neighbouring task is worse than one that never fires.
+- Every query in [`qa-trigger-queries.md`](./qa-trigger-queries.md), 3 runs each: the expectation is fixed in that file, so the rate cannot be fitted after the fact. Report one line per query, `triggered` or `silent` against its expectation. A skill that fires on a neighbouring task is worse than one that never fires.
 - The version check: the skill states the version it expects, or it does not, and the report says which.
 - Personas: `skill-installer`, `vibe-coder-agent`.
 
@@ -184,7 +184,7 @@ The owner runs it before a release; `factory-launch-check` is the skill that poi
 
 1. Pin the release that is about to ship: the tag, the npm versions, the deploy commit of `docs` and `site`, the skill commit. If the thing under test is `main` and not a release, say so and refuse a `SHIP` verdict.
 2. Run all five playbooks and the full roster.
-3. Take the verdict to a second view: `delegate_task` once, `role: "review"`, `mode: "wait"`, `target: { providerInstanceId: "antigravity", model: "gemini-4-hydrogen", options: { thinking_level: "medium" } }`, giving it the pins, the blocker list and the findings, and asking whether anything marked non-blocking is a blocker and anything marked blocker is not. If that provider has no quota, say so in the report and keep the verdict it could not confirm.
+3. Take the verdict to a second view: `delegate_task` once, `role: "review"`, `mode: "wait"`, `target: { providerInstanceId: "antigravity", model: "gemini-4-hydrogen", options: { thinking_level: "medium" } }`, giving it the pins, the blocker list and the findings, and asking whether anything marked non-blocking is a blocker and anything marked blocker is not. When that provider has no quota, fall back once to `{ providerInstanceId: "mistral-vibe", model: "mistral-large-4", options: { thinking: "high" } }` and record which model saw it. Only when both are exhausted is the verdict unconfirmed: say so in the report, and do not let the second view's absence change the verdict.
 4. Write [the launch report](#the-launch-report) as the last thing you write. File no issue and open no pull request.
 
 **A blocker is** a first-time customer who cannot get from install to a correct result, wrong money or tax, an exposed secret, or a published page that 404s or contradicts the release. Nothing else blocks. A large list of `minor` findings does not block a launch and is never presented as if it did.

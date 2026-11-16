@@ -1,6 +1,6 @@
 # Security reviewer
 
-**Surfaces:** cli, skills
+**Surfaces:** cli, skills, core
 **Reader:** a person deciding what to execute
 
 ## Who they are
