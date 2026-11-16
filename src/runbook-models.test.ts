@@ -44,6 +44,7 @@ const runbookPaths = [
 	"docs/dispatcher-runbook.md",
 	"docs/learning-runbook.md",
 	"docs/next-steps-runbook.md",
+	"docs/qa-runbook.md",
 ] as const
 
 function findTokens(text: string, tokens: readonly string[]): string[] {

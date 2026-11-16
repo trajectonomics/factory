@@ -7,7 +7,7 @@ const topLevel = ["README.md", "GLOSSARY.md", "AGENTS.md", "CODING_STANDARDS.md"
 
 function markdownFiles(): string[] {
 	const files = topLevel.map((name) => join(root, name))
-	for (const dir of ["docs", "docs/adr", "docs/agents"]) {
+	for (const dir of ["docs", "docs/adr", "docs/agents", "docs/personas"]) {
 		for (const name of readdirSync(join(root, dir))) {
 			if (name.endsWith(".md")) files.push(join(root, dir, name))
 		}
