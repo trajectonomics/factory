@@ -12,6 +12,7 @@ const runbooks = [
 	"docs/dispatcher-runbook.md",
 	"docs/learning-runbook.md",
 	"docs/next-steps-runbook.md",
+	"docs/qa-runbook.md",
 ]
 
 /** A quoted instruction that reads a Factory runbook with `git show`, which works only in the factory checkout. */

@@ -112,6 +112,30 @@ _Avoid_: Design review (for a diff), visual check
 The loop that critiques a drafted Spec: a drafter and two consultants, ending with the Spec labelled `ready-for-agent`, or an Owner question in the drafter's thread.
 _Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triage" otherwise means the five-label routine.
 
+**Surface**:
+One published thing a customer meets: `docs`, `site`, `cli`, `skills`, or `core`. It is not a repository — `core` is four of them, and `web-router` is none of the five, though [ADR 0017](./docs/adr/0017-surface-design-gate.md) calls `site` and `web-router` surface repositories.
+_Avoid_: Product area, repo, channel
+
+**Published truth**:
+What a customer actually gets: `latest` on npm, the live URL, the published skill. The opposite of `main`. Every QA check tests it, because a capability that exists only on `main` is not one.
+_Avoid_: Source of truth, latest code, current version
+
+**Persona**:
+A fixed description of a customer that an agent plays during a QA pass, one file under `docs/personas/`. It may use only what a stranger has, and every claim it makes carries a pasted command and output.
+_Avoid_: User story, simulated user, avatar
+
+**QA finding**:
+A defect or friction a QA pass reproduces on a published Surface. It is an issue with `qa` and one severity label, and its body carries a fingerprint by which a repeat is found.
+_Avoid_: Bug report, QA report, test failure
+
+**Severity**:
+What a QA finding carries that decides its lane: `blocker` and `major` are filed and drafted, `minor` is filed and waits for the owner's word, `noise` is never an issue.
+_Avoid_: Priority, P0, P1
+
+**Launch check**:
+The QA pass the owner runs before a release. It tests every Surface at one pinned version and ends in one `SHIP` / `SHIP-WITH-WAIVERS` / `NO-SHIP` verdict, filing nothing.
+_Avoid_: Smoke test, release review, go/no-go
+
 ### Ideas and learning
 
 **Goals**:
