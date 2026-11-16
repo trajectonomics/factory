@@ -20,7 +20,7 @@ The roster the QA pass plays. One file per Persona, named `<id>.md`, versioned l
 | [`ci-automator`](./ci-automator.md) | cli | person, writes scripts | prose output, or exit 0 on misuse |
 | [`skeptical-senior-dev`](./skeptical-senior-dev.md) | site, core | developer judging in 3 minutes | a blank npm page |
 | [`package-integrator`](./package-integrator.md) | core | developer adding a dependency | an example that needs a config they must invent |
-| [`security-reviewer`](./security-reviewer.md) | cli, skills | person deciding what to trust | a download they cannot verify |
+| [`security-reviewer`](./security-reviewer.md) | cli, skills, core | person deciding what to trust | a download they cannot verify |
 | [`skill-installer`](./skill-installer.md) | skills | engineer installing the skill | two different install commands |
 | [`vibe-coder-agent`](./vibe-coder-agent.md) | docs, skills | an AI agent working alone | a command not in `schema` |
 | [`thai-marketer`](./thai-marketer.md) | site, docs | person reading Thai | a slogan instead of a noun |

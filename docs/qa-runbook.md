@@ -91,7 +91,7 @@ Launch message (fill in and send):
 1. Read this runbook, [`GLOSSARY.md`](../GLOSSARY.md), the `AGENTS.md` and `README` of every repository the Surface names (`core` names four: `money`, `ledger-core`, `tax-core`, `sim-core`), and the Persona files the playbook names.
 2. Pin the published truth with the commands above, and write the pins down before testing anything.
 3. Run the Surface playbook below. Every check prints what it ran.
-4. Run the panel. Personas run as `delegate_task` children in one message, `mode: "wait"`, on the same DeepSeek model, each with its Persona file and the playbook's task. They are read-only and told to file nothing.
+4. Run the panel. Personas run as `delegate_task` children in one message, `mode: "wait"`, on the same DeepSeek model, each with its Persona file and the jobs that Surface's playbook tests, told to do them as that customer would. They are read-only and told to file nothing.
 5. Turn findings into issues under [Filing](#filing): fingerprint, dedupe, labels, `needs-triage` only on `blocker` and `major`.
 6. Leave nothing behind: no push, no branch of a Surface repository, no edit to any Surface repository. A scratch directory made with `mktemp -d` is deleted before the report.
 7. Finish with one line: `QA <surface>, pins <versions>, checks <passed>/<total>, findings <n> (<b> blocker, <m> major, <i> minor), issues <urls or none>, panel <n>, noise <n>`.
@@ -161,10 +161,10 @@ Reader: a stranger with a real ledger, at a terminal, alone. Target: install to 
 
 Reader: an agent mid-task, installed by a customer. Target: pass^3 on a 20-task suite, and no invented command.
 
-- Install in `mktemp -d`: `npx -y skills@1.7.6 add trajectonomics/skills --skill traj-onboarding -y`, then confirm what was installed and from where (`skills list --json`). An unpinned or unverifiable download is a finding.
+- Install in `mktemp -d`: `npx -y skills@1.7.6 add trajectonomics/skills --skill traj-onboarding -y`, then confirm what was installed and from where (`skills list --json`). An unpinned or unverifiable download is a `major` finding.
 - The skill's claims against the release: every command it names is in `schema --json`, every file or flag it names exists. One command outside that list is a **blocker**.
-- Every task in [`qa-tasks.md`](./qa-tasks.md), run 3 times; all three must pass (pass^3), and a task that passes 2 of 3 is a finding, not a pass.
-- Every query in [`qa-trigger-queries.md`](./qa-trigger-queries.md), 3 runs each: the expectation is fixed in that file, so the rate cannot be fitted after the fact. Report one line per query, `triggered` or `silent` against its expectation. A skill that fires on a neighbouring task is worse than one that never fires.
+- Every task in [`qa-tasks.md`](./qa-tasks.md), run 3 times; all three must pass (pass^3), and a task that passes 2 of 3 is a `major` finding, not a pass.
+- Every query in [`qa-trigger-queries.md`](./qa-trigger-queries.md), 3 runs each: the expectation is fixed in that file, so the rate cannot be fitted after the fact. Report one line per query, `triggered` or `silent` against its expectation. One run against the expectation is a `minor` finding, two or three is a `major`, and a skill that fires on a neighbouring task is worse than one that never fires.
 - The version check: the skill states the version it expects, or it does not, and the report says which.
 - Personas: `skill-installer`, `vibe-coder-agent`.
 
