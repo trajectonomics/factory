@@ -6,7 +6,7 @@ import type {
 	HostSnapshot,
 } from "./dispatch-contracts"
 import type { DispatchGuards, HostGuardReport } from "./dispatch-plan-contracts"
-import { liveCountOf } from "./dispatch-threads"
+import { liveCountOfHost } from "./dispatch-threads"
 import { deepFreeze } from "./freeze"
 import { launchAllowed, launchStopped } from "./guard-contracts"
 import { evaluateHostGuard } from "./host-guard"
@@ -43,9 +43,7 @@ function hostGuardReport(
 }
 /** The measured load of every host in the pass, with the live threads counted from the reading. */
 export function hostLoads(reading: HostReading): readonly HostLoad[] {
-	return deepFreeze(
-		reading.hosts.map((host) => hostLoadOf(host, liveCountOf(reading.threads, host.host))),
-	)
+	return deepFreeze(reading.hosts.map((host) => hostLoadOf(host, liveCountOfHost(reading, host))))
 }
 function hostLoadOf(host: HostSnapshot, liveThreads: number | undefined): HostLoad {
 	return {

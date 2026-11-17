@@ -1,5 +1,11 @@
 import { describe, expect, it } from "bun:test"
-import { atRiskRepositories, liveCountOf, liveThreadIssues, unreadHosts } from "./dispatch-threads"
+import {
+	atRiskRepositories,
+	liveCountOf,
+	liveCountOfHost,
+	liveThreadIssues,
+	unreadHosts,
+} from "./dispatch-threads"
 import { CLI, FACTORY, host, hostThreads, thread } from "./fixtures/dispatch"
 import { T3Error } from "./t3-errors"
 
@@ -109,6 +115,14 @@ describe("a host's live-thread count", () => {
 		const inventory = [hostThreads({ ok: false, threads: [] })]
 
 		expect(liveCountOf(inventory, "homeserver2")).toBeUndefined()
+	})
+
+	it("has no count for a host whose snapshot says it is unreachable", () => {
+		const reading = { hosts: [host({ reachable: false })], threads: [hostThreads()] }
+
+		expect(
+			liveCountOfHost(reading, reading.hosts[0] as (typeof reading.hosts)[number]),
+		).toBeUndefined()
 	})
 
 	it("has no count for a host the reading does not name", () => {

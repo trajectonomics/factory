@@ -24,11 +24,20 @@ export function liveThreadIssues(inventory: readonly HostThreads[]): IssueKey[] 
 	return deepFreeze(sortIssueKeys([...issues.values()]))
 }
 
-/** Every live thread on one host counted by its title prefix; undefined when that host was not read. */
+/** Every live thread in one host's inventory entry, counted; undefined when it is missing or not ok. */
 export function liveCountOf(inventory: readonly HostThreads[], host: string): number | undefined {
+	const entry = entryFor(inventory, host)
+	return entry === undefined ? undefined : entry.threads.filter(isCountedThread).length
+}
+
+/** The live count the pass reports for a host; undefined when the host was not read, unreachable included. */
+export function liveCountOfHost(reading: HostReading, host: HostSnapshot): number | undefined {
+	return host.reachable ? liveCountOf(reading.threads, host.host) : undefined
+}
+
+function entryFor(inventory: readonly HostThreads[], host: string): HostThreads | undefined {
 	const entry = inventory.find((candidate) => candidate.host === host)
-	if (entry === undefined || !entry.ok) return undefined
-	return entry.threads.filter(isCountedThread).length
+	return entry?.ok === true ? entry : undefined
 }
 
 /** Whether a thread is work the runbook counts on its host: live, under one of the seven prefixes. */
@@ -38,8 +47,11 @@ function isCountedThread(thread: T3Thread): boolean {
 
 /** The hosts the pass knows whose reading is missing, failed or came from an unreachable host. */
 export function unreadHosts(reading: HostReading): readonly HostSnapshot[] {
-	const read = new Set(reading.threads.filter((entry) => entry.ok).map((entry) => entry.host))
-	return Object.freeze(reading.hosts.filter((host) => !host.reachable || !read.has(host.host)))
+	return Object.freeze(
+		reading.hosts.filter(
+			(host) => !host.reachable || entryFor(reading.threads, host.host) === undefined,
+		),
+	)
 }
 
 /** The repositories an unread host carries, whose thread state is therefore unknown to the pass. */

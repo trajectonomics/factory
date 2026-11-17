@@ -102,6 +102,17 @@ describe("a pass report with an unread host", () => {
 		expect(text).not.toContain("Hosts unread")
 	})
 
+	it("reports an unreachable host as unread even when its reading succeeded", () => {
+		const input = reading({
+			hosts: [host(), host({ host: "homeserver1", reachable: false, repositories: [FACTORY] })],
+			threads: [hostThreads(), hostThreads({ host: "homeserver1", threads: [thread()] })],
+		})
+		const text = formatDispatchReport(passReport(planDispatch(input, config()), input))
+
+		expect(text).toContain("Hosts unread: homeserver1 1 repositories at risk")
+		expect(text).toContain("homeserver1 load 1.0, memory 20%, disk 30%, live unknown")
+	})
+
 	it("shows each host's live thread count from the reading", () => {
 		const input = reading({
 			hosts: [host(), host({ host: "homeserver1" })],
