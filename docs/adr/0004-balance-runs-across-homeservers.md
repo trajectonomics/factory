@@ -16,6 +16,8 @@ A host is a candidate for a Run only if it is reachable and the Run's repository
 
 The Dispatcher reads live threads on both hosts before it decides anything, so a Run on one host is never duplicated on the other.
 
+That reading is either complete or it is not. A host whose threads could not be read is not a candidate, and a repository it carries is not placed on the other host either that pass, because the Run already live there is exactly the duplicate this ADR forbids; the pass reports the host it could not read. This is stronger than falling back to the other host above, and it replaces that fallback whenever the reason a host is not a candidate is that it could not be read (factory#101).
+
 ## Considered Options
 
 - Keep one fixed host per repository: simple, but homeserver2 stays overloaded and homeserver1 sits idle.
@@ -25,5 +27,5 @@ The Dispatcher reads live threads on both hosts before it decides anything, so a
 ## Consequences
 
 - homeserver1 must have each repository cloned, registered as a T3 project, authenticated for `gh` and git, and equipped with `bun` and the Run model before it can take that repository's Runs. Until then those Runs fall back to homeserver2.
-- The core `Allowlist` type still holds a single `host` per repository. The Dispatcher entrypoint (factory#10) must replace that with a candidate list or a placement step before the pure core can express this decision. Until then placement is a Dispatcher-runbook step, not core code.
+- The core `Allowlist` type still holds a single `host` per repository. Placement itself is core code: it takes its candidates from the measured hosts, and the allowlist host is the repository's default and the origin of the reported fallback. Turning the allowlist entry into a candidate list is still open.
 - ADR 0003's Host guard still applies per host: a host over its threshold is not a candidate.
