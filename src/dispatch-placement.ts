@@ -1,6 +1,7 @@
 import type { EligibleRun } from "./contracts"
 import type { DispatchConfig, DispatchReading, HostSnapshot } from "./dispatch-contracts"
 import type { DispatchDeferralReason } from "./dispatch-plan-contracts"
+import { liveCountOf } from "./dispatch-threads"
 import { deepFreeze } from "./freeze"
 import { evaluateHostGuard } from "./host-guard"
 import { issueOfRun } from "./keys"
@@ -10,6 +11,11 @@ import { evaluatePacingGuard } from "./pacing-guard"
 export type Placement =
 	| { readonly host: string; readonly fallback: boolean }
 	| { readonly reason: DispatchDeferralReason }
+/** One placement candidate: a host that was read and carries the Run's repository. */
+type Candidate = {
+	readonly host: HostSnapshot
+	readonly liveThreads: number
+}
 /** The host placement for a planned Run, or the reason it stays. */
 export function placeRun(
 	run: EligibleRun,
@@ -17,22 +23,30 @@ export function placeRun(
 	config: DispatchConfig,
 	plannedPerHost: ReadonlyMap<string, number>,
 ): Placement {
-	const repository = issueOfRun(run).repository
-	const candidates = reading.hosts.filter(
-		(host) =>
-			host.readiness === "ready" && host.reachable && host.repositories.includes(repository),
-	)
+	const candidates = candidatesFor(issueOfRun(run).repository, reading)
 	if (candidates.length === 0) return deepFreeze({ reason: "no-host" })
-	const healthy = candidates.filter((host) =>
-		allowed(evaluateHostGuard(host.health, config.thresholds.host)),
+	const healthy = candidates.filter((candidate) =>
+		allowed(evaluateHostGuard(candidate.host.health, config.thresholds.host)),
 	)
 	if (healthy.length === 0) return deepFreeze({ reason: "host-pressure" })
-	const paced = healthy.filter((host) =>
-		allowed(pacingDecision(host, reading, config, plannedPerHost)),
+	const paced = healthy.filter((candidate) =>
+		allowed(pacingDecision(candidate.host, reading, config, plannedPerHost)),
 	)
 	if (paced.length === 0) return deepFreeze({ reason: "launch-too-soon" })
 	const chosen = leastLoaded(paced, plannedPerHost)
-	return deepFreeze({ host: chosen.host, fallback: chosen.host !== run.host })
+	return deepFreeze({ host: chosen.host.host, fallback: chosen.host.host !== run.host })
+}
+/** The hosts that may take this repository: ready, reachable, carrying it, and read this pass. */
+function candidatesFor(repository: string, reading: DispatchReading): readonly Candidate[] {
+	const candidates: Candidate[] = []
+	for (const host of reading.hosts) {
+		if (host.readiness !== "ready" || !host.reachable) continue
+		if (!host.repositories.includes(repository)) continue
+		const liveThreads = liveCountOf(reading.threads, host.host)
+		if (liveThreads === undefined) continue
+		candidates.push({ host, liveThreads })
+	}
+	return candidates
 }
 function pacingDecision(
 	host: HostSnapshot,
@@ -51,11 +65,14 @@ function pacingDecision(
 function allowed(decision: { readonly allowed: boolean }): boolean {
 	return decision.allowed
 }
-function leastLoaded(hosts: readonly HostSnapshot[], plannedPerHost: ReadonlyMap<string, number>) {
-	return hosts.reduce((best, host) =>
-		score(host, plannedPerHost) < score(best, plannedPerHost) ? host : best,
+function leastLoaded(
+	candidates: readonly Candidate[],
+	plannedPerHost: ReadonlyMap<string, number>,
+): Candidate {
+	return candidates.reduce((best, candidate) =>
+		score(candidate, plannedPerHost) < score(best, plannedPerHost) ? candidate : best,
 	)
 }
-function score(host: HostSnapshot, plannedPerHost: ReadonlyMap<string, number>): number {
-	return host.liveRuns + (plannedPerHost.get(host.host) ?? 0)
+function score(candidate: Candidate, plannedPerHost: ReadonlyMap<string, number>): number {
+	return candidate.liveThreads + (plannedPerHost.get(candidate.host.host) ?? 0)
 }

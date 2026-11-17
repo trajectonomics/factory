@@ -7,6 +7,7 @@ import type {
 import { readDispatchLedger } from "./dispatch-ledger"
 import { runDispatchPass } from "./dispatch-pass"
 import type { DispatchAdapters, DispatchPassResult } from "./dispatch-pass-contracts"
+import { liveThreadIssues } from "./dispatch-threads"
 import type { GitHubClient } from "./github/client"
 import { readRepositoryState } from "./github/read"
 import { readRepositorySkillLocks } from "./github/read-skill-locks"
@@ -15,16 +16,18 @@ import type { FactoryWrite } from "./github/writes"
 import type { HumanQueue } from "./human-queue"
 import type { KillSwitch } from "./kill-switch"
 import type { SkillLock } from "./skill-lock"
-import type { T3Client, T3LaunchRequest, T3Thread } from "./t3"
-import { listLiveThreads } from "./t3-adapter"
+import type { T3LaunchRequest, T3Thread } from "./t3"
+import { type HostThreadSource, readThreadInventories } from "./t3-adapter"
 
-/** What the scheduled task supplies beyond GitHub and T3: the host and owner state it measured. */
+/** What the scheduled task supplies beyond GitHub: the hosts it measured and one T3 client per host. */
 export type DispatchCommandInput = {
 	readonly repositories: readonly string[]
 	readonly hosts: readonly HostSnapshot[]
+	/** One T3 client per host: the pass reads each host's live threads once and both consumers use it. */
+	readonly threadSources: readonly HostThreadSource[]
 	readonly humanQueue: HumanQueue
 	readonly killSwitch: KillSwitch
-	/** The pull requests and Exits to report; read from GitHub and T3 when the caller supplies none. */
+	/** The pull requests and Exits to report; read from GitHub and the reading when the caller supplies none. */
 	readonly ledger?: DispatchLedger
 	/** The skills installed per repository; read from GitHub when the caller supplies none. */
 	readonly skills?: Readonly<Record<string, readonly string[]>>
@@ -39,17 +42,19 @@ export type DispatchCommandInput = {
 /** The scheduled task's one Dispatcher pass. */
 export async function dispatchCommand(
 	client: GitHubClient,
-	t3: T3Client,
 	config: DispatchConfig,
 	input: DispatchCommandInput,
 ): Promise<DispatchPassResult> {
-	const state = await readRepositoryState(client, input.repositories, await listLiveThreads(t3))
+	const threads = await readThreadInventories(input.threadSources)
+	const state = await readRepositoryState(client, input.repositories, liveThreadIssues(threads))
 	const reading: DispatchReading = {
 		state,
 		hosts: input.hosts,
+		threads,
 		humanQueue: input.humanQueue,
 		killSwitch: input.killSwitch,
-		ledger: input.ledger ?? (await readDispatchLedger(client, t3, input.repositories, input.nowMs)),
+		ledger:
+			input.ledger ?? (await readDispatchLedger(client, threads, input.repositories, input.nowMs)),
 		skills: input.skills ?? (await readRepositorySkills(client, input.repositories)),
 		skillLocks: input.skillLocks ?? (await readRepositorySkillLocks(client, input.repositories)),
 		nowMs: input.nowMs,

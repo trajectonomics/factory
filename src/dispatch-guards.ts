@@ -2,9 +2,11 @@ import type {
 	DispatchReading,
 	DispatchThresholds,
 	HostLoad,
+	HostReading,
 	HostSnapshot,
 } from "./dispatch-contracts"
 import type { DispatchGuards, HostGuardReport } from "./dispatch-plan-contracts"
+import { liveCountOfHost } from "./dispatch-threads"
 import { deepFreeze } from "./freeze"
 import { launchAllowed, launchStopped } from "./guard-contracts"
 import { evaluateHostGuard } from "./host-guard"
@@ -39,14 +41,16 @@ function hostGuardReport(
 		}),
 	}
 }
-/** The measured load of every host in the pass. */
-export function hostLoads(hosts: readonly HostSnapshot[]): readonly HostLoad[] {
-	return deepFreeze(
-		hosts.map((host) => ({
-			host: host.host,
-			loadAverage: host.health.loadAverage,
-			memoryUsedFraction: host.health.memoryUsedFraction,
-			diskUsedFraction: host.health.diskUsedFraction,
-		})),
-	)
+/** The measured load of every host in the pass, with the live threads counted from the reading. */
+export function hostLoads(reading: HostReading): readonly HostLoad[] {
+	return deepFreeze(reading.hosts.map((host) => hostLoadOf(host, liveCountOfHost(reading, host))))
+}
+function hostLoadOf(host: HostSnapshot, liveThreads: number | undefined): HostLoad {
+	return {
+		host: host.host,
+		loadAverage: host.health.loadAverage,
+		memoryUsedFraction: host.health.memoryUsedFraction,
+		diskUsedFraction: host.health.diskUsedFraction,
+		...(liveThreads === undefined ? {} : { liveThreads }),
+	}
 }

@@ -3,7 +3,7 @@ import type { HostHealth, HostThresholds } from "./host-guard"
 import type { HumanQueue } from "./human-queue"
 import type { KillSwitch } from "./kill-switch"
 import type { SkillLock } from "./skill-lock"
-import type { T3Model } from "./t3"
+import type { T3Model, T3Thread } from "./t3"
 
 /** Whether the Dispatcher applies its decisions or only prints them. */
 export type DispatchMode = "dry-run" | "live"
@@ -28,9 +28,21 @@ export type HostSnapshot = {
 	readonly readiness: HostReadiness
 	readonly reachable: boolean
 	readonly repositories: readonly string[]
-	readonly liveRuns: number
 	readonly health: HostHealth
 	readonly lastLaunchAtMs?: number
+}
+/** One host's T3 threads as one pass read them, live or settled; `ok: false` means it was not read. */
+export type HostThreads = {
+	readonly host: string
+	readonly environmentId: string
+	readonly ok: boolean
+	readonly threads: readonly T3Thread[]
+	readonly error?: string
+}
+/** The hosts a pass knows, with the thread reading that covers them. */
+export type HostReading = {
+	readonly hosts: readonly HostSnapshot[]
+	readonly threads: readonly HostThreads[]
 }
 /** One host's measurements for the report. */
 export type HostLoad = {
@@ -38,6 +50,8 @@ export type HostLoad = {
 	readonly loadAverage: number
 	readonly memoryUsedFraction: number
 	readonly diskUsedFraction: number
+	/** The live threads counted on the host; absent when the host was not read. */
+	readonly liveThreads?: number
 }
 /** A Factory pull request as the report reads it. */
 export type FactoryPullRequest = {
@@ -63,9 +77,8 @@ export type DispatchLedger = {
 	readonly exits: readonly RunExit[]
 }
 /** Everything one Dispatcher pass reads before it decides. */
-export type DispatchReading = {
+export type DispatchReading = HostReading & {
 	readonly state: RepositoryState
-	readonly hosts: readonly HostSnapshot[]
 	readonly humanQueue: HumanQueue
 	readonly killSwitch: KillSwitch
 	readonly ledger: DispatchLedger
@@ -84,7 +97,7 @@ export type DispatchConfig = {
 	readonly model: T3Model
 }
 /** The inputs a Dispatcher pass rejects. */
-export type DispatchErrorCode = "invalid-launch-pace"
+export type DispatchErrorCode = "invalid-launch-pace" | "duplicate-host"
 
 /** A malformed Dispatcher configuration or reading. */
 export class DispatchError extends Error {

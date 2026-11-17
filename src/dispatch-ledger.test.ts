@@ -1,15 +1,21 @@
 import { describe, expect, it } from "bun:test"
+import type { HostThreads } from "./dispatch-contracts"
 import { readDispatchLedger } from "./dispatch-ledger"
 import type { GitHubCommentData, GitHubIssueData, GitHubPullRequestData } from "./github/client"
 import { testClient } from "./github/fixtures/test-client"
-import type { T3Client, T3Thread } from "./t3"
+import type { T3Thread } from "./t3"
 
 const CLI = "trajectonomics/cli"
 const NOW_MS = Date.parse("2026-11-09T15:00:00Z")
-const NO_THREADS: T3Client = { listThreads: async () => [], launchThread: unusedLaunch }
 
-async function unusedLaunch(): Promise<never> {
-	throw new Error("unexpected launch")
+function hostThreads(overrides: Partial<HostThreads> = {}): HostThreads {
+	return {
+		host: "homeserver2",
+		environmentId: "environment-homeserver2",
+		ok: true,
+		threads: [],
+		...overrides,
+	}
 }
 
 function pullRequest(number: number, ref: string, draft = false): GitHubPullRequestData {
@@ -48,14 +54,14 @@ function ledgerOf(
 		issues?: GitHubIssueData[]
 		comments?: GitHubCommentData[]
 	},
-	t3: T3Client = NO_THREADS,
+	inventory: readonly HostThreads[] = [hostThreads()],
 ) {
 	const client = testClient({
 		listPullRequests: async () => data.pulls ?? [],
 		listIssues: async () => data.issues ?? [],
 		listComments: async () => data.comments ?? [],
 	})
-	return readDispatchLedger(client, t3, [CLI], NOW_MS)
+	return readDispatchLedger(client, inventory, [CLI], NOW_MS)
 }
 
 describe("reading the Dispatcher ledger", () => {
@@ -157,14 +163,13 @@ describe("reading the Dispatcher ledger", () => {
 	})
 
 	it("ignores a waiting Run thread of a repository the pass does not cover", async () => {
-		const t3: T3Client = {
-			listThreads: async () => [
-				{ id: "t1", title: "traj/trajectonomics/sim-core#4", status: "waiting" },
-			],
-			launchThread: unusedLaunch,
-		}
+		const inventory = [
+			hostThreads({
+				threads: [{ id: "t1", title: "traj/trajectonomics/sim-core#4", status: "waiting" }],
+			}),
+		]
 
-		const ledger = await ledgerOf({}, t3)
+		const ledger = await ledgerOf({}, inventory)
 
 		expect(ledger.exits).toEqual([])
 	})
@@ -175,16 +180,34 @@ describe("reading the Dispatcher ledger", () => {
 			title,
 			status,
 		})
-		const t3: T3Client = {
-			listThreads: async () => [
-				thread(`traj/${CLI}#4`, "waiting"),
-				thread(`traj/${CLI}#5`, "running"),
-				thread(`triage/${CLI}#6`, "waiting"),
-			],
-			launchThread: unusedLaunch,
-		}
+		const inventory = [
+			hostThreads({
+				threads: [
+					thread(`traj/${CLI}#4`, "waiting"),
+					thread(`traj/${CLI}#5`, "running"),
+					thread(`triage/${CLI}#6`, "waiting"),
+				],
+			}),
+		]
 
-		const ledger = await ledgerOf({}, t3)
+		const ledger = await ledgerOf({}, inventory)
+
+		expect(ledger.exits).toEqual([
+			{ issue: { repository: CLI, number: 4 }, kind: "urgent", atMs: NOW_MS },
+		])
+	})
+
+	it("reads the urgent Exits of every host's inventory", async () => {
+		const inventory = [
+			hostThreads(),
+			hostThreads({
+				host: "homeserver1",
+				environmentId: "environment-homeserver1",
+				threads: [{ id: "t1", title: `traj/${CLI}#4`, status: "waiting" }],
+			}),
+		]
+
+		const ledger = await ledgerOf({}, inventory)
 
 		expect(ledger.exits).toEqual([
 			{ issue: { repository: CLI, number: 4 }, kind: "urgent", atMs: NOW_MS },

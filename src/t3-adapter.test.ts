@@ -1,10 +1,11 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueState, RepositoryState } from "./contracts"
+import { liveThreadIssues } from "./dispatch-threads"
 import { evaluateEligibility } from "./eligibility"
 import { RECORDED_LAUNCHED_THREAD, RECORDED_THREADS } from "./fixtures/t3-threads"
 import type { RunLaunchInput } from "./run-launch"
 import type { T3Client, T3LaunchRequest, T3Thread } from "./t3"
-import { launchRun, listLiveThreads } from "./t3-adapter"
+import { launchRun, readThreadInventories } from "./t3-adapter"
 
 const NOW_MS = 1_000_000_000
 const ROLE_BRIEF = "You are the implementer. Work test-first and keep the core pure."
@@ -32,20 +33,64 @@ function fakeClient(
 	}
 }
 
+describe("reading every host's live threads", () => {
+	it("reads each host once and records the environment and threads it answered with", async () => {
+		const inventory = await readThreadInventories([
+			{ host: "homeserver2", environmentId: "environment-2", client: fakeClient(RECORDED_THREADS) },
+			{ host: "homeserver1", environmentId: "environment-1", client: fakeClient([]) },
+		])
+
+		expect(inventory).toEqual([
+			{
+				host: "homeserver2",
+				environmentId: "environment-2",
+				ok: true,
+				threads: RECORDED_THREADS,
+			},
+			{ host: "homeserver1", environmentId: "environment-1", ok: true, threads: [] },
+		])
+	})
+
+	it("records a host whose read failed as unread with its reason, without failing the pass", async () => {
+		const failing: T3Client = {
+			listThreads: async () => {
+				throw new Error("connection refused")
+			},
+			launchThread: async () => RECORDED_LAUNCHED_THREAD,
+		}
+
+		const inventory = await readThreadInventories([
+			{ host: "homeserver2", environmentId: "environment-2", client: failing },
+			{ host: "homeserver1", environmentId: "environment-1", client: fakeClient([]) },
+		])
+
+		expect(inventory[0]).toEqual({
+			host: "homeserver2",
+			environmentId: "environment-2",
+			ok: false,
+			threads: [],
+			error: "connection refused",
+		})
+		expect(inventory[1]?.ok).toBe(true)
+	})
+})
+
 describe("live Run thread listing", () => {
 	it("lists the issues behind the live threads in a recorded T3 listing", async () => {
-		const client = fakeClient(RECORDED_THREADS)
+		const inventory = await readThreadInventories([
+			{ host: "homeserver2", environmentId: "environment-2", client: fakeClient(RECORDED_THREADS) },
+		])
 
-		const liveThreads = await listLiveThreads(client)
-
-		expect(liveThreads).toEqual([
+		expect(liveThreadIssues(inventory)).toEqual([
 			{ repository: "trajectonomics/cli", number: 9 },
 			{ repository: "trajectonomics/factory", number: 8 },
 		])
 	})
 
 	it("matches a live thread to the Claim it holds", async () => {
-		const client = fakeClient(RECORDED_THREADS)
+		const inventory = await readThreadInventories([
+			{ host: "homeserver2", environmentId: "environment-2", client: fakeClient(RECORDED_THREADS) },
+		])
 		const ticket: IssueState = {
 			key: { repository: "trajectonomics/factory", number: 8 },
 			kind: "ticket",
@@ -54,7 +99,7 @@ describe("live Run thread listing", () => {
 			blockers: [],
 			claim: { claimedAtMs: NOW_MS - 3 * 60 * 60 * 1000 },
 		}
-		const state: RepositoryState = { issues: [ticket], liveThreads: await listLiveThreads(client) }
+		const state: RepositoryState = { issues: [ticket], liveThreads: liveThreadIssues(inventory) }
 		const allowlist = [{ repository: "trajectonomics/factory", host: "homeserver2" }]
 
 		const plan = evaluateEligibility(state, allowlist, NOW_MS)
