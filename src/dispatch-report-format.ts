@@ -1,12 +1,17 @@
 import type { IssueKey } from "./contracts"
 import type { DispatchMode, FactoryPullRequest, HostLoad } from "./dispatch-contracts"
-import type { DispatchLaunch, DispatchReport, DispatchRunRecord } from "./dispatch-plan-contracts"
+import type {
+	DispatchLaunch,
+	DispatchReport,
+	DispatchRunRecord,
+	UnreadHostReport,
+} from "./dispatch-plan-contracts"
 import { issueOfRun, keyOf } from "./keys"
 
-/** The six-line text summary the Dispatcher prints for a pass report. */
+/** The text summary the Dispatcher prints for a pass report. */
 export function formatDispatchReport(report: DispatchReport, mode?: DispatchMode): string {
 	const runs = mode === "dry-run" ? "Runs (would launch)" : "Runs"
-	return [
+	const lines = [
 		`${runs}: ${report.runs.length}${runSummary(report.runs)}`,
 		`PRs: ${report.pullRequests.length}${pullRequestSummary(report.pullRequests)}`,
 		`Gate failures: ${report.gateFailures.length}${issueSummary(
@@ -15,7 +20,11 @@ export function formatDispatchReport(report: DispatchReport, mode?: DispatchMode
 		`Exits: spec gap ${report.exits["spec-gap"]}, follow-up ${report.exits["follow-up"]}, urgent ${report.exits.urgent}, gate failure ${report.exits["gate-failure"]}`,
 		`${mode === "dry-run" ? "Stale Claims (would release)" : "Stale Claims"}: ${report.staleClaims.length}${issueSummary(report.staleClaims)}`,
 		`Host load: ${hostSummary(report.hostLoad)}`,
-	].join("\n")
+	]
+	if (report.unreadHosts.length > 0) {
+		lines.push(`Hosts unread: ${unreadSummary(report.unreadHosts)}`)
+	}
+	return lines.join("\n")
 }
 function runSummary(runs: readonly DispatchRunRecord[]): string {
 	if (runs.length === 0) return ""
@@ -39,11 +48,15 @@ function issueSummary(issues: readonly IssueKey[]): string {
 }
 function hostSummary(hosts: readonly HostLoad[]): string {
 	if (hosts.length === 0) return "none"
+	return hosts.map(hostLoadText).join("; ")
+}
+function hostLoadText(host: HostLoad): string {
+	const live = host.liveThreads === undefined ? "live unknown" : `live ${host.liveThreads}`
+	return `${host.host} load ${host.loadAverage.toFixed(1)}, memory ${percent(host.memoryUsedFraction)}, disk ${percent(host.diskUsedFraction)}, ${live}`
+}
+function unreadSummary(hosts: readonly UnreadHostReport[]): string {
 	return hosts
-		.map(
-			(host) =>
-				`${host.host} load ${host.loadAverage.toFixed(1)}, memory ${percent(host.memoryUsedFraction)}, disk ${percent(host.diskUsedFraction)}`,
-		)
+		.map((host) => `${host.host} ${host.repositoriesAtRisk} repositories at risk`)
 		.join("; ")
 }
 function percent(fraction: number): string {

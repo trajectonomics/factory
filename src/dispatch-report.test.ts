@@ -1,7 +1,18 @@
 import { describe, expect, it } from "bun:test"
 import { planDispatch } from "./dispatch-plan"
 import { formatDispatchReport, passReport } from "./dispatch-report"
-import { approved, config, FACTORY, key, NOW_MS, reading, state } from "./fixtures/dispatch"
+import {
+	approved,
+	config,
+	FACTORY,
+	host,
+	hostThreads,
+	key,
+	NOW_MS,
+	reading,
+	state,
+	thread,
+} from "./fixtures/dispatch"
 
 function passReportText() {
 	const input = reading({
@@ -67,5 +78,43 @@ describe("a pass report", () => {
 		const text = formatDispatchReport(passReport(plan, input))
 		expect(text).toContain("PRs: 1")
 		expect(text).toContain("#13 (docs/agent-rules-20261113) ready")
+	})
+})
+describe("a pass report with an unread host", () => {
+	it("names the host once with the repositories it put at risk", () => {
+		const input = reading({
+			hosts: [host(), host({ host: "homeserver1", repositories: [FACTORY] })],
+			threads: [hostThreads()],
+		})
+		const text = formatDispatchReport(passReport(planDispatch(input, config()), input))
+
+		expect(text).toContain("Hosts unread: homeserver1 1 repositories at risk")
+		expect(text).toContain("homeserver1 load 1.0, memory 20%, disk 30%, live unknown")
+	})
+
+	it("names no host when every host was read", () => {
+		const input = reading({
+			hosts: [host(), host({ host: "homeserver1" })],
+			threads: [hostThreads(), hostThreads({ host: "homeserver1" })],
+		})
+		const text = formatDispatchReport(passReport(planDispatch(input, config()), input))
+
+		expect(text).not.toContain("Hosts unread")
+	})
+
+	it("shows each host's live thread count from the reading", () => {
+		const input = reading({
+			hosts: [host(), host({ host: "homeserver1" })],
+			threads: [
+				hostThreads({
+					threads: [thread(), thread({ id: "thread-2", title: "assist/growth-g1" })],
+				}),
+				hostThreads({ host: "homeserver1" }),
+			],
+		})
+		const text = formatDispatchReport(passReport(planDispatch(input, config()), input))
+
+		expect(text).toContain("homeserver2 load 1.0, memory 20%, disk 30%, live 2")
+		expect(text).toContain("homeserver1 load 1.0, memory 20%, disk 30%, live 0")
 	})
 })

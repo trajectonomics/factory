@@ -1,7 +1,8 @@
 import { CLAIM_LABEL } from "./claim"
 import type { EligibleRun, IssueKey } from "./contracts"
-import { type DispatchConfig, DispatchError, type DispatchReading } from "./dispatch-contracts"
+import type { DispatchConfig, DispatchReading } from "./dispatch-contracts"
 import { evaluateDispatchGuards, hostLoads } from "./dispatch-guards"
+import { assertDispatchInput } from "./dispatch-invariants"
 import type { DispatchDeferralReason, DispatchPlan } from "./dispatch-plan-contracts"
 import { preflightWrites } from "./dispatch-preflight"
 import { selectLaunches } from "./dispatch-select"
@@ -11,6 +12,7 @@ import {
 	reconciliationWrites,
 	retryWaiters,
 } from "./dispatch-state"
+import { atRiskRepositories } from "./dispatch-threads"
 import { evaluateEligibility } from "./eligibility"
 import { deepFreeze } from "./freeze"
 import { claimWrite, type FactoryWrite, labelWrite, statusWrite } from "./github/writes"
@@ -19,8 +21,12 @@ import { reconcileWork } from "./reconciliation"
 
 /** The decisions one Dispatcher pass makes. */
 export function planDispatch(reading: DispatchReading, config: DispatchConfig): DispatchPlan {
-	assertConfig(config)
-	const reconciliation = reconcileWork(reading.state, reading.nowMs)
+	assertDispatchInput(reading, config)
+	const reconciliation = reconcileWork(
+		reading.state,
+		reading.nowMs,
+		atRiskRepositories(reading.hosts, reading.threads),
+	)
 	const reconciled = reconciledState(reading.state, reconciliation)
 	const guards = evaluateDispatchGuards(reading, config.thresholds)
 	const eligibility = evaluateEligibility(reconciled, config.allowlist, reading.nowMs)
@@ -52,7 +58,7 @@ export function planDispatch(reading: DispatchReading, config: DispatchConfig): 
 		launches: selection.launches,
 		deferrals: selection.deferrals,
 		skipped: eligibility.skipped,
-		hostLoad: hostLoads(reading.hosts),
+		hostLoad: hostLoads(reading.hosts, reading.threads),
 	})
 }
 function globalStopReason(
@@ -61,16 +67,6 @@ function globalStopReason(
 	if (!guards.schedule.allowed) return "schedule-disabled"
 	if (!guards.queue.allowed) return "queue-too-deep"
 	return undefined
-}
-function assertConfig(config: DispatchConfig): void {
-	const pace = config.policy.maxLaunchesPerPass
-	if (pace !== undefined && (!Number.isSafeInteger(pace) || pace < 1)) {
-		throw new DispatchError(
-			"invalid-launch-pace",
-			"policy.maxLaunchesPerPass",
-			"A launch pace must be a positive integer",
-		)
-	}
 }
 /** The Claim writes that hold one Run's issues before its launch. */
 export function claimWrites(run: EligibleRun, claimedAtMs: number): readonly FactoryWrite[] {

@@ -12,7 +12,9 @@ import type {
 	DispatchPlan,
 	DispatchReport,
 	DispatchRunRecord,
+	UnreadHostReport,
 } from "./dispatch-plan-contracts"
+import { unreadHostReports } from "./dispatch-threads"
 import { deepFreeze } from "./freeze"
 import { issueOfRun, keyOf } from "./keys"
 
@@ -45,6 +47,7 @@ export function passReport(
 		reading.ledger.exits,
 		staleClaims,
 		plan.hostLoad,
+		unreadHostReports(reading.hosts, reading.threads),
 	)
 }
 function runRecordOf(run: EligibleRun, host: string): DispatchRunRecord {
@@ -56,6 +59,7 @@ function buildReport(
 	exits: readonly RunExit[],
 	staleClaims: readonly IssueKey[],
 	hostLoad: readonly HostLoad[],
+	unreadHosts: readonly UnreadHostReport[],
 ): DispatchReport {
 	return deepFreeze({
 		runs,
@@ -64,6 +68,7 @@ function buildReport(
 		exits: countExits(exits),
 		staleClaims,
 		hostLoad,
+		unreadHosts,
 	})
 }
 function countExits(exits: readonly RunExit[]): DispatchExitCounts {

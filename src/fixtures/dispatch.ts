@@ -1,7 +1,13 @@
 import type { IssueKey, IssueState, RepositoryState } from "../contracts"
-import type { DispatchConfig, DispatchReading, HostSnapshot } from "../dispatch-contracts"
+import type {
+	DispatchConfig,
+	DispatchReading,
+	HostSnapshot,
+	HostThreads,
+} from "../dispatch-contracts"
 import type { SkillLock } from "../skill-lock"
 import { SKILL_PROFILE } from "../skill-profile"
+import type { T3Thread } from "../t3"
 
 export const NOW_MS = 1_000_000_000
 export const CLI = "trajectonomics/cli"
@@ -44,8 +50,19 @@ export function host(overrides: Partial<HostSnapshot> = {}): HostSnapshot {
 		readiness: "ready",
 		reachable: true,
 		repositories: [CLI, FACTORY],
-		liveRuns: 0,
 		health: { loadAverage: 1, memoryUsedFraction: 0.2, diskUsedFraction: 0.3 },
+		...overrides,
+	}
+}
+export function thread(overrides: Partial<T3Thread> = {}): T3Thread {
+	return { id: "thread-1", title: `traj/${CLI}#9`, status: "running", ...overrides }
+}
+export function hostThreads(overrides: Partial<HostThreads> = {}): HostThreads {
+	return {
+		host: "homeserver2",
+		environmentId: "environment-homeserver2",
+		ok: true,
+		threads: [],
 		...overrides,
 	}
 }
@@ -53,6 +70,7 @@ export function reading(overrides: Partial<DispatchReading> = {}): DispatchReadi
 	return {
 		state: state([]),
 		hosts: [host()],
+		threads: [hostThreads()],
 		humanQueue: { openPullRequests: 0, needsSpecReview: 0, readyForHuman: 0 },
 		killSwitch: { scheduleEnabled: true, pausedRepositories: [] },
 		ledger: { pullRequests: [], exits: [] },

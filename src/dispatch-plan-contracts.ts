@@ -25,6 +25,7 @@ export type DispatchDeferralReason =
 	| "launch-pace"
 	| "no-host"
 	| "host-pressure"
+	| "host-unread"
 	| "launch-too-soon"
 	| "provider-rate-limit"
 	| "skills-missing"
@@ -42,6 +43,11 @@ export type DispatchRunRecord = {
 }
 /** The Exits the report counts, by type. */
 export type DispatchExitCounts = Readonly<Record<RunExitKind, number>>
+/** One host the pass could not read, and the repositories it put at risk. */
+export type UnreadHostReport = {
+	readonly host: string
+	readonly repositoriesAtRisk: number
+}
 /** The report the Dispatcher prints for one pass. */
 export type DispatchReport = {
 	readonly runs: readonly DispatchRunRecord[]
@@ -50,6 +56,7 @@ export type DispatchReport = {
 	readonly exits: DispatchExitCounts
 	readonly staleClaims: readonly IssueKey[]
 	readonly hostLoad: readonly HostLoad[]
+	readonly unreadHosts: readonly UnreadHostReport[]
 }
 /** One Run this pass launches, or plans in a dry run. */
 export type DispatchLaunch = {

@@ -1,19 +1,9 @@
 import { describe, expect, it } from "bun:test"
 import type { IssueKey } from "./contracts"
-import type { T3Thread } from "./t3"
 import { T3Error } from "./t3-errors"
-import { issueFromThreadTitle, liveThreadIssues, threadTitleOf } from "./t3-threads"
+import { isLiveThreadTitle, liveThreadIssue, runThreadIssue, threadTitleOf } from "./t3-threads"
 
 const FACTORY: IssueKey = { repository: "trajectonomics/factory", number: 8 }
-
-function thread(overrides: Partial<T3Thread> = {}): T3Thread {
-	return {
-		id: "thread-1",
-		title: "traj/trajectonomics/factory#8",
-		status: "running",
-		...overrides,
-	}
-}
 
 function t3Error(run: () => void): T3Error | undefined {
 	try {
@@ -30,71 +20,68 @@ describe("Run thread titles", () => {
 	})
 
 	it("reads the issue a Run thread title names", () => {
-		expect(issueFromThreadTitle("traj/trajectonomics/factory#8")).toEqual(FACTORY)
+		expect(runThreadIssue("traj/trajectonomics/factory#8")).toEqual(FACTORY)
 	})
 
 	it("ignores a title that is not a Run thread", () => {
-		expect(issueFromThreadTitle("factory/8-t3-adapter")).toBeUndefined()
+		expect(runThreadIssue("factory/8-t3-adapter")).toBeUndefined()
 	})
 
 	it("ignores a Run thread title without an issue number", () => {
-		expect(issueFromThreadTitle("traj/trajectonomics/factory")).toBeUndefined()
+		expect(runThreadIssue("traj/trajectonomics/factory")).toBeUndefined()
 	})
 
 	it("ignores a Run thread title without a repository", () => {
-		expect(issueFromThreadTitle("traj/#8")).toBeUndefined()
+		expect(runThreadIssue("traj/#8")).toBeUndefined()
 	})
 
 	it("ignores a title with more than one repository separator", () => {
-		expect(issueFromThreadTitle("traj/trajectonomics/factory/extra#8")).toBeUndefined()
+		expect(runThreadIssue("traj/trajectonomics/factory/extra#8")).toBeUndefined()
 	})
 
 	it("rejects an issue number that is not a safe integer", () => {
-		const error = t3Error(() =>
-			issueFromThreadTitle("traj/trajectonomics/factory#99999999999999999999"),
-		)
+		const error = t3Error(() => runThreadIssue("traj/trajectonomics/factory#99999999999999999999"))
 
 		expect(error?.code).toBe("unsafe-issue-number")
 		expect(error?.field).toBe("title")
 	})
 })
 
-describe("live Run threads", () => {
-	it("lists the issue behind a running Run thread", () => {
-		expect(liveThreadIssues([thread()])).toEqual([FACTORY])
+describe("live thread titles", () => {
+	it("reads the issue a draft thread title names", () => {
+		expect(liveThreadIssue("triage/trajectonomics/cli#6")).toEqual({
+			repository: "trajectonomics/cli",
+			number: 6,
+		})
 	})
 
-	it("lists a waiting Run thread", () => {
-		expect(liveThreadIssues([thread({ status: "waiting" })])).toEqual([FACTORY])
+	it("keeps the Run parse to the traj namespace", () => {
+		expect(runThreadIssue("triage/trajectonomics/cli#6")).toBeUndefined()
 	})
 
-	it.each(["preparing", "queued", "starting"] as const)("lists a %s Run thread", (status) => {
-		expect(liveThreadIssues([thread({ status })])).toEqual([FACTORY])
+	it("ignores a live thread title that names no issue", () => {
+		expect(liveThreadIssue("assist/growth-g1")).toBeUndefined()
 	})
 
-	it("ignores a settled Run thread", () => {
-		expect(liveThreadIssues([thread({ status: "completed" })])).toEqual([])
+	it("rejects an unsafe issue number in a live thread title", () => {
+		const error = t3Error(() => liveThreadIssue("qa/trajectonomics/docs#99999999999999999999"))
+
+		expect(error?.code).toBe("unsafe-issue-number")
 	})
 
-	it("ignores an idle thread", () => {
-		expect(liveThreadIssues([thread({ status: "idle" })])).toEqual([])
+	it.each([
+		"traj/trajectonomics/cli#9",
+		"triage/trajectonomics/cli#9",
+		"screen/trajectonomics/cli#9",
+		"qa/docs",
+		"idea/growth",
+		"learn/factory",
+		"assist/growth-g1",
+	])("counts %s as a live thread title", (title) => {
+		expect(isLiveThreadTitle(title)).toBe(true)
 	})
 
-	it("ignores a thread titled outside the Run namespace", () => {
-		expect(liveThreadIssues([thread({ title: "T3 adapter" })])).toEqual([])
-	})
-
-	it("lists one issue once for duplicate live threads", () => {
-		expect(liveThreadIssues([thread(), thread({ id: "thread-2" })])).toEqual([FACTORY])
-	})
-
-	it("lists live threads in issue order", () => {
-		const cli = { repository: "trajectonomics/cli", number: 9 }
-		const threads = [
-			thread({ id: "cli", title: threadTitleOf(cli) }),
-			thread({ id: "factory", title: threadTitleOf(FACTORY) }),
-		]
-
-		expect(liveThreadIssues(threads)).toEqual([cli, FACTORY])
+	it("counts no title outside the live prefixes", () => {
+		expect(isLiveThreadTitle("factory/8-t3-adapter")).toBe(false)
 	})
 })

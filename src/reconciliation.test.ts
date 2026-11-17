@@ -184,6 +184,22 @@ describe("Claim reconciliation", () => {
 		expectNoDecisions(reconcileWork(state([ticket], [key(4)]), NOW_MS))
 	})
 
+	it("keeps a Claim whose repository an unread host carries past its Lease", () => {
+		const ticket = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS - 1 } })
+
+		const plan = reconcileWork(state([ticket]), NOW_MS, new Set([CLI]))
+
+		expectNoDecisions(plan)
+	})
+
+	it("releases a Claim on a repository no unread host carries", () => {
+		const ticket = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS } })
+
+		const plan = reconcileWork(state([ticket]), NOW_MS, new Set(["trajectonomics/factory"]))
+
+		expect(plan.releasedClaims).toEqual([{ issue: key(4), reason: "lease-expired" }])
+	})
+
 	it("rejects a repository state that lists one issue twice", () => {
 		const first = issue(4, { claim: { claimedAtMs: NOW_MS - LEASE_MS } })
 		const second = issue(4, { runFailures: [failure("failed", NOW_MS)] })

@@ -1,7 +1,16 @@
 import { describe, expect, it } from "bun:test"
 import { CLAIM_LEASE_MS } from "./claim"
 import { planDispatch } from "./dispatch-plan"
-import { approved, config, host, key, NOW_MS, reading, state } from "./fixtures/dispatch"
+import {
+	approved,
+	config,
+	host,
+	hostThreads,
+	key,
+	NOW_MS,
+	reading,
+	state,
+} from "./fixtures/dispatch"
 
 const STALE_LABELS = ["ready-for-agent", "agent-working"]
 describe("a Dispatcher plan", () => {
@@ -97,6 +106,7 @@ describe("host Guards", () => {
 			reading({
 				state: state([approved(4)]),
 				hosts: [host({ readiness: "pending" }), host({ host: "homeserver1" })],
+				threads: [hostThreads(), hostThreads({ host: "homeserver1" })],
 			}),
 			config(),
 		)

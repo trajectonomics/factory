@@ -3,7 +3,7 @@ import { deepFreeze } from "./freeze"
 import { branchNameFor } from "./run-branch"
 import type { T3LaunchRequest, T3Model } from "./t3"
 import { T3Error } from "./t3-errors"
-import { issueFromThreadTitle, threadTitleOf } from "./t3-threads"
+import { runThreadIssue, threadTitleOf } from "./t3-threads"
 
 /** What a Run needs to start: its issue, title, model and injected role brief. */
 export type RunLaunchInput = {
@@ -67,7 +67,7 @@ function assertThreadTitle(issue: IssueKey, title: string): void {
 			`The issue number ${issue.number} cannot be a Run thread title`,
 		)
 	}
-	const parsed = issueFromThreadTitle(title)
+	const parsed = runThreadIssue(title)
 	if (parsed?.repository === issue.repository && parsed.number === issue.number) return
 	throw new T3Error(
 		"thread-title-mismatch",

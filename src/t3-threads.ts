@@ -1,12 +1,22 @@
 import type { IssueKey } from "./contracts"
 import { deepFreeze } from "./freeze"
-import { keyOf } from "./keys"
-import { sortIssueKeys } from "./sort"
 import type { T3Thread, T3ThreadStatus } from "./t3"
 import { T3Error } from "./t3-errors"
 
 const TITLE_PREFIX = "traj/"
-const TITLE_PATTERN = /^traj\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
+const RUN_TITLE_PATTERN = /^traj\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
+const LIVE_TITLE_PATTERN =
+	/^(?:traj|triage|screen|qa|idea|learn|assist)\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
+/** The thread title prefixes the Dispatcher counts as Factory work on a host. */
+const LIVE_TITLE_PREFIXES = [
+	"traj/",
+	"triage/",
+	"screen/",
+	"qa/",
+	"idea/",
+	"learn/",
+	"assist/",
+] as const
 // An idle thread has no active turn, so the Claim Lease, not the thread, holds its issue.
 const LIVE_STATUSES: ReadonlySet<T3ThreadStatus> = new Set([
 	"preparing",
@@ -22,8 +32,27 @@ export function threadTitleOf(issue: IssueKey): string {
 }
 
 /** The issue a Run thread title names, or undefined for any other title. */
-export function issueFromThreadTitle(title: string): IssueKey | undefined {
-	const match = TITLE_PATTERN.exec(title)
+export function runThreadIssue(title: string): IssueKey | undefined {
+	return issueOf(RUN_TITLE_PATTERN, title)
+}
+
+/** The issue a live thread title names under any of the seven work prefixes, or undefined. */
+export function liveThreadIssue(title: string): IssueKey | undefined {
+	return issueOf(LIVE_TITLE_PATTERN, title)
+}
+
+/** Whether a thread title carries one of the seven prefixes the Dispatcher counts as work. */
+export function isLiveThreadTitle(title: string): boolean {
+	return LIVE_TITLE_PREFIXES.some((prefix) => title.startsWith(prefix))
+}
+
+/** Whether a thread is live: it has an active turn. */
+export function isLiveThread(thread: T3Thread): boolean {
+	return LIVE_STATUSES.has(thread.status)
+}
+
+function issueOf(pattern: RegExp, title: string): IssueKey | undefined {
+	const match = pattern.exec(title)
 	const repository = match?.[1]
 	const numberText = match?.[2]
 	if (repository === undefined || numberText === undefined) return undefined
@@ -36,16 +65,4 @@ export function issueFromThreadTitle(title: string): IssueKey | undefined {
 		)
 	}
 	return deepFreeze({ repository, number })
-}
-
-/** The issues behind the live Run threads, once each, in issue order. */
-export function liveThreadIssues(threads: readonly T3Thread[]): IssueKey[] {
-	const issues = new Map<string, IssueKey>()
-	for (const thread of threads) {
-		if (!LIVE_STATUSES.has(thread.status)) continue
-		const issue = issueFromThreadTitle(thread.title)
-		if (issue === undefined) continue
-		issues.set(keyOf(issue), issue)
-	}
-	return deepFreeze(sortIssueKeys([...issues.values()]))
 }

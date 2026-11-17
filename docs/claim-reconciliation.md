@@ -2,9 +2,10 @@
 
 Implementation notes for [factory#5](https://github.com/trajectonomics/factory/issues/5).
 
-`reconcileWork(state, nowMs)` returns three decisions. It reads no clock and writes nothing; the
-Dispatcher applies them. Duplicate issue keys are rejected with `duplicate-issue-key` before any
-decision is made.
+`reconcileWork(state, nowMs, atRiskRepositories)` returns three decisions. It reads no clock and
+writes nothing; the Dispatcher applies them. Duplicate issue keys are rejected with `duplicate-issue-key`
+before any decision is made. `atRiskRepositories` is author-owned and defaults to the empty set, so the
+rule stands without a reading.
 
 ## Claim Lease
 
@@ -15,6 +16,12 @@ A Claim with a `claimedAtMs` and no live thread is stale once
 
 The live-thread skip deliberately covers handoff as well as Claim release: an issue with a live
 thread gets no reconciliation decisions, even when its recorded history looks exhausted.
+
+An issue whose repository an unread host carries gets the same skip, for the same reason: that host's
+live threads were not seen, so a Run may already hold the issue, and releasing its Claim would rebuild
+the work underneath it. The Dispatcher passes the at-risk repositories of its thread inventory
+([`thread-inventory.md`](./thread-inventory.md)); a repository no unread host carries reconciles as
+before.
 
 ## Run failure history
 
