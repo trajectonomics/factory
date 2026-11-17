@@ -74,6 +74,10 @@ _Avoid_: Round, cycle, tick
 A pass is settled when its run finished and its report names no unresolved failure. A pass that settles on the previous-pass check names the pass it waits on, so the next pass checks it again.
 _Avoid_: Done, finished, idle
 
+**Thread inventory**:
+A pass's reading of live T3 threads, one entry per host, each recording the host, its environment id, whether the read succeeded and the threads it returned. The live-issue set, each host's live count, the ledger's urgent Exits and the repositories whose thread state is known are all derived from it. A host with no successful reading is unread, never idle: it takes no Run, and the repositories it carries take none that pass ([ADR 0004](./docs/adr/0004-balance-runs-across-homeservers.md)).
+_Avoid_: Thread list, host snapshot (a snapshot is the measured host)
+
 **Run**:
 One agent thread working a Ticket (a **Ticket Run**) or a whole Spec on one integration branch (a **Spec Run**), from Claim to Exit.
 _Avoid_: Job, session, worker
@@ -83,7 +87,7 @@ The `agent-working` label that marks a Ticket as being worked by a live Run.
 _Avoid_: Lock, assignment
 
 **Lease**:
-The two hours a Claim is honoured without a live thread behind it before the Dispatcher releases it.
+The two hours a Claim is honoured without a live thread behind it on any host that was read before the Dispatcher releases it.
 _Avoid_: Timeout, TTL
 
 ### Quality
