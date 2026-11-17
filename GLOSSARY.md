@@ -112,6 +112,10 @@ _Avoid_: UI ticket, frontend ticket
 The review of a Surface ticket's rendered screenshots against its Spec's named visual reference and surface section — the third review axis next to Conformance and Standards.
 _Avoid_: Design review (for a diff), visual check
 
+**Visual reference**:
+A named page or product a Surface ticket's look is measured against. It is a link, and a Mobbin search result when one is available ([ADR 0023](./docs/adr/0023-mobbin-is-where-a-surface-ticket-finds-its-visual-reference.md)), plus one trait to copy. Never a committed image.
+_Avoid_: Mockup, inspiration, moodboard
+
 **Spec Review**:
 The loop that critiques a drafted Spec: a drafter and two consultants, ending with the Spec labelled `ready-for-agent`, or an Owner question in the drafter's thread.
 _Avoid_: Grooming. The `factory-triage` skill drafts Specs for this loop; "triage" otherwise means the five-label routine.
