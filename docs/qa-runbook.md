@@ -1,6 +1,6 @@
 # QA runbook
 
-How the product is tested the way a customer meets it. Five **Surfaces** are tested as published, by simulated customers: `docs`, `site`, `cli`, `skills`, `core` ([ADR 0020](./adr/0020-five-surface-briefs-replace-the-generic-finder.md)). A daily pass tests one Surface. The launch check tests all five before a release and ends in one verdict the owner reads ([ADR 0019](./adr/0019-qa-findings-enter-dispatch-at-their-severity.md)).
+How the product is tested the way a customer meets it. Five **Surfaces** are tested as published, by simulated customers: `docs`, `site`, `cli`, `skills`, `core` ([ADR 0020](./adr/0020-five-surface-briefs-replace-the-generic-finder.md)). A daily pass tests one Surface. The launch check tests all five before a release and ends in one verdict the owner reads ([ADR 0021](./adr/0021-qa-findings-enter-dispatch-at-their-severity.md)).
 
 Language is in [`GLOSSARY.md`](../GLOSSARY.md). The rules here are the only ones: a skill is a pointer, and a scheduled task reads this file from `origin/main` on every run.
 
@@ -72,15 +72,16 @@ A **Persona** is a fixed description of a customer an agent plays: one file each
 
 The scheduled thread is a launcher, like the Dispatcher: it checks the guards, places one QA thread, reports, and stops.
 
-1. **Guards.** Launch nothing and report if any holds: the kill switch file `/home/prame_assistant/.factory-stop` exists; the Surface's repository has an open issue carrying `factory:pause`; or the quota probe (`timeout 15 pi -p --no-session --no-tools "Reply with OK only."`) shows `pi` has no quota, in which case report `no-quota` and skip the day. A top-level QA thread runs DeepSeek only and has no fallback model.
-2. **Launch one thread** with `t3_thread_launch`, in the `factory` project on a ready host (dispatcher runbook, step 7), choosing the host with fewer live threads of any kind (`traj/`, `triage/`, `screen/`, `qa/`, `idea/`, `learn/`, `assist/`), counted as step 7 counts them:
+1. **Guards.** Launch nothing and report if any holds: the kill switch file `/home/prame_assistant/.factory-stop` exists; a repository the Surface names has an open issue carrying `factory:pause` (for `core`, any of its four); or the quota probe (`timeout 15 pi -p --no-session --no-tools "Reply with OK only."`) shows `pi` has no quota, in which case report `no-quota` and skip the day. A top-level QA thread runs DeepSeek only and has no fallback model.
+2. **The Surface.** The launcher chooses it, not the day's news: the Surface at index `d mod 5` in the order `docs`, `site`, `cli`, `skills`, `core`, with `d` the days since 2026-01-01 in Asia/Bangkok, as the finder's rotation counts it ([ADR 0022](./adr/0022-a-surface-leaves-the-rotation-when-its-task-exists.md)). One task, one Surface a day: every Surface is tested every fifth day, and the launch check covers all five before a release. The name goes into the launch message and into the thread title.
+3. **Launch one thread** with `t3_thread_launch`, in the `factory` project on a ready host (dispatcher runbook, step 7), choosing the host with fewer live threads of any kind (`traj/`, `triage/`, `screen/`, `qa/`, `idea/`, `learn/`, `assist/`), counted as step 7 counts them:
    - `title`: `qa/trajectonomics/<surface>`; `clientRequestId`: `qa-<surface>-<yyyymmdd>`;
    - `runtimeMode`: `full-access`;
    - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash`;
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `qa/<yyyymmdd>-<surface>`.
    Before launching, list the live `qa/` threads on **both** hosts (`titleContains: "qa/"`, the live states, that host's `environmentId` and project `projectId`, as dispatcher runbook step 2 says). A live `qa/trajectonomics/<surface>` thread means today's pass for that Surface is still running: do not launch a second one. A thread whose last item is a command still running and older than 60 minutes is stalled: interrupt it once with `t3_thread_interrupt` and launch, because a command that never ends is the finding that day would have produced.
-   The message is the launch message below. A launch that fails with `branch_already_exists` retries once with `-r2`, as dispatcher runbook step 8 says.
-3. **Report** in under 6 lines: guards, the Surface, the host, the thread link. Do not wait for the thread.
+   The message is the launch message below. A launch that fails with `branch_already_exists` follows dispatcher runbook step 8 in full, on the same host.
+4. **Report** in under 6 lines: guards, the Surface, the host, the thread link. Do not wait for the thread.
 
 Launch message (fill in and send):
 
@@ -143,8 +144,8 @@ Reader: a developer deciding in ten seconds. Target: a stranger can say what the
 - `<title>` and the `h1` name what the product is, as a noun phrase. A rotating slogan with no noun phrase is a **major** finding for the copy.
 - **Every promise has a destination.** Each capability claim is quoted, then checked against `npm view @trajectonomics/cli dist-tags` and against a docs page that teaches it. A claim the release cannot back, or that no docs page covers, is a **major** finding on the Surface that promises it.
 - The install command on the page is run verbatim in a `mktemp -d` scratch directory, and its stated prerequisites are enough to make it work.
-- **Copy rate** (copies ÷ page views) is read from the `Copy rate:` line of the `site` Surface brief in [`docs/next-steps-runbook.md`](./next-steps-runbook.md), once that brief exists. Until then the check reports `not instrumented` and files nothing: an unmeasured target is not a finding.
-- Personas: `thai-marketer`, `skeptical-senior-dev`.
+- **Copy rate** (copies ÷ page views) is read from the `Copy rate:` line of the `site` Surface brief in [`docs/next-steps-runbook.md`](./next-steps-runbook.md#the-five-surface-briefs). While that line is `not instrumented` the check reports `not instrumented` and files nothing: an unmeasured target is not a finding.
+- Personas: `thai-marketer`, `skeptical-senior-dev`, `projectionlab-dev`.
 
 ### `cli`
 
@@ -166,7 +167,7 @@ Reader: an agent mid-task, installed by a customer. Target: pass^3 on a 20-task 
 - Every task in [`qa-tasks.md`](./qa-tasks.md), run 3 times; all three must pass (pass^3), and a task that passes 2 of 3 is a `major` finding, not a pass.
 - Every query in [`qa-trigger-queries.md`](./qa-trigger-queries.md), 3 runs each: the expectation is fixed in that file, so the rate cannot be fitted after the fact. Report one line per query, `triggered` or `silent` against its expectation. One run against the expectation is a `minor` finding, two or three is a `major`, and a skill that fires on a neighbouring task is worse than one that never fires.
 - The version check: the skill states the version it expects, or it does not, and the report says which.
-- Personas: `skill-installer`, `vibe-coder-agent`.
+- Personas: `skill-installer`, `vibe-coder-agent`, `projectionlab-dev`.
 
 ### `core`
 
@@ -222,7 +223,7 @@ The owner runs it before a release; `factory-launch-check` is the skill that poi
 - A pass never edits a Surface repository, never pushes a branch, and never changes a host or a cloud platform.
 - One pass tests one Surface. A pass that finds work in another Surface names it in one line and leaves it to that Surface's pass.
 - An upstream release that changes the published truth (a new `latest`, a new deploy) invalidates the pins in every report before it; the next pass re-pins.
-- The kill switch, the per-repository `factory:pause` and the `pi` quota are the only brakes. There is no cap on findings ([ADR 0019](./adr/0019-qa-findings-enter-dispatch-at-their-severity.md)).
+- The kill switch, the per-repository `factory:pause` and the `pi` quota are the only brakes. There is no cap on findings ([ADR 0021](./adr/0021-qa-findings-enter-dispatch-at-their-severity.md)).
 
 ## The two-week revisit
 

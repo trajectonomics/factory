@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted. The owner asked for it on 2026-11-15: "let split it into multiple next step skills… each project/page/web have its own use case". It replaces the single brief of [the Next-step finder](../next-steps-runbook.md) for five repositories and leaves it for the rest.
+Accepted. The owner asked for it on 2026-11-15: "let split it into multiple next step skills… each project/page/web have its own use case". It replaces the single brief of [the Next-step finder](../next-steps-runbook.md) for five repositories and leaves it for the rest. Decision 3 is amended by [ADR 0022](./0022-a-surface-leaves-the-rotation-when-its-task-exists.md): a Surface leaves the rotation when its task exists, not when this decision is written.
 
 ## Context
 
@@ -15,7 +15,7 @@ The cost of that blindness was measurable on 2026-11-15. The landing page promis
 1. **Five Surfaces**, each a published thing a customer meets: `docs`, `site`, `cli`, `skills`, `core` (the four pure packages together: `money`, `ledger-core`, `tax-core`, `sim-core`).
 2. **Each Surface has its own Next-step brief**, in `docs/next-steps-runbook.md`, naming its reader, its one target, the test that measures the target, and the release-truth rule: the published `latest` and the live URL are the truth, `main` is not.
 3. **These five leave the rotation.** The generic finder keeps the other allowlisted repositories and its fourth-day rotation.
-4. **Testing is a separate pass** with its own skill, [`docs/qa-runbook.md`](../qa-runbook.md), because exploring what to build next and verifying what shipped pull in opposite directions. Findings enter dispatch by [ADR 0019](./0019-qa-findings-enter-dispatch-at-their-severity.md).
+4. **Testing is a separate pass** with its own skill, [`docs/qa-runbook.md`](../qa-runbook.md), because exploring what to build next and verifying what shipped pull in opposite directions. Findings enter dispatch by [ADR 0021](./0021-qa-findings-enter-dispatch-at-their-severity.md).
 5. **`web-router` is not a Surface.** Three things the Surfaces need — the sitemap, the `/go/*` counters and the `/docs` mount — live there, so every Surface brief carries one short deployment line naming what `web-router` must do. It earns a Surface the day it has its own reader.
 6. **The rules stay in this repository**, one runbook for all five briefs, so the caps and the release-truth rule cannot drift between copies.
 
