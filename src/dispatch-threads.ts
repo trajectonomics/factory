@@ -1,5 +1,5 @@
 import type { IssueKey } from "./contracts"
-import type { HostSnapshot, HostThreads } from "./dispatch-contracts"
+import type { HostReading, HostSnapshot, HostThreads } from "./dispatch-contracts"
 import type { UnreadHostReport } from "./dispatch-plan-contracts"
 import { deepFreeze } from "./freeze"
 import { keyOf } from "./keys"
@@ -9,7 +9,7 @@ import { isLiveThread, isLiveThreadTitle, liveThreadIssue } from "./t3-threads"
 
 /** The threads of every host that was read, live or settled, in host order. */
 export function readThreads(inventory: readonly HostThreads[]): readonly T3Thread[] {
-	return inventory.filter((entry) => entry.ok).flatMap((entry) => entry.threads)
+	return Object.freeze(inventory.filter((entry) => entry.ok).flatMap((entry) => entry.threads))
 }
 
 /** The issues named by the live threads on every host that was read, once each in issue order. */
@@ -36,34 +36,25 @@ function isCountedThread(thread: T3Thread): boolean {
 	return isLiveThread(thread) && isLiveThreadTitle(thread.title)
 }
 
-/** The hosts the pass knows whose reading is missing or failed. */
-export function unreadHosts(
-	hosts: readonly HostSnapshot[],
-	inventory: readonly HostThreads[],
-): readonly HostSnapshot[] {
-	const read = new Set(inventory.filter((entry) => entry.ok).map((entry) => entry.host))
-	return hosts.filter((host) => !read.has(host.host))
+/** The hosts the pass knows whose reading is missing, failed or came from an unreachable host. */
+export function unreadHosts(reading: HostReading): readonly HostSnapshot[] {
+	const read = new Set(reading.threads.filter((entry) => entry.ok).map((entry) => entry.host))
+	return Object.freeze(reading.hosts.filter((host) => !host.reachable || !read.has(host.host)))
 }
 
 /** The repositories an unread host carries, whose thread state is therefore unknown to the pass. */
-export function atRiskRepositories(
-	hosts: readonly HostSnapshot[],
-	inventory: readonly HostThreads[],
-): ReadonlySet<string> {
+export function atRiskRepositories(reading: HostReading): ReadonlySet<string> {
 	const repositories = new Set<string>()
-	for (const host of unreadHosts(hosts, inventory)) {
+	for (const host of unreadHosts(reading)) {
 		for (const repository of host.repositories) repositories.add(repository)
 	}
 	return repositories
 }
 
 /** Each host the pass could not read, with the count of repositories it put at risk. */
-export function unreadHostReports(
-	hosts: readonly HostSnapshot[],
-	inventory: readonly HostThreads[],
-): readonly UnreadHostReport[] {
+export function unreadHostReports(reading: HostReading): readonly UnreadHostReport[] {
 	return deepFreeze(
-		unreadHosts(hosts, inventory).map((host) => ({
+		unreadHosts(reading).map((host) => ({
 			host: host.host,
 			repositoriesAtRisk: host.repositories.length,
 		})),

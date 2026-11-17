@@ -31,13 +31,18 @@ export type HostSnapshot = {
 	readonly health: HostHealth
 	readonly lastLaunchAtMs?: number
 }
-/** One host's live threads as one pass read them; `ok: false` means the host was not read. */
+/** One host's T3 threads as one pass read them, live or settled; `ok: false` means it was not read. */
 export type HostThreads = {
 	readonly host: string
 	readonly environmentId: string
 	readonly ok: boolean
 	readonly threads: readonly T3Thread[]
 	readonly error?: string
+}
+/** The hosts a pass knows, with the thread reading that covers them. */
+export type HostReading = {
+	readonly hosts: readonly HostSnapshot[]
+	readonly threads: readonly HostThreads[]
 }
 /** One host's measurements for the report. */
 export type HostLoad = {
@@ -72,11 +77,8 @@ export type DispatchLedger = {
 	readonly exits: readonly RunExit[]
 }
 /** Everything one Dispatcher pass reads before it decides. */
-export type DispatchReading = {
+export type DispatchReading = HostReading & {
 	readonly state: RepositoryState
-	readonly hosts: readonly HostSnapshot[]
-	/** Every host's live threads as this pass read them; a host missing here was not read. */
-	readonly threads: readonly HostThreads[]
 	readonly humanQueue: HumanQueue
 	readonly killSwitch: KillSwitch
 	readonly ledger: DispatchLedger

@@ -25,13 +25,13 @@ reads its urgent Exits from.
 
 ## A host that was not read is unknown, never idle
 
-`unreadHosts` is every host the pass knows whose inventory entry is missing or not ok. `atRiskRepositories`
-is the repositories such a host carries: no host may take them this pass, so `placeRun` defers them with
-`host-unread` and `reconcileWork` makes no decision on their issues, holding a Claim, requeue or hand-off
-that would otherwise be released as stale. A host with no live count is never a placement candidate. `hosts`
-is the closed world: "could not read it" is a snapshot marked unreachable or a reading that is missing or
-not ok, so absence means unread rather than empty. Readiness does not enter into it; a `pending` host that
-was read is known, it is simply not a candidate.
+`unreadHosts` is every host the pass knows whose inventory entry is missing or not ok, or whose snapshot
+says it is unreachable. `atRiskRepositories` is the repositories such a host carries: no host may take them
+this pass, so the selection defers them with `host-unread` and `reconcileWork` makes no decision on their
+issues, holding a Claim, requeue or hand-off that would otherwise be released as stale. An unread host is
+also never a placement candidate, because its live count is unknown. `hosts` is the closed world: absence
+means unread rather than empty. Readiness does not enter into it; a `pending` host that was read is known,
+it is simply not a candidate.
 
 ## A duplicate host name fails the pass
 

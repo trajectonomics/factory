@@ -7,12 +7,11 @@ import type {
 	DispatchDeferralReason,
 	DispatchLaunch,
 } from "./dispatch-plan-contracts"
+import { skillDeferralReason } from "./dispatch-preflight"
 import { dispatchRequest } from "./dispatch-request"
 import { deepFreeze } from "./freeze"
 import { issueOfRun } from "./keys"
 import { evaluateKillSwitch } from "./kill-switch"
-import { repositoryLockDifferences } from "./skill-lock"
-import { lacksRequiredSkills } from "./skill-preflight"
 
 /** The eligibility results and pass state the selection reads. */
 export type SelectionInput = {
@@ -21,6 +20,8 @@ export type SelectionInput = {
 	readonly config: DispatchConfig
 	readonly busyRepositories: ReadonlySet<string>
 	readonly retryWaiters: ReadonlySet<string>
+	/** The repositories an unread host carries, whose thread state this pass could not see. */
+	readonly atRiskRepositories: ReadonlySet<string>
 }
 /** The Runs one pass launches, and the eligible Runs it defers. */
 export type Selection = {
@@ -67,25 +68,21 @@ function deferralFor(
 	launchCount: number,
 ): DispatchDeferralReason | undefined {
 	const issue = issueOfRun(run)
-	const killSwitch = evaluateKillSwitch(input.reading.killSwitch, issue.repository)
-	if (!killSwitch.allowed) {
-		return killSwitch.reason.code === "repository-paused"
-			? "repository-paused"
-			: "schedule-disabled"
-	}
-	const skills = input.reading.skills
-	if (skills !== undefined) {
-		if (lacksRequiredSkills(skills, issue.repository)) return "skills-missing"
-		const skillLocks = input.reading.skillLocks
-		if (
-			skillLocks !== undefined &&
-			repositoryLockDifferences(skillLocks, issue.repository).length > 0
-		) {
-			return "skills-lock-mismatch"
-		}
-	}
+	const stop = stopReason(input.reading, issue.repository)
+	if (stop !== undefined) return stop
+	const preflight = skillDeferralReason(input.reading, issue.repository)
+	if (preflight !== undefined) return preflight
+	if (input.atRiskRepositories.has(issue.repository)) return "host-unread"
 	if (paceReached(input.config, launchCount)) return "launch-pace"
 	return repositoryReason(issue.repository, input, selectedRepositories)
+}
+function stopReason(
+	reading: DispatchReading,
+	repository: string,
+): DispatchDeferralReason | undefined {
+	const decision = evaluateKillSwitch(reading.killSwitch, repository)
+	if (decision.allowed) return undefined
+	return decision.reason.code === "repository-paused" ? "repository-paused" : "schedule-disabled"
 }
 function paceReached(config: DispatchConfig, launchCount: number): boolean {
 	const pace = config.policy.maxLaunchesPerPass

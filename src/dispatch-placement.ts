@@ -1,7 +1,7 @@
 import type { EligibleRun } from "./contracts"
 import type { DispatchConfig, DispatchReading, HostSnapshot } from "./dispatch-contracts"
 import type { DispatchDeferralReason } from "./dispatch-plan-contracts"
-import { atRiskRepositories, liveCountOf } from "./dispatch-threads"
+import { liveCountOf } from "./dispatch-threads"
 import { deepFreeze } from "./freeze"
 import { evaluateHostGuard } from "./host-guard"
 import { issueOfRun } from "./keys"
@@ -23,11 +23,7 @@ export function placeRun(
 	config: DispatchConfig,
 	plannedPerHost: ReadonlyMap<string, number>,
 ): Placement {
-	const repository = issueOfRun(run).repository
-	if (atRiskRepositories(reading.hosts, reading.threads).has(repository)) {
-		return deepFreeze({ reason: "host-unread" })
-	}
-	const candidates = candidatesFor(repository, reading)
+	const candidates = candidatesFor(issueOfRun(run).repository, reading)
 	if (candidates.length === 0) return deepFreeze({ reason: "no-host" })
 	const healthy = candidates.filter((candidate) =>
 		allowed(evaluateHostGuard(candidate.host.health, config.thresholds.host)),

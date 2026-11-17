@@ -117,30 +117,46 @@ describe("a host's live-thread count", () => {
 })
 
 describe("a host that was not read", () => {
-	it("is named when its reading failed or is missing", () => {
-		const hosts = [host(), host({ host: "homeserver1" })]
+	const hosts = [host(), host({ host: "homeserver1" })]
 
-		expect(unreadHosts(hosts, [hostThreads()]).map((entry) => entry.host)).toEqual(["homeserver1"])
+	it("is named when its reading failed or is missing", () => {
+		expect(unreadHosts({ hosts, threads: [hostThreads()] }).map((entry) => entry.host)).toEqual([
+			"homeserver1",
+		])
 		expect(
-			unreadHosts(hosts, [hostThreads(), hostThreads({ host: "homeserver1", ok: false })]).map(
-				(entry) => entry.host,
-			),
+			unreadHosts({
+				hosts,
+				threads: [hostThreads(), hostThreads({ host: "homeserver1", ok: false })],
+			}).map((entry) => entry.host),
+		).toEqual(["homeserver1"])
+	})
+
+	it("is named when its snapshot says it is unreachable, even if a reading exists", () => {
+		const reached = host({ host: "homeserver1", reachable: false })
+
+		expect(
+			unreadHosts({
+				hosts: [host(), reached],
+				threads: [hostThreads(), hostThreads({ host: "homeserver1" })],
+			}).map((entry) => entry.host),
 		).toEqual(["homeserver1"])
 	})
 
 	it("makes the repositories it carries at risk on every host", () => {
-		const hosts = [host(), host({ host: "homeserver1", repositories: [FACTORY] })]
-
-		const inventory = [hostThreads(), hostThreads({ host: "homeserver1", ok: false })]
-
-		expect([...atRiskRepositories(hosts, inventory)]).toEqual([FACTORY])
+		expect([
+			...atRiskRepositories({
+				hosts: [host(), host({ host: "homeserver1", repositories: [FACTORY] })],
+				threads: [hostThreads(), hostThreads({ host: "homeserver1", ok: false })],
+			}),
+		]).toEqual([FACTORY])
 	})
 
 	it("makes no repository at risk when every host was read", () => {
-		const hosts = [host(), host({ host: "homeserver1" })]
-
-		const inventory = [hostThreads(), hostThreads({ host: "homeserver1" })]
-
-		expect([...atRiskRepositories(hosts, inventory)]).toEqual([])
+		expect([
+			...atRiskRepositories({
+				hosts,
+				threads: [hostThreads(), hostThreads({ host: "homeserver1" })],
+			}),
+		]).toEqual([])
 	})
 })

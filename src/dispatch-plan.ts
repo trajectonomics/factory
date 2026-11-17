@@ -22,11 +22,8 @@ import { reconcileWork } from "./reconciliation"
 /** The decisions one Dispatcher pass makes. */
 export function planDispatch(reading: DispatchReading, config: DispatchConfig): DispatchPlan {
 	assertDispatchInput(reading, config)
-	const reconciliation = reconcileWork(
-		reading.state,
-		reading.nowMs,
-		atRiskRepositories(reading.hosts, reading.threads),
-	)
+	const atRisk = atRiskRepositories(reading)
+	const reconciliation = reconcileWork(reading.state, reading.nowMs, atRisk)
 	const reconciled = reconciledState(reading.state, reconciliation)
 	const guards = evaluateDispatchGuards(reading, config.thresholds)
 	const eligibility = evaluateEligibility(reconciled, config.allowlist, reading.nowMs)
@@ -39,6 +36,7 @@ export function planDispatch(reading: DispatchReading, config: DispatchConfig): 
 					config,
 					busyRepositories: busyRepositories(reconciled),
 					retryWaiters: retryWaiters(reconciliation, reading.nowMs),
+					atRiskRepositories: atRisk,
 				})
 			: {
 					launches: [],
@@ -58,7 +56,7 @@ export function planDispatch(reading: DispatchReading, config: DispatchConfig): 
 		launches: selection.launches,
 		deferrals: selection.deferrals,
 		skipped: eligibility.skipped,
-		hostLoad: hostLoads(reading.hosts, reading.threads),
+		hostLoad: hostLoads(reading),
 	})
 }
 function globalStopReason(

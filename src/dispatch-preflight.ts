@@ -4,13 +4,28 @@ import { deepFreeze } from "./freeze"
 import { commentWrite, type FactoryWrite, labelWrite } from "./github/writes"
 import { NEEDS_INFO_LABEL } from "./labels"
 import { repositoryLockDifferences, type SkillLockDifference } from "./skill-lock"
-import { missingSkills } from "./skill-preflight"
+import { lacksRequiredSkills, missingSkills } from "./skill-preflight"
 import { PROFILE_INSTALL_COMMAND, SKILL_PROFILE } from "./skill-profile"
 
 /** The marker key and body of one preflight comment. */
 type PreflightComment = {
 	readonly key: string
 	readonly body: string
+}
+
+/** Why skill preflight stops a Run in this repository, or undefined when it passes. */
+export function skillDeferralReason(
+	reading: DispatchReading,
+	repository: string,
+): DispatchDeferralReason | undefined {
+	const skills = reading.skills
+	if (skills === undefined) return undefined
+	if (lacksRequiredSkills(skills, repository)) return "skills-missing"
+	const skillLocks = reading.skillLocks
+	if (skillLocks === undefined) return undefined
+	return repositoryLockDifferences(skillLocks, repository).length > 0
+		? "skills-lock-mismatch"
+		: undefined
 }
 
 /** The comment and `needs-info` label for each Run that skill preflight stopped from launching. */

@@ -18,7 +18,7 @@ export type RunLaunchOutcome =
 	| { readonly kind: "launched"; readonly request: T3LaunchRequest; readonly thread: T3Thread }
 	| { readonly kind: "dry-run"; readonly request: T3LaunchRequest }
 
-/** Every host's live threads as one pass read them; a read that fails is unread, never empty. */
+/** Every host's threads as one pass read them; a read that fails is unread, never empty. */
 export async function readThreadInventories(
 	sources: readonly HostThreadSource[],
 ): Promise<readonly HostThreads[]> {
@@ -41,19 +41,19 @@ export async function launchRun(
 
 async function readHostThreads(source: HostThreadSource): Promise<HostThreads> {
 	try {
-		const threads = await source.client.listThreads()
-		return Object.freeze({
+		const threads = (await source.client.listThreads()).map(copyThread)
+		return deepFreeze({
 			host: source.host,
 			environmentId: source.environmentId,
 			ok: true,
-			threads: Object.freeze([...threads]),
+			threads,
 		})
 	} catch (error) {
-		return Object.freeze({
+		return deepFreeze({
 			host: source.host,
 			environmentId: source.environmentId,
 			ok: false,
-			threads: Object.freeze([]),
+			threads: [],
 			error: error instanceof Error ? error.message : String(error),
 		})
 	}

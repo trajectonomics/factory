@@ -47,7 +47,7 @@ export function passReport(
 		reading.ledger.exits,
 		staleClaims,
 		plan.hostLoad,
-		unreadHostReports(reading.hosts, reading.threads),
+		unreadHostReports(reading),
 	)
 }
 function runRecordOf(run: EligibleRun, host: string): DispatchRunRecord {
