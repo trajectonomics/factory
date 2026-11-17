@@ -1,4 +1,4 @@
-# ADR 0019: QA findings enter dispatch at their severity
+# ADR 0021: QA findings enter dispatch at their severity
 
 ## Status
 

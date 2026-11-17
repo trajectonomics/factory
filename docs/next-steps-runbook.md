@@ -60,7 +60,7 @@ If the Project cannot be read (the scope is missing, or the Project is unreachab
 The scheduled thread is a launcher, like the Dispatcher. It does one run, then stops.
 
 1. **Guards.** File nothing and report if any holds: the kill switch file `/home/prame_assistant/.factory-stop` exists; `GOALS.md` cannot be read from `trajectonomics/goals` on `main` (`gh api repos/trajectonomics/goals/contents/GOALS.md -H "Accept: application/vnd.github.raw+json"`), in which case say the goals are not established; or the idea count is 24 or more. Also run the pre-dispatch model quota check from the dispatcher runbook (step 1) for `pi`, `antigravity`, `mistral-vibe`, and `cursor`: launch step 4 on DeepSeek only (`pi` / `command-code/deepseek/deepseek-v4.1-flash`), or skip with `no-quota` if `pi` has no quota. Never launch a top-level `idea/` thread on any other model. A repository with an open issue carrying `factory:pause` (`docs/guards.md`; a label definition alone does not pause it) is skipped alone.
-2. **Rotation.** The rotation set is the allowlist of the dispatcher runbook, sorted alphabetically, without `goals`. Today's number `d` is the days since 2026-01-01 in Asia/Bangkok. A repository at index `i` (from 0) is in today's quarter when `i mod 4 = d mod 4`. Every repository is visited every fourth day.
+2. **Rotation.** The rotation set is the allowlist of the dispatcher runbook, sorted alphabetically, without `goals`, and without the repositories of a Surface whose `Task` cell in [the Surface table](#a-surfaces-own-pass) names a time. Sort again after removing them: the index `i` moves. Today's number `d` is the days since 2026-01-01 in Asia/Bangkok. A repository at index `i` (from 0) is in today's quarter when `i mod 4 = d mod 4`. Every repository in the set is visited every fourth day.
 3. **Bring postponed Ideas back.** In each repository of the quarter, an `idea-postponed` issue whose latest `revisit:` date is today or earlier goes back to `idea`, if the idea count is below 24. Comment `Revisit date reached.`
 4. **Launch one thread per repository of the quarter**, on the host chosen as in the dispatcher runbook, step 7, in that repository's T3 project:
    - `title`: `idea/trajectonomics/<repo>`; `clientRequestId`: `idea-<repo>-<yyyymmdd>`;
@@ -68,7 +68,7 @@ The scheduled thread is a launcher, like the Dispatcher. It does one run, then s
    - `modelSelection`: primary provider `pi`, instance `pi`, model `command-code/deepseek/deepseek-v4.1-flash` (skip with `no-quota` when step 1 marked `pi` exhausted);
    - `workspaceStrategy`: `worktree` from `origin/main` on branch `idea/<yyyymmdd>-<repo>` (the branch is never pushed).
    - The message is the Launch message below.
-5. **Report** in under 10 lines: guards, the quarter, threads launched (repository, host, thread link), postponed Ideas returned, and the idea count against 12 and 24. Do not wait for the threads.
+5. **Report** in 10 lines or fewer: guards, the quarter, threads launched (repository, host, thread link), postponed Ideas returned, the idea count against 12 and 24, and one line `no task: <surfaces>` naming the Surfaces whose `Task` cell in [the Surface table](#a-surfaces-own-pass) is `not registered`. Do not wait for the threads.
 
 ### Launch message and brief
 
@@ -124,6 +124,76 @@ Include `## Roadmap` when the Idea serves a milestone or an Initiative, when the
 ```
 
 The title is `idea: <short name>`. The issue is filed through the owner's `gh` login, so its author is `OWNER` and it passes the trusted-author rule.
+
+## The five Surface briefs
+
+A **Surface** is one published thing a customer meets: `docs`, `site`, `cli`, `skills`, `core` ([ADR 0020](./adr/0020-five-surface-briefs-replace-the-generic-finder.md)). It is not a repository: `core` is four of them, and `web-router` is none of the five. A Surface's brief below replaces the generic [Brief](#launch-message-and-brief) for that Surface's own pass; while its `Task` cell is `not registered` its repositories are still visited by the rotation, and the rotation's thread keeps the generic Brief.
+
+Each brief names four things: the reader, the one target, the test that measures the target, and the release-truth rule. The test is that Surface's playbook in [`docs/qa-runbook.md`](./qa-runbook.md), so the finder proposes work that moves one bar and the QA pass reads the same bar. A candidate that moves no Surface's target belongs in another Surface's brief, or in the rotation.
+
+**The published truth.** `latest` on npm, the release tag and the live URL are the truth; `main` is not. A candidate that needs a command, a page or a skill only `main` has must say so and name the release it waits for.
+
+### `docs`
+
+- **Reader:** a customer reading the documentation, and the agent working for them.
+- **Target:** an agent-docs score of 85 or more, and 90% of the question set answered from the documentation alone.
+- **The test:** the `docs` playbook in [`docs/qa-runbook.md`](./qa-runbook.md#docs) — the `afdocs` check, the `llms.txt` twins, release truth against the command list, and [`qa-questions.md`](./qa-questions.md) answered closed-book.
+- **`web-router`:** mounts `/docs`, and the sitemap carries every page the release documents.
+
+### `site`
+
+- **Reader:** a developer deciding in ten seconds whether to try it.
+- **Target:** a stranger can say what the product is, run the install command, and every promise has a destination.
+- **The test:** the `site` playbook in [`docs/qa-runbook.md`](./qa-runbook.md#site) — status and `lang` per home, every `href` under 400, the noun-phrase test on `<title>` and `h1`, every promise quoted and checked against `latest` and a documentation page, and the install command run verbatim in `mktemp -d`.
+- **Copy rate:** `not instrumented`. The copy button in `site` writes no counter and `web-router` serves no `/go/*` count, and a Cloudflare dashboard is not readable by a pass. It becomes a number when the copy button sends one counter event and `web-router` serves the count at a URL; the QA check names the value while it is `not instrumented` and treats it as unmeasured.
+- **`web-router`:** serves `/`, and the `/go/*` counters once they exist.
+
+### `cli`
+
+- **Reader:** a stranger with a real ledger, at a terminal, alone.
+- **Target:** install to a correct first result, once, with nothing guessed.
+- **The test:** the `cli` playbook in [`docs/qa-runbook.md`](./qa-runbook.md#cli) — `@latest` version, help and `schema --json`, the timed first run in `mktemp -d` with `TRAJ_HOME` inside it, the exit-code and error-text checks, and the README command list against the binary.
+- **`web-router`:** nothing in the install path. An install that needs the site is a QA finding.
+
+### `skills`
+
+- **Reader:** a customer's agent, installed by the customer.
+- **Target:** pass^3 on the twenty-task suite, and no command the release does not have.
+- **The test:** the `skills` playbook in [`docs/qa-runbook.md`](./qa-runbook.md#skills) — the pinned install in `mktemp -d`, every claim checked against `schema --json`, [`qa-tasks.md`](./qa-tasks.md) run three times, and [`qa-trigger-queries.md`](./qa-trigger-queries.md) against its fixed expectations.
+- **`web-router`:** the documentation page the skill links to exists. A link in the skill is a promise.
+
+### `core`
+
+- **Reader:** a developer on the npm page, then in an editor.
+- **Target:** the npm page is not blank, and the first example runs.
+- **The test:** the `core` playbook in [`docs/qa-runbook.md`](./qa-runbook.md#core) — the readme length and version of each of the four packages, the first example copied verbatim into `mktemp -d` against the published version, and every symbol a README names present in the published types.
+- **It is four repositories.** `money`, `ledger-core`, `tax-core` and `sim-core` each publish their own package and README, so a `core` pass reads all four and files each Idea in the repository that owns it: the package whose code or README the candidate names, or the one that must change first when a candidate spans packages. It never files in `factory`, and its two Ideas are two for the pass in total, not two for each of the four.
+- **`web-router`:** nothing. `core` is consumed from npm, not from a page.
+
+### A Surface's own pass
+
+A Surface's pass is its own scheduled task: one launcher, one thread, one Surface ([ADR 0022](./adr/0022-a-surface-leaves-the-rotation-when-its-task-exists.md)). A Surface leaves the rotation only when its `Task` cell below names a time; the owner flips that cell in the same pull request that registers the task, and never before it, so a Surface is never left with no pass at all.
+
+| Surface | Task | Thread |
+| --- | --- | --- |
+| `docs` | not registered | `idea/trajectonomics/docs` |
+| `site` | not registered | `idea/trajectonomics/site` |
+| `cli` | not registered | `idea/trajectonomics/cli` |
+| `skills` | not registered | `idea/trajectonomics/skills` |
+| `core` | not registered | `idea/trajectonomics/core` |
+
+The launcher is the finder's step 1 to step 5 with these differences:
+
+- **Guards.** The finder's step 1, plus `factory:pause` on a repository the Surface names: for `core`, a pause in any of its four skips the day.
+- **One thread.** `title`: `idea/trajectonomics/<surface>`; `clientRequestId`: `idea-<surface>-<yyyymmdd>`. For the four Surfaces whose name is also a repository (`docs`, `site`, `cli`, `skills`) that is the id the rotation used for it, deliberately: on a transition day the two passes are one request and not two.
+- **Branch.** `idea/<yyyymmdd>-<surface>` in a worktree from `origin/main`, so `core` gets one branch name and not four.
+- **Project.** The Surface's own T3 project when it has one repository. `core` runs in the `factory` project, because it has none, and reads its four packages from GitHub.
+- **Host.** The host with fewer live threads of any kind, counted as dispatcher runbook step 7 counts them, after listing the live `idea/` threads on **both** hosts (`titleContains: "idea/"`, `statuses` set to the live states, with that host's `environmentId` and the project's `projectId`, as the dispatcher runbook's "Listing threads" section requires). A live `idea/trajectonomics/<surface>` thread means today's pass is still running: launch no second one. A stalled thread is handled as dispatcher runbook step 2 says. A launch that fails with `branch_already_exists` follows dispatcher runbook step 8 in full, on the same host.
+- **Model.** `pi` / `command-code/deepseek/deepseek-v4.1-flash`, and no other: a Surface pass is a top-level thread ([ADR 0018](./adr/0018-deepseek-top-level-hydrogen-mistral-reviews.md)). `no-quota` skips the day.
+
+Launch message (fill in and send):
+
+> You are the Factory Next-step finder for the `<surface>` Surface. Read `docs/next-steps-runbook.md` from `trajectonomics/factory` with `gh api repos/trajectonomics/factory/contents/docs/next-steps-runbook.md -H "Accept: application/vnd.github.raw"`: the section "The five Surface briefs", then your Surface's subsection, then the "Brief" that subsection replaces. Follow it from step 1 to the final line. Your subsection replaces step 2 (Explore) and the repository in steps 1 and 5: read the repositories it names, weigh candidates against its one target and no other, and file each Idea in the repository that owns it. It is your whole instruction; read it in full before you act. Finish with one line, `IDEAS <issue urls or none>, candidates <count>, dropped <count>, surface <surface>`, which replaces the final line of the Brief.
 
 ## Screening
 

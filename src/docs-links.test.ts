@@ -51,3 +51,12 @@ describe("relative links in the Markdown docs", () => {
 		})
 	}
 })
+
+describe("the ADR numbers", () => {
+	test("is claimed by exactly one file", () => {
+		const numbers = readdirSync(join(root, "docs/adr"))
+			.filter((name) => name.endsWith(".md"))
+			.map((name) => name.slice(0, 4))
+		expect(numbers.length).toBe(new Set(numbers).size)
+	})
+})

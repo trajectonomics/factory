@@ -23,6 +23,7 @@ The roster the QA pass plays. One file per Persona, named `<id>.md`, versioned l
 | [`security-reviewer`](./security-reviewer.md) | cli, skills, core | person deciding what to trust | a download they cannot verify |
 | [`skill-installer`](./skill-installer.md) | skills | engineer installing the skill | two different install commands |
 | [`vibe-coder-agent`](./vibe-coder-agent.md) | docs, skills | an AI agent working alone | a command not in `schema` |
+| [`projectionlab-dev`](./projectionlab-dev.md) | site, skills | person, already planning retirement, with a Claude Code subscription | an install their agent cannot run in one command |
 | [`thai-marketer`](./thai-marketer.md) | site, docs | person reading Thai | a slogan instead of a noun |
 
 ## Rotation
