@@ -178,8 +178,8 @@ A Surface's pass is its own scheduled task: one launcher, one thread, one Surfac
 | --- | --- | --- |
 | `docs` | not registered | `idea/trajectonomics/docs` |
 | `site` | not registered | `idea/trajectonomics/site` |
-| `cli` | not registered | `idea/trajectonomics/cli` |
-| `skills` | not registered | `idea/trajectonomics/skills` |
+| `cli` | daily 15:00 Asia/Bangkok | `idea/trajectonomics/cli` |
+| `skills` | daily 16:00 Asia/Bangkok | `idea/trajectonomics/skills` |
 | `core` | not registered | `idea/trajectonomics/core` |
 
 The launcher is the finder's step 1 to step 5 with these differences:
