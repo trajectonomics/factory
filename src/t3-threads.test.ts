@@ -63,10 +63,14 @@ describe("live thread titles", () => {
 		expect(liveThreadIssue("assist/growth-g1")).toBeUndefined()
 	})
 
-	it("rejects an unsafe issue number in a live thread title", () => {
-		const error = t3Error(() => liveThreadIssue("qa/trajectonomics/docs#99999999999999999999"))
+	it("fails closed on an unsafe issue number in a live Run thread title", () => {
+		const error = t3Error(() => liveThreadIssue("traj/trajectonomics/cli#99999999999999999999"))
 
 		expect(error?.code).toBe("unsafe-issue-number")
+	})
+
+	it("names no issue for a draft thread title whose number cannot be trusted", () => {
+		expect(liveThreadIssue("qa/trajectonomics/docs#99999999999999999999")).toBeUndefined()
 	})
 
 	it.each([

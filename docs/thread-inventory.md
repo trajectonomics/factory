@@ -41,7 +41,8 @@ code `duplicate-host` and the field of the list that repeated it.
 ## Two title parses
 
 `runThreadIssue` parses only `traj/`, and stays the parser for urgent Exits and launch branches, so a
-`waiting` draft thread is never counted as a Run Exit. `liveThreadIssue` parses any of the seven prefixes and
-is the parser for the live set. An unsafe issue number fails the pass closed in either parse (`T3Error` code
-`unsafe-issue-number`), rather than skipping a thread whose number cannot be trusted; a seven-prefix title
-that does not carry `<repo>#<n>` names no issue and is counted only.
+`waiting` draft thread is never counted as a Run Exit. `liveThreadIssue` is the parser for the live set: it
+routes a `traj/` title through the Run parse and parses the other six prefixes itself. An unsafe issue number
+in a `traj/` title fails the pass closed (`T3Error` code `unsafe-issue-number`), rather than skipping a thread
+whose number cannot be trusted; under the other six prefixes, and for a title that does not carry
+`<repo>#<n>` at all, the thread names no issue and is counted only.

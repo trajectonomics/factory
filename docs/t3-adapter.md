@@ -17,10 +17,10 @@ and never fails the pass.
 
 A Run thread is titled `traj/<repo>#<n>`, where `<repo>` is the full `owner/name`. An issue number
 that is not a safe integer is rejected with `T3Error` code `unsafe-issue-number`. One live foreign
-thread whose title carries an unsafe issue number makes the title parse fail closed with that code,
-rather than skipping the thread. `runThreadIssue` parses only `traj/`; `liveThreadIssue` parses the
-same shape under any of the seven live prefixes, so a `triage/` or `screen/` thread names its issue
-too.
+thread whose `traj/` title carries an unsafe issue number makes the title parse fail closed with that
+code, rather than skipping the thread. `runThreadIssue` parses only `traj/`; `liveThreadIssue` parses
+the same shape under any of the seven live prefixes, so a `triage/` or `screen/` thread names its issue
+too, and under those six a number that cannot be trusted names no issue rather than failing the pass.
 
 A Run branch is `factory/<issue>-<slug>`. The slug is lowercase ASCII, capped at 50 characters so
 the branch stays inside git's limit. A title with no usable ASCII characters, such as Thai, CJK or

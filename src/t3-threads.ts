@@ -5,8 +5,8 @@ import { T3Error } from "./t3-errors"
 
 const TITLE_PREFIX = "traj/"
 const RUN_TITLE_PATTERN = /^traj\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
-const LIVE_TITLE_PATTERN =
-	/^(?:traj|triage|screen|qa|idea|learn|assist)\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
+const OTHER_LIVE_TITLE_PATTERN =
+	/^(?:triage|screen|qa|idea|learn|assist)\/([^#\s/]+\/[^#\s/]+)#([1-9]\d*)$/
 /** The thread title prefixes the Dispatcher counts as Factory work on a host. */
 const LIVE_TITLE_PREFIXES = [
 	"traj/",
@@ -26,6 +26,12 @@ const LIVE_STATUSES: ReadonlySet<T3ThreadStatus> = new Set([
 	"waiting",
 ])
 
+/** A thread title's repository and issue number, before the number is trusted. */
+type TitleMatch = {
+	readonly repository: string
+	readonly numberText: string
+}
+
 /** The Run thread title for an issue: `traj/<repo>#<n>`. */
 export function threadTitleOf(issue: IssueKey): string {
 	return `${TITLE_PREFIX}${issue.repository}#${issue.number}`
@@ -33,12 +39,22 @@ export function threadTitleOf(issue: IssueKey): string {
 
 /** The issue a Run thread title names, or undefined for any other title. */
 export function runThreadIssue(title: string): IssueKey | undefined {
-	return issueOf(RUN_TITLE_PATTERN, title)
+	const match = titleMatch(RUN_TITLE_PATTERN, title)
+	return match === undefined ? undefined : trustedIssueOf(match)
 }
 
-/** The issue a live thread title names under any of the seven work prefixes, or undefined. */
+/**
+ * The issue a live thread title names under any of the seven work prefixes, or undefined.
+ * A Run title is parsed strictly; the other six name no issue when their number cannot be trusted.
+ */
 export function liveThreadIssue(title: string): IssueKey | undefined {
-	return issueOf(LIVE_TITLE_PATTERN, title)
+	if (title.startsWith(TITLE_PREFIX)) return runThreadIssue(title)
+	const match = titleMatch(OTHER_LIVE_TITLE_PATTERN, title)
+	if (match === undefined) return undefined
+	const number = Number(match.numberText)
+	return Number.isSafeInteger(number)
+		? deepFreeze({ repository: match.repository, number })
+		: undefined
 }
 
 /** Whether a thread title carries one of the seven prefixes the Dispatcher counts as work. */
@@ -51,18 +67,24 @@ export function isLiveThread(thread: T3Thread): boolean {
 	return LIVE_STATUSES.has(thread.status)
 }
 
-function issueOf(pattern: RegExp, title: string): IssueKey | undefined {
+function titleMatch(pattern: RegExp, title: string): TitleMatch | undefined {
 	const match = pattern.exec(title)
 	const repository = match?.[1]
 	const numberText = match?.[2]
-	if (repository === undefined || numberText === undefined) return undefined
-	const number = Number(numberText)
+	return repository === undefined || numberText === undefined
+		? undefined
+		: { repository, numberText }
+}
+
+/** The issue a trusted title names; an unsafe number fails the pass closed instead of skipping it. */
+function trustedIssueOf(match: TitleMatch): IssueKey {
+	const number = Number(match.numberText)
 	if (!Number.isSafeInteger(number)) {
 		throw new T3Error(
 			"unsafe-issue-number",
 			"title",
-			`The issue number ${numberText} is not a safe integer`,
+			`The issue number ${match.numberText} is not a safe integer`,
 		)
 	}
-	return deepFreeze({ repository, number })
+	return deepFreeze({ repository: match.repository, number })
 }
