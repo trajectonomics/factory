@@ -24,4 +24,4 @@ The owner works in T3 Code, mostly on a phone, and opens a GitHub issue only whe
 
 - An owner answer lives in a T3 Code thread, not in a GitHub comment. The agent that asked writes it into the issue, and a later pass reads the answer there. When it cannot find one, it asks again in the thread rather than assuming.
 - ADR 0011 still keeps untrusted text out: the answer is read from the owner's own thread, not from an issue comment by an unknown account.
-- A thread summary and the draft it describes can differ. The draft stays the source of truth, and the summary says it is a summary.
+- A thread summary and the draft it describes can differ. The draft stays authoritative, and the summary says it is a summary.
