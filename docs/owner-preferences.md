@@ -1,12 +1,14 @@
 # Owner preferences
 
-How any thread calls the owner. Read this before you ask, stop, or report status. Taken from the owner's messages, 2026-11-09 to 2026-11-15.
+How any thread calls the owner. Read this before you ask, stop, or report status. Taken from the owner's messages, 2026-11-09 to 2026-11-18.
 
 ## The owner is a tool call
 
 One call, then you continue. The owner answers later, without the thread in front of them, and a second message costs another round. Do the work. Call only for a return you cannot produce.
 
 Open with the call, or with "nothing needed from you".
+
+The call is the message. The owner reads T3 Code, mostly on a phone, and opens a GitHub issue only when it holds detail they want: the message carries the context, the question and the recommendation, and a link to the issue, draft or pull request follows as the record. "See #12" is not a call. A question that fits in one line gets one line and its recommendation, and "yes" answers it. (2026-11-18: "when we plan spec next time instead of telling me to look at question in issue summarize to me and ask me in chat too".)
 
 ### Call when
 
@@ -27,7 +29,7 @@ One message, in the grill-with-docs shape. Numbered questions, the ones that cha
 
 ### The return
 
-Quote a broad answer in one line, so they can correct the reading. Then finish. A question they repeat gets the answer on line 1, from the real constraint.
+Quote a broad answer in one line, so they can correct the reading. Then finish. A question they repeat gets the answer on line 1, from the real constraint. Write the return into the record yourself — the issue, the draft or the pull request. The owner answers once, in the chat.
 
 ## Decide without a call
 
