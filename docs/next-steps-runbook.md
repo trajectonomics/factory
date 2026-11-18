@@ -145,8 +145,8 @@ Each brief names four things: the reader, the one target, the test that measures
 - **Reader:** a developer deciding in ten seconds whether to try it.
 - **Target:** a stranger can say what the product is, run the install command, and every promise has a destination.
 - **The test:** the `site` playbook in [`docs/qa-runbook.md`](./qa-runbook.md#site) — status and `lang` per home, every `href` under 400, the noun-phrase test on `<title>` and `h1`, every promise quoted and checked against `latest` and a documentation page, and the install command run verbatim in `mktemp -d`.
-- **Copy rate:** `not instrumented`. The copy button in `site` writes no counter and `web-router` serves no `/go/*` count, and a Cloudflare dashboard is not readable by a pass. It becomes a number when the copy button sends one counter event and `web-router` serves the count at a URL; the QA check names the value while it is `not instrumented` and treats it as unmeasured.
-- **`web-router`:** serves `/`, and the `/go/*` counters once they exist.
+- **Copy rate:** `site_command_copied` ÷ `$pageview`, read through the PostHog MCP server from project `268299`, the project the Site and the Docs Portal share, with both events filtered to `surface` `site`. The copy is the prompt the window prints, and the event names are wire values that never rename. Copies are counted per Language home; pageviews per Language home and referrer. It is a number now and has no target yet: the QA check reports both counts, and the first numbers are the baseline a target would be set against. A thread with no PostHog MCP server reports `not measured`, never zero.
+- **`web-router`:** serves `/`.
 
 ### `cli`
 
