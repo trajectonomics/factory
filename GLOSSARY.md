@@ -23,7 +23,7 @@ A `ready-for-human` Ticket a Run files for work only a human can do, so the Run'
 _Avoid_: Todo, blocker ticket
 
 **Spec draft**:
-A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter makes its Owner calls in its own thread, never on the issue. It is Approval when the conditions in step 5 of its brief hold, and the drafter then labels the issue `ready-for-agent`. Otherwise the issue keeps its state and the drafter asks in its thread. There is no review label ([ADR 0010](./docs/adr/0010-retire-needs-spec-review.md)).
+A Spec written as one comment on an existing issue by the Spec Review loop, ending in Open Decisions with recommended answers. The drafter makes its Owner calls in its own thread, never on the issue, and says in that thread what the draft says, because the owner reads the thread and the issue is the record ([ADR 0024](./docs/adr/0024-the-owner-answers-questions-in-the-chat.md)). It is Approval when the conditions in step 5 of its brief hold, and the drafter then labels the issue `ready-for-agent`. Otherwise the issue keeps its state and the drafter asks in its thread. There is no review label ([ADR 0010](./docs/adr/0010-retire-needs-spec-review.md)).
 _Avoid_: Proposal, generated ticket
 
 **Owner call**:
@@ -31,7 +31,7 @@ One message to the owner that asks only what the owner alone can decide or do, w
 _Avoid_: Status update, survey, permission question, clarification
 
 **Owner question**:
-An Owner call a Spec drafter makes in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Mistral Large 4 high and Hydrogen medium, or their quota fallback) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted).
+An Owner call a Spec drafter makes in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Mistral Large 4 high and Hydrogen medium, or their quota fallback) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted). It is summarized so the owner answers from the chat; the issue keeps the record ([ADR 0024](./docs/adr/0024-the-owner-answers-questions-in-the-chat.md)).
 _Avoid_: Clarification, blocker
 
 **Open Decisions**:
@@ -169,6 +169,10 @@ _Avoid_: Triage (the five-label routine), approval
 **Learning**:
 A pull request opened by the nightly Learning job when the day's threads show friction, changing how the Factory works (runbook, skills, glossary, checks) so the friction does not recur. It merges itself when two independent reviews are clean ([ADR 0013](./docs/adr/0013-learning-prs-merge-themselves.md)).
 _Avoid_: Retro, post-mortem, lesson
+
+**Improvement**:
+A change to how the Factory works made in the session where the owner said it, from the owner's own words, on one pull request in this repository ([improvement runbook](./docs/improvement-runbook.md); [ADR 0025](./docs/adr/0025-an-improvement-pass-lands-the-owners-words.md)). Learning infers friction from the day's threads; an Improvement starts from what the owner said and lands while the session is open.
+_Avoid_: Feedback, tweak, quick fix
 
 ### Outcomes
 
