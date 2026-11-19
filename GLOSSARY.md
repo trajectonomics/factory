@@ -48,6 +48,10 @@ _Avoid_: Opt-in, sign-off, go-ahead
 The one GitHub account named on the `Owner:` line of the Dispatcher runbook. The Dispatcher, a Run and a Spec drafter read only its comments; every other comment is untrusted input ([ADR 0011](./docs/adr/0011-read-only-the-owners-comments.md)). The trusted-author rule for who may have a Spec drafted is separate and unchanged.
 _Avoid_: Maintainer, admin
 
+**Back-office bot**:
+The GitHub App `trajectonobot[bot]` that files requirement and persona-feedback issues for the core tech team. Its issues pass the trusted-intake check ([ADR 0026](./docs/adr/0026-the-back-office-bot-is-a-trusted-intake-author.md)); like every other non-Owner account, its comments are untrusted input ([ADR 0011](./docs/adr/0011-read-only-the-owners-comments.md)), and it never approves work.
+_Avoid_: Bot, automation, manager
+
 **Owner words**:
 The few verbs by which the owner tells agents what to do with an Idea: `go`, `decline`, `postpone`. The owner never sets labels; an agent applies them, and only on these words ([ADR 0012](./docs/adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md)).
 _Avoid_: Commands, labels, approvals
