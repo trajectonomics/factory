@@ -42,4 +42,4 @@ The adapter maps GitHub's `author_association` values onto `AuthorAssociation` a
 | `MANNEQUIN` | `mannequin` |
 | `NONE` | `none` |
 
-Any other value maps to `none`, so the intake Guard fails closed and keeps that issue out of the Spec pipeline.
+Any other value maps to `none`, so the intake Guard fails closed and keeps that issue out of Spec Review. For Spec-draft intake only, the Dispatcher also admits the back-office bot by its exact login `trajectonobot[bot]` ([ADR 0026](./adr/0026-the-back-office-bot-is-a-trusted-intake-author.md)); the Guard for comments still fails closed on `none`.
