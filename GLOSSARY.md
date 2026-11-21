@@ -151,23 +151,23 @@ _Avoid_: Smoke test, release review, go/no-go
 ### Ideas and learning
 
 **Goals**:
-The organisation's written purpose, kept as `GOALS.md` in `trajectonomics/goals`. The Next-step finder and Screening judge alignment against it, and agents never edit it.
+The organisation's written purpose, kept as `GOALS.md` in `trajectonomics/goals`. The Next-step finder and Screening judged alignment against it; both are frozen ([ADR 0027](./docs/adr/0027-the-idea-lane-is-frozen.md)), and agents never edit it.
 _Avoid_: Vision, strategy. The schedule is the Roadmap, not the Goals.
 
 **Roadmap**:
-The milestones, Initiatives and dates the owner keeps in the org Project, read by the Next-step finder and Screening as direction next to the Goals. It never decides what is Eligible and never reads `Status` ([ADR 0016](./docs/adr/0016-roadmap-is-read-from-the-org-project.md)).
+The milestones, Initiatives and dates the owner keeps in the org Project, read by the Next-step finder and Screening as direction next to the Goals. It never decides what is Eligible and never reads `Status` ([ADR 0016](./docs/adr/0016-roadmap-is-read-from-the-org-project.md)). A frozen lane reads it nowhere.
 _Avoid_: Plan, board, backlog
 
 **Idea**:
-An issue the Next-step finder files for a repository, carrying `idea`: a machine-made suggestion for what to do next that the owner has not read. It stays an Idea until Screening passes it or the owner speaks.
+An issue the Next-step finder files for a repository, carrying `idea`: a machine-made suggestion for what to do next that the owner has not read. It stays an Idea until Screening passes it or the owner speaks. No Idea is filed while the lane is frozen ([ADR 0027](./docs/adr/0027-the-idea-lane-is-frozen.md)).
 _Avoid_: Suggestion, proposal, feature request
 
 **Next-step finder**:
-The daily scheduled job that explores a rotating quarter of the repositories, has two other models review what it found, and files Ideas.
+The daily scheduled job that explored a rotating quarter of the repositories, had two other models review what it found, and filed Ideas. Frozen on 2026-11-21: its skill is removed and its task disabled ([ADR 0027](./docs/adr/0027-the-idea-lane-is-frozen.md)).
 _Avoid_: Brainstormer, roadmap generator
 
 **Screening**:
-The Dispatcher's judgement of an Idea against the Goals: either the Idea is low effort, aligned and unobjectionable and moves to `needs-triage`, or it becomes `idea-for-human` with the context the owner needs. Screening never declines.
+The Dispatcher's judgement of an Idea against the Goals: either the Idea is low effort, aligned and unobjectionable and moves to `needs-triage`, or it becomes `idea-for-human` with the context the owner needs. Screening never declines. Frozen with the finder ([ADR 0027](./docs/adr/0027-the-idea-lane-is-frozen.md)); an open Idea waits for the owner's word.
 _Avoid_: Triage (the five-label routine), approval
 
 **Learning**:

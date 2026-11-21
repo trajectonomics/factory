@@ -1,6 +1,6 @@
 # Next steps runbook
 
-How Ideas are found, screened and moved by the owner's word. The scheduled task "Factory Next Steps" fires at 12:00 Asia/Bangkok and reads this file from `origin/main` on every run. The Dispatcher's idea steps (dispatcher runbook, step 11) and the `human-go`, `human-decline`, `human-postpone` and `human-help` skills read the [Idea lifecycle](#idea-lifecycle) and [Owner words](#owner-words) sections from here, so a rule is changed here and nowhere else. Language is in [`GLOSSARY.md`](../GLOSSARY.md); the decision is [ADR 0012](./adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md).
+How Ideas are found, screened and moved by the owner's word. **The Idea lane is frozen** since 2026-11-21: the owner removed the `factory-next-steps` skill and disabled the "Factory Next Steps" task and both "Factory Surface" tasks ("let remove the next step skills first and stop the that routine I want to freeze the issue for now"), so [The finder](#the-finder) and [Screening](#screening) run nowhere and no Idea is filed or screened ([ADR 0027](./adr/0027-the-idea-lane-is-frozen.md)). The scheduled task "Factory Next Steps" fired at 12:00 Asia/Bangkok until then and read this file from `origin/main` on every run. What still reads this file is the Dispatcher's owner-word step (dispatcher runbook, step 11a) and the `human-go`, `human-decline`, `human-postpone` and `human-help` skills, which read the [Idea lifecycle](#idea-lifecycle) and [Owner words](#owner-words) sections, so a rule is changed here and nowhere else. Language is in [`GLOSSARY.md`](../GLOSSARY.md); the decisions are [ADR 0012](./adr/0012-ideas-are-screened-and-labels-follow-the-owners-word.md) and [ADR 0027](./adr/0027-the-idea-lane-is-frozen.md).
 
 ## Idea lifecycle
 
@@ -56,6 +56,8 @@ The nearest milestone is the earliest `dueOn` of today or later. A milestone who
 If the Project cannot be read (the scope is missing, or the Project is unreachable), carry on with the Goals alone and write "roadmap not read" in the Idea's `## Roadmap` section or in the Screening comment. `GOALS.md` stays the hard guard.
 
 ## The finder
+
+**Frozen.** No task runs this section ([ADR 0027](./adr/0027-the-idea-lane-is-frozen.md)). It stays as the rule a later pass restores by re-enabling its task, and this pass runs it by no hand.
 
 The scheduled thread is a launcher, like the Dispatcher. It does one run, then stops.
 
@@ -178,9 +180,11 @@ A Surface's pass is its own scheduled task: one launcher, one thread, one Surfac
 | --- | --- | --- |
 | `docs` | not registered | `idea/trajectonomics/docs` |
 | `site` | not registered | `idea/trajectonomics/site` |
-| `cli` | daily 15:00 Asia/Bangkok | `idea/trajectonomics/cli` |
-| `skills` | daily 16:00 Asia/Bangkok | `idea/trajectonomics/skills` |
+| `cli` | not registered | `idea/trajectonomics/cli` |
+| `skills` | not registered | `idea/trajectonomics/skills` |
 | `core` | not registered | `idea/trajectonomics/core` |
+
+All five are `not registered` while the lane is frozen: `cli` and `skills` read `daily 15:00` and `daily 16:00` until 2026-11-21, and [ADR 0027](./adr/0027-the-idea-lane-is-frozen.md) disabled those two tasks with the finder's. A cell goes back to a time in the same pull request that re-enables the task, as [ADR 0022](./adr/0022-a-surface-leaves-the-rotation-when-its-task-exists.md) decision 3 requires.
 
 The launcher is the finder's step 1 to step 5 with these differences:
 
@@ -197,7 +201,9 @@ Launch message (fill in and send):
 
 ## Screening
 
-The Dispatcher launches a screening thread for an Idea labelled `idea`, at most 3 per pass, in the order the [limits](#idea-lifecycle) say. The thread:
+**Frozen.** No screening thread launches while the Idea lane is frozen ([ADR 0027](./adr/0027-the-idea-lane-is-frozen.md)): the Dispatcher's step 11b is skipped, and the open Ideas wait for the owner's words alone.
+
+The Dispatcher launched a screening thread for an Idea labelled `idea`, at most 3 per pass, in the order the [limits](#idea-lifecycle) say. The thread:
 
 - `title`: `screen/trajectonomics/<repo>#<n>`; `clientRequestId`: `screen-<repo>-<n>-<yyyymmddhh>`;
 - `runtimeMode`: `full-access`; host as in the dispatcher runbook, step 7, in the repository's T3 project;
