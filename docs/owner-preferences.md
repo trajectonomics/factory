@@ -43,6 +43,12 @@ Quote a broad answer in one line, so they can correct the reading. Then finish. 
 - Fill every gap that is not the owner's before reporting one that is. When the ask is "guide me through this" and the real blocker is a fact only the owner holds (who they recruited, which day suits them), do the doable half first — write the template, pick and record the reversible default, look up the numbers — then ask for the one irreducible thing. A message that asks first and builds after spends the owner's attention on a queue that may never clear: `assist/growth-g1` was asked on 14 and 18 Nov for a weekly day and a cohort, the owner answered once ("not Thursday") and then went quiet, and both issues were still untouched on 20 Nov while three threads had come and gone. On 20 Nov the same group closed in one pass by setting the day from the checkpoint arithmetic, writing the invite and baseline, merging #17, and leaving exactly one question.
 - Do not build a wizard for a procedure the owner has already described. `wizard` is for a real dashboard, credential or browser step; an interactive bash script that asks for values the owner could have typed in the reply is a longer path to the same answer, and the 14 Nov `assist/growth-g1` wizard it produced under `~/.cache` was never run. Ask in the chat and write the answer into the record.
 
+## Never let the shell read a message
+
+Commit messages, pull-request bodies and issue comments are full of backticks, `$` and `**`. A body passed as an inline shell argument is expanded by bash first: `git commit -m "delete the `Ships in 0.2.0` line"` commits *"delete the  line"* and silently drops every backticked term, and a `** Ships in 0.2.0.**` fragment becomes a stray file named `**Ships`. On 2026-11-20 an Owner assistant amended, pushed, then force-pushed a message that had lost all of its quoted terms, and left a zero-byte `**Ships` in an otherwise clean checkout.
+
+Write the text to a file under `~/.cache/<slug>/` with a quoted heredoc (`<<'EOF'`, which expands nothing), then pass the file: `git commit -F`, `gh pr create --body-file`, `gh issue comment --body-file`. Check `git log -1 --format=%B` and `git status --porcelain` before pushing, and fix a lost term with `--amend` **before** the first push, never with `--force-with-lease` on a branch nobody has seen.
+
 ## Finish without a call
 
 - Run the loop to the end. No "Not done yet", and no stop for a small permission.
