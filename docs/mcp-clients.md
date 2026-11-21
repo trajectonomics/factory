@@ -33,7 +33,6 @@ Nothing here holds a secret, and no MCP configuration is committed to any reposi
 | OpenCode | In `~/.config/opencode/opencode.jsonc`, `mcp.mobbin = { "type": "remote", "url": "https://api.mobbin.com/mcp", "enabled": true }`, then `opencode mcp auth mobbin`. | The same entry with `headers.Authorization`, the shape of the existing `posthog` entry. | Entry added, sign-in pending. Confirmed. |
 | Codex | `codex plugin marketplace add mobbin/skills`, `codex plugin add mobbin@mobbin`, then `codex mcp login mobbin`. | `[mcp_servers.mobbin]` in `~/.codex/config.toml`; check the key names against Codex's current documentation first. | Not installed on the workstation. From Mobbin's guide. |
 | Gemini CLI | `gemini extensions install https://github.com/mobbin/skills`, then `/mcp auth mobbin` inside `gemini`. | `mcpServers.mobbin` in `~/.gemini/settings.json`; check the key names first. | Not installed on the workstation. From Mobbin's guide. |
-| Mistral Vibe | Mobbin gives no guide. Use its "Other clients" page: the URL above, Streamable HTTP, OAuth. | `[[mcp_servers]]` in `~/.vibe/config.toml` with `transport = "streamable-http"`; check the key names first. | Not configured: `~/.vibe/config.toml` has no MCP entry. |
 
 ### Signing Pi in without a browser on the host
 

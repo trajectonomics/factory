@@ -31,7 +31,7 @@ One message to the owner that asks only what the owner alone can decide or do, w
 _Avoid_: Status update, survey, permission question, clarification
 
 **Owner question**:
-An Owner call a Spec drafter makes in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Mistral Large 4 high and Hydrogen medium, or their quota fallback) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted). It is summarized so the owner answers from the chat; the issue keeps the record ([ADR 0024](./docs/adr/0024-the-owner-answers-questions-in-the-chat.md)).
+An Owner call a Spec drafter makes in its thread. It is asked only when the decision changes how the org works or is hard to undo, and two consultants (Hydrogen medium and Grok 4.7 high, or their quota fallback) disagree with the drafter or each other; every other decision the drafter takes itself and records as Decided (consulted). It is summarized so the owner answers from the chat; the issue keeps the record ([ADR 0024](./docs/adr/0024-the-owner-answers-questions-in-the-chat.md)).
 _Avoid_: Clarification, blocker
 
 **Open Decisions**:

@@ -4,8 +4,8 @@ import type { GateReviewEvidence } from "../gate"
 export const GATE_REVIEWS: readonly GateReviewEvidence[] = [
 	{
 		role: "Conformance Review",
-		provider: "mistral-vibe",
-		model: "mistral-large-4",
+		provider: "cursor",
+		model: "grok-4.7",
 		thread: "t3-thread://conformance-1",
 		verdict: "no findings",
 		findingsFixed: 2,
