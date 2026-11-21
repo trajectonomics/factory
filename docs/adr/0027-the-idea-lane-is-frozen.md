@@ -6,7 +6,7 @@ Accepted. The owner asked for it on 2026-11-21 in a T3 Code session: "let remove
 
 ## Context
 
-The Idea lane is the one lane that files work nobody asked for: the Next-step finder explores a quarter of the repositories a day, two models review what it found, and it files up to two Ideas per repository; Screening then decides whether each one goes to a Spec drafter or to the owner. It has been the org's most productive source of issues and the owner's largest reading queue: on 2026-11-21 19 Ideas were open, 12 of them `idea-for-human`, and the finder was filing more every day at 12:00 Asia/Bangkok, with `cli` and `skills` filing again at 15:00 and 16:00.
+The Idea lane is the one lane that files work nobody asked for: the Next-step finder explores a quarter of the repositories a day, two models review what it found, and it files up to two Ideas per repository; Screening then decides whether each one goes to a Spec drafter or to the owner. It has been the org's most productive source of issues and the owner's largest reading queue: on 2026-11-21 28 Ideas were open, 15 of them `idea-for-human`, and the finder was filing more every day at 12:00 Asia/Bangkok, with `cli` and `skills` filing again at 15:00 and 16:00.
 
 The same week the owner opened [factory#124](https://github.com/trajectonomics/factory/issues/124), a two-department pivot in which requirements arrive from the back-office bot instead of being invented by the Factory. While that Spec is unsettled, every Idea the finder files is a suggestion against a scope that is about to change, and every screening thread spends quota deciding whether to keep it.
 
@@ -24,13 +24,13 @@ The owner's instruction is to remove the skill first and stop the routine. That 
 ## Considered Options
 
 - **Keep the skill and rely on the disabled task.** Rejected by the owner's first word: "let remove the next step skills first". A skill whose task is off is a loaded gun in every thread's skill list, and the next assistant would offer to run it.
-- **Decline the 12 `idea-for-human` Ideas as part of the freeze.** Rejected: it destroys the owner's queue at the moment the queue is the input to their scope decision, and `wontfix` would stop the finder from ever proposing the same thing again if the lane is restored.
-- **Delete the runbook sections and the Idea labels too.** Rejected: the owner said "freeze the issue for now", and twelve of the open Ideas are waiting on a scope that is about to be decided. The label vocabulary, the Owner words and the Idea format are what a freeze has to keep.
+- **Decline the 15 `idea-for-human` Ideas as part of the freeze.** Rejected: it destroys the owner's queue at the moment the queue is the input to their scope decision, and `wontfix` would stop the finder from ever proposing the same thing again if the lane is restored.
+- **Delete the runbook sections and the Idea labels too.** Rejected: the owner said "freeze the issue for now", and fifteen of the open Ideas are waiting on a scope that is about to be decided. The label vocabulary, the Owner words and the Idea format are what a freeze has to keep.
 - **Freeze everything, including the Dispatcher.** Rejected: `factory#124` step 1 already says "freeze new Runs and drafts on the archive candidates", which is a different, narrower stop. The Dispatcher, Learning and QA read the same repository and keep running.
 
 ## Consequences
 
 - The daily 12:00, 15:00 and 16:00 DeepSeek threads stop, with their reviewer calls. The day keeps the Dispatcher every 6 hours, Learning at 00:00, QA at 18:00 and the launch check by hand.
-- Nothing refreshes Ideas, so the open 19 age: `idea` issues keep waiting for Screening that no longer runs, and the count against 12 and 24 stops moving. The Dispatcher's report still names the count, so the owner sees the queue in one line.
+- Nothing refreshes Ideas, so the 28 open Ideas age: they keep waiting for Screening that no longer runs, and the count against 12 and 24 stops moving. The Dispatcher's report still names the count, so the owner sees the queue in one line.
 - A restore is cheap because the freeze kept the rules: re-enable the three tasks and write the two cells back. What the owner decides in `factory#124` about the intake contract may make the finder's brief wrong rather than late, and that is a rewrite in the same pull request as the restore.
 - This ADR is the record a later pass reads before it proposes to "fix" the quiet: a frozen lane is a decision, not a failure, and a report that says "no Ideas filed today" is the intended state.
