@@ -41,6 +41,12 @@ Quote a broad answer in one line, so they can correct the reading. Then finish. 
 - Stay on this thread's job. Owner-only work in another repository is not yours to raise.
 - A name the Factory chooses for Trajectonomics is the company name. When a step would use a personal login or name, say so in the call and ask for the company one.
 
+## Never let the shell read a message
+
+Commit messages, pull-request bodies and issue comments are full of backticks, `$` and `**`. A body passed as an inline shell argument is expanded by bash first: `git commit -m "delete the `Ships in 0.2.0` line"` commits *"delete the  line"* and silently drops every backticked term, and a `** Ships in 0.2.0.**` fragment becomes a stray file named `**Ships`. On 2026-11-20 an Owner assistant amended, pushed, then force-pushed a message that had lost all of its quoted terms, and left a zero-byte `**Ships` in an otherwise clean checkout.
+
+Write the text to a file under `~/.cache/<slug>/` with a quoted heredoc (`<<'EOF'`, which expands nothing), then pass the file: `git commit -F`, `gh pr create --body-file`, `gh issue comment --body-file`. Check `git log -1 --format=%B` and `git status --porcelain` before pushing, and fix a lost term with `--amend` **before** the first push, never with `--force-with-lease` on a branch nobody has seen.
+
 ## Finish without a call
 
 - Run the loop to the end. No "Not done yet", and no stop for a small permission.
