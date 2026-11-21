@@ -1,4 +1,4 @@
-# ADR 0026: The Idea Lane Is Frozen
+# ADR 0027: The Idea Lane Is Frozen
 
 ## Status
 
